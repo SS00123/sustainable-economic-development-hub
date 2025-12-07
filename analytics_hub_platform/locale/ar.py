@@ -1,0 +1,175 @@
+"""
+Arabic Strings
+Sustainable Economic Development Analytics Hub
+Ministry of Economy and Planning
+
+Arabic language string dictionary.
+"""
+
+STRINGS_AR = {
+    # Application
+    "app_title": "مركز تحليلات التنمية الاقتصادية المستدامة",
+    "app_subtitle": "وزارة الاقتصاد والتخطيط",
+    "app_description": "رؤى مبنية على البيانات لسياسات التنمية المستدامة",
+    
+    # Navigation
+    "nav_home": "الرئيسية",
+    "nav_executive": "لوحة القيادة التنفيذية",
+    "nav_director": "لوحة المدير",
+    "nav_analyst": "لوحة المحلل",
+    "nav_sustainability": "اتجاهات الاستدامة",
+    "nav_data_quality": "جودة البيانات",
+    "nav_admin": "الإدارة",
+    "nav_help": "المساعدة",
+    "nav_settings": "الإعدادات",
+    
+    # Page Titles
+    "executive_title": "لوحة القيادة التنفيذية",
+    "executive_subtitle": "نظرة عامة استراتيجية لصناع القرار",
+    "director_title": "تحليلات المدير",
+    "director_subtitle": "تحليل الأداء التفصيلي",
+    "analyst_title": "تحليل البيانات",
+    "analyst_subtitle": "استكشاف شامل للبيانات",
+    "sustainability_title": "اتجاهات الاستدامة",
+    "sustainability_subtitle": "تتبع الأداء البيئي",
+    "data_quality_title": "لوحة جودة البيانات",
+    "data_quality_subtitle": "مراقبة اكتمال ودقة البيانات",
+    "admin_title": "وحدة الإدارة",
+    "admin_subtitle": "إعدادات النظام والإدارة",
+    
+    # Filters
+    "filter_year": "السنة",
+    "filter_quarter": "الربع",
+    "filter_region": "المنطقة",
+    "filter_language": "اللغة",
+    "filter_all": "الكل",
+    "filter_apply": "تطبيق الفلاتر",
+    "filter_reset": "إعادة تعيين",
+    
+    # Quarters
+    "q1": "الربع الأول",
+    "q2": "الربع الثاني",
+    "q3": "الربع الثالث",
+    "q4": "الربع الرابع",
+    
+    # KPI Labels
+    "kpi_sustainability_index": "مؤشر الاستدامة",
+    "kpi_co2_per_gdp": "ثاني أكسيد الكربون لكل ناتج محلي",
+    "kpi_co2_per_capita": "ثاني أكسيد الكربون للفرد",
+    "kpi_renewable_energy": "الطاقة المتجددة",
+    "kpi_green_investment": "الاستثمار الأخضر",
+    "kpi_energy_intensity": "كثافة الطاقة",
+    "kpi_water_efficiency": "كفاءة المياه",
+    "kpi_recycling_rate": "معدل إعادة التدوير",
+    "kpi_green_jobs": "الوظائف الخضراء",
+    "kpi_gdp_growth": "نمو الناتج المحلي",
+    "kpi_employment_rate": "معدل التوظيف",
+    "kpi_data_quality": "درجة جودة البيانات",
+    
+    # Status
+    "status_green": "على المسار الصحيح",
+    "status_amber": "يحتاج انتباه",
+    "status_red": "يتطلب إجراء",
+    "status_neutral": "بدون حالة",
+    
+    # Trends
+    "trend_up": "تصاعدي",
+    "trend_down": "تنازلي",
+    "trend_stable": "مستقر",
+    "trend_vs_previous": "مقارنة بالفترة السابقة",
+    
+    # Charts
+    "chart_title_trend": "الاتجاه عبر الزمن",
+    "chart_title_comparison": "مقارنة المناطق",
+    "chart_title_distribution": "التوزيع",
+    "chart_no_data": "لا توجد بيانات متاحة",
+    
+    # Tables
+    "table_year": "السنة",
+    "table_quarter": "الربع",
+    "table_region": "المنطقة",
+    "table_value": "القيمة",
+    "table_change": "التغيير",
+    "table_status": "الحالة",
+    "table_showing": "عرض",
+    "table_of": "من",
+    "table_records": "سجلات",
+    
+    # Export
+    "export_title": "تصدير البيانات",
+    "export_pdf": "تصدير إلى PDF",
+    "export_ppt": "تصدير إلى PowerPoint",
+    "export_excel": "تصدير إلى Excel",
+    "export_csv": "تصدير إلى CSV",
+    "export_success": "تم التصدير بنجاح",
+    "export_error": "فشل التصدير",
+    
+    # Actions
+    "action_refresh": "تحديث",
+    "action_download": "تحميل",
+    "action_print": "طباعة",
+    "action_share": "مشاركة",
+    "action_save": "حفظ",
+    "action_cancel": "إلغاء",
+    "action_close": "إغلاق",
+    "action_view_details": "عرض التفاصيل",
+    "action_expand": "توسيع",
+    "action_collapse": "طي",
+    
+    # Messages
+    "msg_loading": "جاري التحميل...",
+    "msg_no_data": "لا توجد بيانات متاحة",
+    "msg_error": "حدث خطأ",
+    "msg_success": "تمت العملية بنجاح",
+    "msg_warning": "تحذير",
+    "msg_info": "معلومات",
+    
+    # Data Quality
+    "dq_completeness": "الاكتمال",
+    "dq_accuracy": "الدقة",
+    "dq_timeliness": "التوقيت",
+    "dq_consistency": "الاتساق",
+    "dq_missing_values": "القيم المفقودة",
+    "dq_outliers": "القيم الشاذة المكتشفة",
+    "dq_last_update": "آخر تحديث",
+    
+    # Admin
+    "admin_users": "المستخدمون",
+    "admin_roles": "الأدوار",
+    "admin_tenants": "المستأجرون",
+    "admin_kpis": "إدارة مؤشرات الأداء",
+    "admin_settings": "إعدادات النظام",
+    "admin_logs": "سجلات النشاط",
+    
+    # Help
+    "help_title": "المساعدة والتوثيق",
+    "help_getting_started": "البدء",
+    "help_faq": "الأسئلة الشائعة",
+    "help_contact": "الاتصال بالدعم",
+    
+    # Footer
+    "footer_copyright": "© 2024 وزارة الاقتصاد والتخطيط",
+    "footer_prepared_by": "إعداد",
+    "footer_version": "الإصدار",
+    
+    # Regions
+    "region_riyadh": "الرياض",
+    "region_eastern": "المنطقة الشرقية",
+    "region_makkah": "مكة المكرمة",
+    "region_madinah": "المدينة المنورة",
+    "region_qassim": "القصيم",
+    "region_asir": "عسير",
+    "region_tabuk": "تبوك",
+    "region_hail": "حائل",
+    "region_northern": "الحدود الشمالية",
+    "region_jazan": "جازان",
+    "region_najran": "نجران",
+    "region_bahah": "الباحة",
+    "region_jawf": "الجوف",
+    
+    # Accessibility
+    "a11y_skip_to_content": "تخطي إلى المحتوى الرئيسي",
+    "a11y_menu_toggle": "تبديل قائمة التنقل",
+    "a11y_language_switch": "تبديل اللغة",
+    "a11y_theme_toggle": "تبديل السمة",
+}

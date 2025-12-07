@@ -1,0 +1,555 @@
+# KPI Catalog - Sustainable Economic Development Analytics Hub
+# Ministry of Economy and Planning - Kingdom of Saudi Arabia
+#
+# This catalog defines all KPIs, their metadata, thresholds, and weights
+# for the sustainability and economic development indices.
+#
+# Extension Point: Add new KPIs here following the same structure.
+# The platform will automatically pick them up in views and calculations.
+
+metadata:
+  version: "1.0.0"
+  last_updated: "2024-12-01"
+  author: "Eng. Sultan Albuqami"
+  description: "KPI definitions for economic development and sustainability indicators"
+
+categories:
+  - id: economic
+    name_en: "Economic Indicators"
+    name_ar: "المؤشرات الاقتصادية"
+    icon: "📊"
+    
+  - id: environmental
+    name_en: "Environmental Indicators"
+    name_ar: "المؤشرات البيئية"
+    icon: "🌿"
+    
+  - id: social
+    name_en: "Social & Digital Indicators"
+    name_ar: "المؤشرات الاجتماعية والرقمية"
+    icon: "👥"
+    
+  - id: labor
+    name_en: "Labor & Skills"
+    name_ar: "العمالة والمهارات"
+    icon: "💼"
+    
+  - id: composite
+    name_en: "Composite Indices"
+    name_ar: "المؤشرات المركبة"
+    icon: "🎯"
+    
+  - id: data_quality
+    name_en: "Data Quality"
+    name_ar: "جودة البيانات"
+    icon: "✓"
+
+kpis:
+  # ============================================
+  # ECONOMIC INDICATORS
+  # ============================================
+  
+  - id: gdp_growth
+    display_name_en: "GDP Growth"
+    display_name_ar: "نمو الناتج المحلي"
+    description_en: "Year-over-year percentage change in Gross Domestic Product"
+    description_ar: "التغير السنوي في الناتج المحلي الإجمالي"
+    formula_human_readable: "(GDP_current - GDP_previous) / GDP_previous × 100"
+    unit: "%"
+    higher_is_better: true
+    category: economic
+    min_value: -10.0
+    max_value: 15.0
+    thresholds:
+      green_min: 3.0
+      green_max: 15.0
+      amber_min: 1.0
+      amber_max: 3.0
+      red_min: -10.0
+      red_max: 1.0
+    default_weight_in_sustainability_index: 0.0
+
+  - id: gdp_total
+    display_name_en: "Total GDP"
+    display_name_ar: "إجمالي الناتج المحلي"
+    description_en: "Total Gross Domestic Product in million SAR"
+    description_ar: "إجمالي الناتج المحلي بالمليون ريال"
+    formula_human_readable: "Sum of all economic output"
+    unit: "M SAR"
+    higher_is_better: true
+    category: economic
+    min_value: 0
+    max_value: 5000000
+    thresholds:
+      green_min: 100000
+      green_max: 5000000
+      amber_min: 50000
+      amber_max: 100000
+      red_min: 0
+      red_max: 50000
+    default_weight_in_sustainability_index: 0.0
+
+  - id: foreign_investment
+    display_name_en: "Foreign Direct Investment"
+    display_name_ar: "الاستثمار الأجنبي المباشر"
+    description_en: "Foreign Direct Investment inflows in million SAR"
+    description_ar: "تدفقات الاستثمار الأجنبي المباشر بالمليون ريال"
+    formula_human_readable: "Total FDI inflows"
+    unit: "M SAR"
+    higher_is_better: true
+    category: economic
+    min_value: 0
+    max_value: 100000
+    thresholds:
+      green_min: 5000
+      green_max: 100000
+      amber_min: 2000
+      amber_max: 5000
+      red_min: 0
+      red_max: 2000
+    default_weight_in_sustainability_index: 0.0
+
+  - id: export_diversity_index
+    display_name_en: "Export Diversity Index"
+    display_name_ar: "مؤشر تنوع الصادرات"
+    description_en: "Measure of export portfolio diversification (0-100)"
+    description_ar: "مقياس تنوع محفظة الصادرات (0-100)"
+    formula_human_readable: "Herfindahl-Hirschman Index inverse, normalized"
+    unit: "index"
+    higher_is_better: true
+    category: economic
+    min_value: 0
+    max_value: 100
+    thresholds:
+      green_min: 60
+      green_max: 100
+      amber_min: 40
+      amber_max: 60
+      red_min: 0
+      red_max: 40
+    default_weight_in_sustainability_index: 0.05
+
+  - id: economic_complexity
+    display_name_en: "Economic Complexity Index"
+    display_name_ar: "مؤشر التعقيد الاقتصادي"
+    description_en: "Measure of economic sophistication and productive capabilities"
+    description_ar: "مقياس التطور الاقتصادي والقدرات الإنتاجية"
+    formula_human_readable: "Based on export basket complexity"
+    unit: "index"
+    higher_is_better: true
+    category: economic
+    min_value: -2.0
+    max_value: 2.0
+    thresholds:
+      green_min: 0.5
+      green_max: 2.0
+      amber_min: 0.0
+      amber_max: 0.5
+      red_min: -2.0
+      red_max: 0.0
+    default_weight_in_sustainability_index: 0.05
+
+  - id: population
+    display_name_en: "Population"
+    display_name_ar: "السكان"
+    description_en: "Total population (millions)"
+    description_ar: "إجمالي السكان (بالملايين)"
+    formula_human_readable: "Census or estimated population"
+    unit: "M"
+    higher_is_better: null
+    category: economic
+    min_value: 0
+    max_value: 50
+    thresholds: null
+    default_weight_in_sustainability_index: 0.0
+
+  # ============================================
+  # LABOR & SKILLS INDICATORS
+  # ============================================
+
+  - id: unemployment_rate
+    display_name_en: "Unemployment Rate"
+    display_name_ar: "معدل البطالة"
+    description_en: "Percentage of labor force that is unemployed"
+    description_ar: "نسبة القوى العاملة العاطلة عن العمل"
+    formula_human_readable: "Unemployed / Labor Force × 100"
+    unit: "%"
+    higher_is_better: false
+    category: labor
+    min_value: 0
+    max_value: 30
+    thresholds:
+      green_min: 0
+      green_max: 5
+      amber_min: 5
+      amber_max: 10
+      red_min: 10
+      red_max: 30
+    default_weight_in_sustainability_index: 0.0
+
+  - id: green_jobs
+    display_name_en: "Green Jobs"
+    display_name_ar: "الوظائف الخضراء"
+    description_en: "Number of jobs in green/sustainable sectors (thousands)"
+    description_ar: "عدد الوظائف في القطاعات الخضراء والمستدامة (بالآلاف)"
+    formula_human_readable: "Count of jobs in renewable energy, environmental services, etc."
+    unit: "K"
+    higher_is_better: true
+    category: labor
+    min_value: 0
+    max_value: 1000
+    thresholds:
+      green_min: 100
+      green_max: 1000
+      amber_min: 50
+      amber_max: 100
+      red_min: 0
+      red_max: 50
+    default_weight_in_sustainability_index: 0.10
+
+  - id: skills_gap_index
+    display_name_en: "Skills Gap Index"
+    display_name_ar: "مؤشر فجوة المهارات"
+    description_en: "Measure of mismatch between labor skills and market demands (0-100, lower is better)"
+    description_ar: "مقياس عدم التوافق بين مهارات العمالة ومتطلبات السوق"
+    formula_human_readable: "Composite of skills shortage surveys and labor market data"
+    unit: "index"
+    higher_is_better: false
+    category: labor
+    min_value: 0
+    max_value: 100
+    thresholds:
+      green_min: 0
+      green_max: 30
+      amber_min: 30
+      amber_max: 50
+      red_min: 50
+      red_max: 100
+    default_weight_in_sustainability_index: 0.0
+
+  # ============================================
+  # SOCIAL & DIGITAL INDICATORS
+  # ============================================
+
+  - id: social_progress_score
+    display_name_en: "Social Progress Score"
+    display_name_ar: "مؤشر التقدم الاجتماعي"
+    description_en: "Composite measure of social outcomes (0-100)"
+    description_ar: "مقياس مركب للنتائج الاجتماعية (0-100)"
+    formula_human_readable: "Weighted average of health, education, and quality of life metrics"
+    unit: "score"
+    higher_is_better: true
+    category: social
+    min_value: 0
+    max_value: 100
+    thresholds:
+      green_min: 70
+      green_max: 100
+      amber_min: 50
+      amber_max: 70
+      red_min: 0
+      red_max: 50
+    default_weight_in_sustainability_index: 0.0
+
+  - id: digital_readiness
+    display_name_en: "Digital Readiness Index"
+    display_name_ar: "مؤشر الجاهزية الرقمية"
+    description_en: "Measure of digital infrastructure and adoption (0-100)"
+    description_ar: "مقياس البنية التحتية الرقمية والتبني (0-100)"
+    formula_human_readable: "Composite of internet penetration, digital services, and e-government"
+    unit: "index"
+    higher_is_better: true
+    category: social
+    min_value: 0
+    max_value: 100
+    thresholds:
+      green_min: 70
+      green_max: 100
+      amber_min: 50
+      amber_max: 70
+      red_min: 0
+      red_max: 50
+    default_weight_in_sustainability_index: 0.0
+
+  - id: innovation_index
+    display_name_en: "Innovation Index"
+    display_name_ar: "مؤشر الابتكار"
+    description_en: "Measure of innovation capacity and outputs (0-100)"
+    description_ar: "مقياس القدرة على الابتكار والمخرجات (0-100)"
+    formula_human_readable: "Based on R&D spending, patents, and innovation ecosystem"
+    unit: "index"
+    higher_is_better: true
+    category: social
+    min_value: 0
+    max_value: 100
+    thresholds:
+      green_min: 50
+      green_max: 100
+      amber_min: 30
+      amber_max: 50
+      red_min: 0
+      red_max: 30
+    default_weight_in_sustainability_index: 0.0
+
+  # ============================================
+  # ENVIRONMENTAL / SUSTAINABILITY INDICATORS
+  # ============================================
+
+  - id: co2_index
+    display_name_en: "CO2 Intensity Index"
+    display_name_ar: "مؤشر كثافة ثاني أكسيد الكربون"
+    description_en: "Carbon intensity index (70-110 scale, lower is better)"
+    description_ar: "مؤشر كثافة الكربون (مقياس 70-110، الأقل أفضل)"
+    formula_human_readable: "Normalized CO2 emissions per unit of economic output"
+    unit: "index"
+    higher_is_better: false
+    category: environmental
+    min_value: 70
+    max_value: 130
+    thresholds:
+      green_min: 70
+      green_max: 85
+      amber_min: 85
+      amber_max: 100
+      red_min: 100
+      red_max: 130
+    default_weight_in_sustainability_index: 0.15
+
+  - id: co2_total
+    display_name_en: "Total CO2 Emissions"
+    display_name_ar: "إجمالي انبعاثات ثاني أكسيد الكربون"
+    description_en: "Total carbon dioxide emissions (million tons)"
+    description_ar: "إجمالي انبعاثات ثاني أكسيد الكربون (مليون طن)"
+    formula_human_readable: "Sum of all CO2 emissions"
+    unit: "MT"
+    higher_is_better: false
+    category: environmental
+    min_value: 0
+    max_value: 1000
+    thresholds:
+      green_min: 0
+      green_max: 100
+      amber_min: 100
+      amber_max: 200
+      red_min: 200
+      red_max: 1000
+    default_weight_in_sustainability_index: 0.0
+
+  - id: renewable_share
+    display_name_en: "Renewable Energy Share"
+    display_name_ar: "حصة الطاقة المتجددة"
+    description_en: "Percentage of energy from renewable sources"
+    description_ar: "نسبة الطاقة من المصادر المتجددة"
+    formula_human_readable: "Renewable Energy / Total Energy × 100"
+    unit: "%"
+    higher_is_better: true
+    category: environmental
+    min_value: 0
+    max_value: 100
+    thresholds:
+      green_min: 30
+      green_max: 100
+      amber_min: 15
+      amber_max: 30
+      red_min: 0
+      red_max: 15
+    default_weight_in_sustainability_index: 0.15
+
+  - id: energy_intensity
+    display_name_en: "Energy Intensity"
+    display_name_ar: "كثافة الطاقة"
+    description_en: "Energy consumption per unit of GDP (MJ per SAR)"
+    description_ar: "استهلاك الطاقة لكل وحدة من الناتج المحلي"
+    formula_human_readable: "Total Energy Consumption / GDP"
+    unit: "MJ/SAR"
+    higher_is_better: false
+    category: environmental
+    min_value: 0
+    max_value: 20
+    thresholds:
+      green_min: 0
+      green_max: 5
+      amber_min: 5
+      amber_max: 10
+      red_min: 10
+      red_max: 20
+    default_weight_in_sustainability_index: 0.10
+
+  - id: water_efficiency
+    display_name_en: "Water Efficiency Index"
+    display_name_ar: "مؤشر كفاءة المياه"
+    description_en: "Water use efficiency score (0-100)"
+    description_ar: "مؤشر كفاءة استخدام المياه (0-100)"
+    formula_human_readable: "Based on water productivity and conservation measures"
+    unit: "index"
+    higher_is_better: true
+    category: environmental
+    min_value: 0
+    max_value: 100
+    thresholds:
+      green_min: 70
+      green_max: 100
+      amber_min: 50
+      amber_max: 70
+      red_min: 0
+      red_max: 50
+    default_weight_in_sustainability_index: 0.10
+
+  - id: waste_recycling_rate
+    display_name_en: "Waste Recycling Rate"
+    display_name_ar: "معدل إعادة تدوير النفايات"
+    description_en: "Percentage of waste that is recycled"
+    description_ar: "نسبة النفايات المعاد تدويرها"
+    formula_human_readable: "Recycled Waste / Total Waste × 100"
+    unit: "%"
+    higher_is_better: true
+    category: environmental
+    min_value: 0
+    max_value: 100
+    thresholds:
+      green_min: 40
+      green_max: 100
+      amber_min: 20
+      amber_max: 40
+      red_min: 0
+      red_max: 20
+    default_weight_in_sustainability_index: 0.10
+
+  - id: forest_coverage
+    display_name_en: "Forest Coverage"
+    display_name_ar: "التغطية الحرجية"
+    description_en: "Percentage of land area covered by forests"
+    description_ar: "نسبة مساحة الأراضي المغطاة بالغابات"
+    formula_human_readable: "Forest Area / Total Land Area × 100"
+    unit: "%"
+    higher_is_better: true
+    category: environmental
+    min_value: 0
+    max_value: 100
+    thresholds:
+      green_min: 10
+      green_max: 100
+      amber_min: 5
+      amber_max: 10
+      red_min: 0
+      red_max: 5
+    default_weight_in_sustainability_index: 0.05
+
+  - id: air_quality_index
+    display_name_en: "Air Quality Index"
+    display_name_ar: "مؤشر جودة الهواء"
+    description_en: "Air quality index (0-500, lower is better)"
+    description_ar: "مؤشر جودة الهواء (0-500، الأقل أفضل)"
+    formula_human_readable: "Based on PM2.5, PM10, O3, NO2, SO2, CO concentrations"
+    unit: "AQI"
+    higher_is_better: false
+    category: environmental
+    min_value: 0
+    max_value: 500
+    thresholds:
+      green_min: 0
+      green_max: 50
+      amber_min: 50
+      amber_max: 100
+      red_min: 100
+      red_max: 500
+    default_weight_in_sustainability_index: 0.10
+
+  # ============================================
+  # DERIVED & COMPOSITE INDICATORS
+  # ============================================
+
+  - id: co2_per_gdp
+    display_name_en: "CO2 per GDP"
+    display_name_ar: "ثاني أكسيد الكربون لكل وحدة ناتج"
+    description_en: "CO2 emissions per million SAR of GDP"
+    description_ar: "انبعاثات ثاني أكسيد الكربون لكل مليون ريال من الناتج المحلي"
+    formula_human_readable: "CO2 Total / GDP Total"
+    unit: "tons/M SAR"
+    higher_is_better: false
+    category: environmental
+    min_value: 0
+    max_value: 100
+    thresholds:
+      green_min: 0
+      green_max: 20
+      amber_min: 20
+      amber_max: 40
+      red_min: 40
+      red_max: 100
+    default_weight_in_sustainability_index: 0.0
+
+  - id: co2_per_capita
+    display_name_en: "CO2 per Capita"
+    display_name_ar: "ثاني أكسيد الكربون للفرد"
+    description_en: "CO2 emissions per capita (tons per person)"
+    description_ar: "انبعاثات ثاني أكسيد الكربون للفرد (طن لكل شخص)"
+    formula_human_readable: "CO2 Total / Population"
+    unit: "tons/capita"
+    higher_is_better: false
+    category: environmental
+    min_value: 0
+    max_value: 50
+    thresholds:
+      green_min: 0
+      green_max: 5
+      amber_min: 5
+      amber_max: 15
+      red_min: 15
+      red_max: 50
+    default_weight_in_sustainability_index: 0.0
+
+  - id: data_quality_score
+    display_name_en: "Data Quality Score"
+    display_name_ar: "مؤشر جودة البيانات"
+    description_en: "Composite data quality score (0-100)"
+    description_ar: "مؤشر جودة البيانات المركب (0-100)"
+    formula_human_readable: "Based on completeness, timeliness, accuracy, and consistency"
+    unit: "score"
+    higher_is_better: true
+    category: data_quality
+    min_value: 0
+    max_value: 100
+    thresholds:
+      green_min: 80
+      green_max: 100
+      amber_min: 60
+      amber_max: 80
+      red_min: 0
+      red_max: 60
+    default_weight_in_sustainability_index: 0.0
+
+  - id: sustainability_index
+    display_name_en: "Sustainability Index"
+    display_name_ar: "مؤشر الاستدامة"
+    description_en: "Composite sustainability and development index (0-100)"
+    description_ar: "مؤشر الاستدامة والتنمية المركب (0-100)"
+    formula_human_readable: "Weighted average of environmental and green economy indicators"
+    unit: "index"
+    higher_is_better: true
+    category: composite
+    min_value: 0
+    max_value: 100
+    thresholds:
+      green_min: 70
+      green_max: 100
+      amber_min: 50
+      amber_max: 70
+      red_min: 0
+      red_max: 50
+    default_weight_in_sustainability_index: 0.0
+
+# Weight normalization note:
+# The default weights sum to 1.0:
+# - co2_index: 0.15
+# - renewable_share: 0.15
+# - energy_intensity: 0.10
+# - water_efficiency: 0.10
+# - waste_recycling_rate: 0.10
+# - air_quality_index: 0.10
+# - forest_coverage: 0.05
+# - green_jobs: 0.10
+# - export_diversity_index: 0.05
+# - economic_complexity: 0.05
+# - (Reserve for future): 0.05
+# Total: 1.00

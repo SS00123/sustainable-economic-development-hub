@@ -1,0 +1,175 @@
+"""
+English Strings
+Sustainable Economic Development Analytics Hub
+Ministry of Economy and Planning
+
+English language string dictionary.
+"""
+
+STRINGS_EN = {
+    # Application
+    "app_title": "Sustainable Economic Development Analytics Hub",
+    "app_subtitle": "Ministry of Economy and Planning",
+    "app_description": "Data-driven insights for sustainable development policy",
+    
+    # Navigation
+    "nav_home": "Home",
+    "nav_executive": "Executive Dashboard",
+    "nav_director": "Director Dashboard",
+    "nav_analyst": "Analyst Dashboard",
+    "nav_sustainability": "Sustainability Trends",
+    "nav_data_quality": "Data Quality",
+    "nav_admin": "Administration",
+    "nav_help": "Help",
+    "nav_settings": "Settings",
+    
+    # Page Titles
+    "executive_title": "Executive Dashboard",
+    "executive_subtitle": "Strategic Overview for Decision Makers",
+    "director_title": "Director Analytics",
+    "director_subtitle": "Detailed Performance Analysis",
+    "analyst_title": "Data Analysis",
+    "analyst_subtitle": "Comprehensive Data Exploration",
+    "sustainability_title": "Sustainability Trends",
+    "sustainability_subtitle": "Environmental Performance Tracking",
+    "data_quality_title": "Data Quality Dashboard",
+    "data_quality_subtitle": "Monitoring Data Completeness and Accuracy",
+    "admin_title": "Administration Console",
+    "admin_subtitle": "System Configuration and Management",
+    
+    # Filters
+    "filter_year": "Year",
+    "filter_quarter": "Quarter",
+    "filter_region": "Region",
+    "filter_language": "Language",
+    "filter_all": "All",
+    "filter_apply": "Apply Filters",
+    "filter_reset": "Reset",
+    
+    # Quarters
+    "q1": "Q1",
+    "q2": "Q2",
+    "q3": "Q3",
+    "q4": "Q4",
+    
+    # KPI Labels
+    "kpi_sustainability_index": "Sustainability Index",
+    "kpi_co2_per_gdp": "CO₂ per GDP",
+    "kpi_co2_per_capita": "CO₂ per Capita",
+    "kpi_renewable_energy": "Renewable Energy",
+    "kpi_green_investment": "Green Investment",
+    "kpi_energy_intensity": "Energy Intensity",
+    "kpi_water_efficiency": "Water Efficiency",
+    "kpi_recycling_rate": "Recycling Rate",
+    "kpi_green_jobs": "Green Jobs",
+    "kpi_gdp_growth": "GDP Growth",
+    "kpi_employment_rate": "Employment Rate",
+    "kpi_data_quality": "Data Quality Score",
+    
+    # Status
+    "status_green": "On Track",
+    "status_amber": "Needs Attention",
+    "status_red": "Action Required",
+    "status_neutral": "No Status",
+    
+    # Trends
+    "trend_up": "Increasing",
+    "trend_down": "Decreasing",
+    "trend_stable": "Stable",
+    "trend_vs_previous": "vs previous period",
+    
+    # Charts
+    "chart_title_trend": "Trend Over Time",
+    "chart_title_comparison": "Regional Comparison",
+    "chart_title_distribution": "Distribution",
+    "chart_no_data": "No data available",
+    
+    # Tables
+    "table_year": "Year",
+    "table_quarter": "Quarter",
+    "table_region": "Region",
+    "table_value": "Value",
+    "table_change": "Change",
+    "table_status": "Status",
+    "table_showing": "Showing",
+    "table_of": "of",
+    "table_records": "records",
+    
+    # Export
+    "export_title": "Export Data",
+    "export_pdf": "Export to PDF",
+    "export_ppt": "Export to PowerPoint",
+    "export_excel": "Export to Excel",
+    "export_csv": "Export to CSV",
+    "export_success": "Export completed successfully",
+    "export_error": "Export failed",
+    
+    # Actions
+    "action_refresh": "Refresh",
+    "action_download": "Download",
+    "action_print": "Print",
+    "action_share": "Share",
+    "action_save": "Save",
+    "action_cancel": "Cancel",
+    "action_close": "Close",
+    "action_view_details": "View Details",
+    "action_expand": "Expand",
+    "action_collapse": "Collapse",
+    
+    # Messages
+    "msg_loading": "Loading...",
+    "msg_no_data": "No data available",
+    "msg_error": "An error occurred",
+    "msg_success": "Operation successful",
+    "msg_warning": "Warning",
+    "msg_info": "Information",
+    
+    # Data Quality
+    "dq_completeness": "Completeness",
+    "dq_accuracy": "Accuracy",
+    "dq_timeliness": "Timeliness",
+    "dq_consistency": "Consistency",
+    "dq_missing_values": "Missing Values",
+    "dq_outliers": "Outliers Detected",
+    "dq_last_update": "Last Updated",
+    
+    # Admin
+    "admin_users": "Users",
+    "admin_roles": "Roles",
+    "admin_tenants": "Tenants",
+    "admin_kpis": "KPI Management",
+    "admin_settings": "System Settings",
+    "admin_logs": "Activity Logs",
+    
+    # Help
+    "help_title": "Help & Documentation",
+    "help_getting_started": "Getting Started",
+    "help_faq": "FAQ",
+    "help_contact": "Contact Support",
+    
+    # Footer
+    "footer_copyright": "© 2024 Ministry of Economy and Planning",
+    "footer_prepared_by": "Prepared by",
+    "footer_version": "Version",
+    
+    # Regions
+    "region_riyadh": "Riyadh",
+    "region_eastern": "Eastern Province",
+    "region_makkah": "Makkah",
+    "region_madinah": "Madinah",
+    "region_qassim": "Qassim",
+    "region_asir": "Asir",
+    "region_tabuk": "Tabuk",
+    "region_hail": "Hail",
+    "region_northern": "Northern Borders",
+    "region_jazan": "Jazan",
+    "region_najran": "Najran",
+    "region_bahah": "Al-Bahah",
+    "region_jawf": "Al-Jawf",
+    
+    # Accessibility
+    "a11y_skip_to_content": "Skip to main content",
+    "a11y_menu_toggle": "Toggle navigation menu",
+    "a11y_language_switch": "Switch language",
+    "a11y_theme_toggle": "Toggle theme",
+}
