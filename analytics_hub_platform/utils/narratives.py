@@ -6,11 +6,72 @@ Ministry of Economy and Planning
 Generates human-readable narratives and insights from data.
 """
 
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Union
 from datetime import datetime
 import pandas as pd
 
 from analytics_hub_platform.domain.models import KPIStatus, DashboardSummary
+
+
+# =============================================================================
+# HELPER FUNCTIONS
+# =============================================================================
+
+def _plural(n: int, singular: str, plural: str) -> str:
+    """Return singular or plural form based on count."""
+    return singular if n == 1 else plural
+
+
+def _get_item_name(item: Dict[str, Any]) -> str:
+    """
+    Get display name from an item dict, supporting multiple key formats.
+    
+    Args:
+        item: Dictionary that may contain display_name, name, or kpi_name
+        
+    Returns:
+        The best available name, or 'Unknown' if none found
+    """
+    return (
+        item.get("display_name")
+        or item.get("name")
+        or item.get("kpi_name")
+        or "Unknown"
+    )
+
+
+def _get_item_value(item: Dict[str, Any]) -> float:
+    """
+    Get value from an item dict, supporting multiple key formats.
+    
+    Args:
+        item: Dictionary that may contain change_percent, value, or achievement
+        
+    Returns:
+        The best available value, or 0.0 if none found
+    """
+    value = (
+        item.get("change_percent")
+        or item.get("value")
+        or item.get("achievement")
+        or 0.0
+    )
+    return float(value) if value is not None else 0.0
+
+
+def _format_signed_percent(value: float) -> str:
+    """Format a value as a signed percentage string."""
+    if value > 0:
+        return f"+{value:.1f}%"
+    elif value < 0:
+        return f"{value:.1f}%"
+    else:
+        return "0.0%"
+
+
+# =============================================================================
+# MAIN NARRATIVE GENERATORS
+# =============================================================================
 
 
 def generate_narrative(
@@ -32,76 +93,374 @@ def generate_narrative(
     return _generate_english_narrative(summary)
 
 
-def _generate_english_narrative(summary: DashboardSummary) -> str:
-    """Generate English narrative."""
+def generate_executive_narrative(
+    snapshot: Any,
+    language: str = "en",
+) -> str:
+    """
+    Generate executive narrative from executive snapshot data.
+    
+    This is an alias for generate_narrative that accepts
+    the snapshot dictionary from get_executive_snapshot().
+    
+    Args:
+        snapshot: Dictionary or object with summary data
+        language: Language code (en/ar)
+    
+    Returns:
+        Narrative text
+    """
+    # Convert snapshot to DashboardSummary if it's a dict
+    if isinstance(snapshot, dict):
+        # Extract metrics to count statuses
+        metrics = snapshot.get("metrics", {})
+        total = len(metrics)
+        on_target = sum(1 for m in metrics.values() if m.get("status") == "green")
+        warning = sum(1 for m in metrics.values() if m.get("status") == "amber")
+        critical = sum(1 for m in metrics.values() if m.get("status") == "red")
+        
+        # Count improvements and declines
+        improvements = snapshot.get("top_improvements", [])
+        deteriorations = snapshot.get("top_deteriorations", [])
+        
+        # Get sustainability index
+        sustainability_index = None
+        if "sustainability_index" in metrics:
+            sustainability_index = metrics["sustainability_index"].get("value")
+        
+        summary = DashboardSummary(
+            total_indicators=total,
+            on_target_count=on_target,
+            warning_count=warning,
+            critical_count=critical,
+            improving_count=len(improvements),
+            declining_count=len(deteriorations),
+            average_achievement=0.0,
+            sustainability_index=sustainability_index,
+            top_performers=improvements,
+            attention_needed=deteriorations,
+            period=snapshot.get("period", ""),
+        )
+        summary.calculate_percentages()
+    elif isinstance(snapshot, DashboardSummary):
+        summary = snapshot
+    else:
+        # Try to use as-is (duck typing)
+        summary = snapshot
+    
+    return generate_narrative(summary, language)
+
+
+def generate_director_narrative(
+    snapshot: Any,
+    language: str = "en",
+) -> str:
+    """
+    Generate director-level narrative with more operational detail.
+    
+    Args:
+        snapshot: Dictionary or DashboardSummary with summary data
+        language: Language code (en/ar)
+    
+    Returns:
+        Narrative text for director view
+    """
+    # Convert snapshot to DashboardSummary if needed
+    if isinstance(snapshot, dict):
+        # Extract metrics to count statuses
+        metrics = snapshot.get("metrics", {})
+        total = len(metrics)
+        on_target = sum(1 for m in metrics.values() if m.get("status") == "green")
+        warning = sum(1 for m in metrics.values() if m.get("status") == "amber")
+        critical = sum(1 for m in metrics.values() if m.get("status") == "red")
+        
+        # Count improvements and declines
+        improvements = snapshot.get("top_improvements", [])
+        deteriorations = snapshot.get("top_deteriorations", [])
+        
+        # Get sustainability index
+        sustainability_index = None
+        if "sustainability_index" in metrics:
+            sustainability_index = metrics["sustainability_index"].get("value")
+        
+        summary = DashboardSummary(
+            total_indicators=total,
+            on_target_count=on_target,
+            warning_count=warning,
+            critical_count=critical,
+            improving_count=len(improvements),
+            declining_count=len(deteriorations),
+            average_achievement=0.0,
+            sustainability_index=sustainability_index,
+            top_performers=improvements,
+            attention_needed=deteriorations,
+            period=snapshot.get("period", ""),
+        )
+        summary.calculate_percentages()
+    elif isinstance(snapshot, DashboardSummary):
+        summary = snapshot
+    else:
+        summary = snapshot
+    
+    if language == "ar":
+        return _generate_arabic_director_narrative(summary)
+    return _generate_english_director_narrative(summary)
+
+
+def _generate_english_director_narrative(summary: DashboardSummary) -> str:
+    """Generate English director-level narrative with clear structure."""
     lines = []
     
-    # Opening statement
-    lines.append(f"**Sustainability Performance Overview**")
+    # Header
+    lines.append("**Operational Performance Summary**")
     lines.append("")
     
-    # Core metric
-    if summary.sustainability_index is not None:
-        index_val = summary.sustainability_index
-        if index_val >= 70:
-            assessment = "strong performance"
-        elif index_val >= 50:
-            assessment = "moderate progress"
-        else:
-            assessment = "areas requiring attention"
+    total = summary.total_indicators
+    if total > 0:
+        on_target_pct = (summary.on_target_count / total) * 100
+        warning_pct = (summary.warning_count / total) * 100
+        critical_pct = (summary.critical_count / total) * 100
         
+        # Use proper pluralization
+        ind_word = _plural(total, "indicator", "indicators")
         lines.append(
-            f"The current Sustainability Index stands at **{index_val:.1f}**, "
-            f"indicating {assessment} across measured dimensions."
+            f"Of **{total}** monitored {ind_word}: "
+            f"**{summary.on_target_count}** ({on_target_pct:.0f}%) on target, "
+            f"**{summary.warning_count}** ({warning_pct:.0f}%) {_plural(summary.warning_count, 'requires', 'require')} attention, "
+            f"**{summary.critical_count}** ({critical_pct:.0f}%) {_plural(summary.critical_count, 'is', 'are')} critical."
         )
         lines.append("")
     
-    # Period context
-    if summary.period:
-        lines.append(f"*Reporting Period: {summary.period}*")
+    # Improvement/decline summary with pluralization
+    if summary.improving_count > 0 or summary.declining_count > 0:
+        imp_word = _plural(summary.improving_count, "indicator", "indicators")
+        dec_word = _plural(summary.declining_count, "indicator", "indicators")
+        lines.append(
+            f"**{summary.improving_count}** {imp_word} improving, "
+            f"**{summary.declining_count}** {dec_word} declining."
+        )
         lines.append("")
     
-    # KPI highlights
-    if summary.kpis:
-        green_kpis = [k for k in summary.kpis if k.status == KPIStatus.GREEN]
-        amber_kpis = [k for k in summary.kpis if k.status == KPIStatus.AMBER]
-        red_kpis = [k for k in summary.kpis if k.status == KPIStatus.RED]
-        
-        if green_kpis:
-            lines.append(f"**Strengths:** {len(green_kpis)} indicators are on track, including:")
-            for kpi in green_kpis[:3]:
-                lines.append(f"  • {kpi.name}: {kpi.value} {kpi.unit}")
-            lines.append("")
-        
-        if amber_kpis:
-            lines.append(f"**Watch Areas:** {len(amber_kpis)} indicators require monitoring:")
-            for kpi in amber_kpis[:3]:
-                lines.append(f"  • {kpi.name}: {kpi.value} {kpi.unit}")
-            lines.append("")
-        
-        if red_kpis:
-            lines.append(f"**Action Required:** {len(red_kpis)} indicators need immediate attention:")
-            for kpi in red_kpis[:3]:
-                lines.append(f"  • {kpi.name}: {kpi.value} {kpi.unit}")
-            lines.append("")
+    # Top performers with proper name and value resolution
+    if summary.top_performers:
+        lines.append("**Top Performers:**")
+        for perf in summary.top_performers[:3]:
+            name = _get_item_name(perf)
+            value = _get_item_value(perf)
+            lines.append(f"- {name}: {_format_signed_percent(value)}")
+        lines.append("")
     
-    # Trend commentary
-    if hasattr(summary, "trend") and summary.trend:
-        trend = summary.trend
-        if trend > 0:
-            lines.append(f"Overall trend shows improvement of **{trend:.1f}%** compared to the previous period.")
-        elif trend < 0:
-            lines.append(f"Overall trend indicates a decline of **{abs(trend):.1f}%** from the previous period.")
+    # Needs attention with proper name and value resolution
+    if summary.attention_needed:
+        lines.append("**Needs Attention:**")
+        for item in summary.attention_needed[:3]:
+            name = _get_item_name(item)
+            value = _get_item_value(item)
+            lines.append(f"- {name}: {_format_signed_percent(value)}")
+    
+    return "\n".join(lines)
+
+
+def _generate_arabic_director_narrative(summary: DashboardSummary) -> str:
+    """Generate Arabic director-level narrative."""
+    lines = []
+    
+    lines.append("**ملخص الأداء التشغيلي**")
+    lines.append("")
+    
+    total = summary.total_indicators
+    if total > 0:
+        on_pct = (summary.on_target_count / total) * 100
+        warn_pct = (summary.warning_count / total) * 100
+        crit_pct = (summary.critical_count / total) * 100
+        lines.append(
+            f"من **{total}** مؤشر: "
+            f"**{summary.on_target_count}** ({on_pct:.0f}%) على المسار، "
+            f"**{summary.warning_count}** ({warn_pct:.0f}%) تتطلب اهتماماً، "
+            f"**{summary.critical_count}** ({crit_pct:.0f}%) حرجة."
+        )
+        lines.append("")
+    
+    if summary.improving_count > 0 or summary.declining_count > 0:
+        lines.append(f"**{summary.improving_count}** مؤشر في تحسن، **{summary.declining_count}** في تراجع.")
+    
+    return "\n".join(lines)
+
+
+def _generate_english_narrative(summary: DashboardSummary) -> str:
+    """Generate English executive narrative with clear paragraph structure."""
+    lines = []
+    
+    # === EXECUTIVE SUMMARY ===
+    lines.append("### 📊 Executive Summary")
+    lines.append("")
+    
+    # Sustainability Index with clear interpretation
+    if summary.sustainability_index is not None:
+        index_val = summary.sustainability_index
+        if index_val >= 70:
+            status_emoji = "🟢"
+            assessment = "**strong performance**"
+            action = "Continue current trajectory with focus on maintaining momentum."
+        elif index_val >= 50:
+            status_emoji = "🟡"
+            assessment = "**moderate progress**"
+            action = "Targeted interventions required in underperforming areas."
         else:
-            lines.append("Performance remains stable compared to the previous period.")
+            status_emoji = "🔴"
+            assessment = "**significant challenges**"
+            action = "Immediate strategic action required across multiple dimensions."
+        
+        lines.append(
+            f"{status_emoji} The **Sustainability Index** stands at **{index_val:.1f} points**, "
+            f"reflecting {assessment} across economic, environmental, and social dimensions."
+        )
         lines.append("")
     
-    # Regional insights
-    if hasattr(summary, "top_region") and summary.top_region:
-        lines.append(f"**Top Performing Region:** {summary.top_region}")
+    # Period context as metadata
+    if summary.period:
+        lines.append(f"📅 *Reporting Period: {summary.period}*")
+        lines.append("")
+        lines.append("---")
+        lines.append("")
     
-    if hasattr(summary, "bottom_region") and summary.bottom_region:
-        lines.append(f"**Region Needing Support:** {summary.bottom_region}")
+    # === PERFORMANCE DISTRIBUTION ===
+    if summary.total_indicators > 0:
+        lines.append("### 🎯 Performance Distribution")
+        lines.append("")
+        
+        total = summary.total_indicators
+        on_target_pct = (summary.on_target_count / total) * 100
+        warning_pct = (summary.warning_count / total) * 100
+        critical_pct = (summary.critical_count / total) * 100
+        
+        # Visual performance bar (text-based)
+        if summary.on_target_count > 0:
+            ind_word = _plural(summary.on_target_count, "indicator", "indicators")
+            lines.append(
+                f"🟢 **On Track** — **{summary.on_target_count}** {ind_word} ({on_target_pct:.0f}%) "
+                f"meeting or exceeding targets"
+            )
+            lines.append("")
+        
+        if summary.warning_count > 0:
+            ind_word = _plural(summary.warning_count, "indicator", "indicators")
+            lines.append(
+                f"🟡 **Monitoring Required** — **{summary.warning_count}** {ind_word} ({warning_pct:.0f}%) "
+                f"within acceptable range but below optimal"
+            )
+            lines.append("")
+        
+        if summary.critical_count > 0:
+            ind_word = _plural(summary.critical_count, "indicator", "indicators")
+            lines.append(
+                f"🔴 **Action Needed** — **{summary.critical_count}** {ind_word} ({critical_pct:.0f}%) "
+                f"require immediate corrective measures"
+            )
+            lines.append("")
+        
+        lines.append("---")
+        lines.append("")
+    
+    # === TREND ANALYSIS ===
+    if summary.improving_count > 0 or summary.declining_count > 0:
+        lines.append("### 📈 Trend Analysis")
+        lines.append("")
+        
+        imp_word = _plural(summary.improving_count, "indicator", "indicators")
+        dec_word = _plural(summary.declining_count, "indicator", "indicators")
+        
+        total_changing = summary.improving_count + summary.declining_count
+        
+        if summary.improving_count > summary.declining_count:
+            trend_emoji = "📈"
+            trend_assessment = "**Positive trajectory**"
+        elif summary.declining_count > summary.improving_count:
+            trend_emoji = "📉"
+            trend_assessment = "**Concerning trends**"
+        else:
+            trend_emoji = "↔️"
+            trend_assessment = "**Mixed dynamics**"
+        
+        lines.append(
+            f"{trend_emoji} {trend_assessment}: **{summary.improving_count}** {imp_word} showing improvement, "
+            f"while **{summary.declining_count}** {dec_word} experiencing decline."
+        )
+        lines.append("")
+        lines.append("---")
+        lines.append("")
+    
+    # === KEY HIGHLIGHTS ===
+    has_highlights = summary.top_performers or summary.attention_needed
+    if has_highlights:
+        lines.append("### 💡 Key Highlights")
+        lines.append("")
+    
+    # Top performers with context
+    if summary.top_performers:
+        lines.append("**🏆 Outstanding Performers**")
+        lines.append("")
+        for idx, item in enumerate(summary.top_performers[:3], 1):
+            name = _get_item_name(item)
+            value = _get_item_value(item)
+            
+            # Add achievement context
+            if value > 20:
+                context = " (exceptional growth)"
+            elif value > 10:
+                context = " (strong improvement)"
+            else:
+                context = ""
+            
+            lines.append(f"{idx}. **{name}**: {_format_signed_percent(value)}{context}")
+        lines.append("")
+    
+    # Areas needing attention with urgency
+    if summary.attention_needed:
+        lines.append("**⚠️ Priority Areas for Action**")
+        lines.append("")
+        for idx, item in enumerate(summary.attention_needed[:3], 1):
+            name = _get_item_name(item)
+            value = _get_item_value(item)
+            
+            # Add urgency context
+            abs_value = abs(value)
+            if abs_value > 15:
+                urgency = " — *High priority*"
+            elif abs_value > 8:
+                urgency = " — *Moderate priority*"
+            else:
+                urgency = ""
+            
+            lines.append(f"{idx}. **{name}**: {_format_signed_percent(value)}{urgency}")
+        lines.append("")
+    
+    # === STRATEGIC RECOMMENDATION ===
+    if summary.sustainability_index is not None:
+        lines.append("---")
+        lines.append("")
+        lines.append("### 🎯 Strategic Recommendation")
+        lines.append("")
+        
+        index_val = summary.sustainability_index
+        if index_val >= 70:
+            lines.append(
+                "✅ **Maintain and Optimize**: Current performance is strong. "
+                "Focus on sustaining gains, sharing best practices across lagging indicators, "
+                "and preparing for next-phase targets."
+            )
+        elif index_val >= 50:
+            lines.append(
+                "⚡ **Accelerate Progress**: Performance is on track but requires focused intervention. "
+                "Prioritize resources toward critical/warning indicators, establish quarterly review checkpoints, "
+                "and strengthen cross-ministerial coordination."
+            )
+        else:
+            lines.append(
+                "🚨 **Urgent Action Required**: Current trajectory requires immediate course correction. "
+                "Recommend establishing a task force to address critical indicators, "
+                "conducting root-cause analysis for declining metrics, and reallocating resources to high-impact interventions."
+            )
     
     return "\n".join(lines)
 
@@ -132,10 +491,11 @@ def _generate_arabic_narrative(summary: DashboardSummary) -> str:
         lines.append(f"*فترة التقرير: {summary.period}*")
         lines.append("")
     
-    if summary.kpis:
-        green_count = sum(1 for k in summary.kpis if k.status == KPIStatus.GREEN)
-        amber_count = sum(1 for k in summary.kpis if k.status == KPIStatus.AMBER)
-        red_count = sum(1 for k in summary.kpis if k.status == KPIStatus.RED)
+    # Use count fields instead of kpis list
+    if summary.total_indicators > 0:
+        green_count = summary.on_target_count
+        amber_count = summary.warning_count
+        red_count = summary.critical_count
         
         if green_count:
             lines.append(f"**نقاط القوة:** {green_count} مؤشرات على المسار الصحيح")

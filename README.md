@@ -4,21 +4,56 @@
 
 **Primary Client:** Ministry of Economy and Planning (Saudi Arabia)
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://your-app-url.streamlit.app)
+
+---
+
+## 🚀 Quick Start
+
+### ☁️ Deploy to Streamlit Community Cloud (Recommended)
+
+The fastest way to get started:
+
+1. **Fork this repository** to your GitHub account
+2. **Go to** [share.streamlit.io](https://share.streamlit.io)
+3. **Click** "New app" and select your forked repository
+4. **Deploy** with one click!
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions.
+
+### 💻 Run Locally
+
+```bash
+# Clone the repository
+git clone https://github.com/YOUR_USERNAME/analytics_hub_platform.git
+cd analytics_hub_platform
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the app
+streamlit run app.py
+```
+
+The app will open in your browser at `http://localhost:8501`
+
 ---
 
 ## Overview
 
 The Sustainable Economic Development Analytics Hub is a comprehensive analytics platform designed to provide executive dashboards, decision support tools, and data quality monitoring for macroeconomic, labor market, and environmental sustainability indicators.
 
-### Key Features
+### ✨ Key Features
 
-- **Executive Dashboard**: High-level KPIs with green/amber/red status indicators
-- **Director View**: Detailed analytics with regional comparisons and trend analysis
-- **Analyst View**: Raw data access, data quality metrics, and export capabilities
-- **Sustainability Index**: Composite 0-100 score combining environmental and development metrics
-- **Multi-language Support**: English and Arabic interfaces
-- **Export Capabilities**: PDF reports, PowerPoint presentations, and Excel workbooks
-- **API Layer**: RESTful API for integration with other ministry systems
+- **🎯 Unified Professional Dashboard**: Minister-level single-page view with all KPIs and analytics
+- **📊 Executive Insights**: Sustainability index with strategic recommendations
+- **🎨 Domain-Colored KPIs**: Color-coded indicators (Economic, Labor, Social, Environmental)
+- **📈 Trend Analysis**: Multi-KPI time-series charts with trend lines
+- **🗺️ Regional Comparison**: Performance across Saudi regions
+- **✅ Data Quality Monitoring**: Completeness and quality metrics
+- **🌐 Multi-language Support**: English and Arabic interfaces
+- **📑 Export Capabilities**: PDF reports, PowerPoint presentations, Excel workbooks
+- **🔒 Role-Based Access**: Executive, Director, and Analyst views
 
 ---
 
@@ -76,6 +111,25 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 
+### Setup
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd analytics_hub_platform
+```
+
+2. Create a virtual environment:
+```bash
+python -m venv .venv
+
+# Windows
+.venv\Scripts\activate
+
+# Linux/Mac
+source .venv/bin/activate
+```
+
 3. Install dependencies:
 ```bash
 pip install -r requirements.txt
@@ -83,8 +137,20 @@ pip install -r requirements.txt
 
 4. Initialize the database:
 ```bash
-python -c "from analytics_hub_platform.infrastructure.db_init import initialize_database; initialize_database()"
+python scripts/init_db.py
 ```
+
+---
+
+## Quick Start
+
+After completing setup, run the Streamlit dashboard:
+
+```bash
+streamlit run app.py
+```
+
+The dashboard will be available at `http://localhost:8501`
 
 ---
 
@@ -93,20 +159,31 @@ python -c "from analytics_hub_platform.infrastructure.db_init import initialize_
 ### Streamlit Dashboard
 
 ```bash
-streamlit run analytics_hub_platform/app.py
+streamlit run app.py
 ```
 
 The dashboard will be available at `http://localhost:8501`
 
-### FastAPI Backend
+### FastAPI Backend (Optional)
 
 ```bash
-uvicorn analytics_hub_platform.main_api:app --reload --port 8000
+uvicorn main_api:app --reload --port 8000
 ```
 
 The API will be available at `http://localhost:8000`
 
 API documentation: `http://localhost:8000/docs`
+
+### Running Tests
+
+```bash
+pytest
+```
+
+For coverage report:
+```bash
+pytest --cov=analytics_hub_platform --cov-report=html
+```
 
 ---
 

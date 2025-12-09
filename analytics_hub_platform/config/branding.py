@@ -103,3 +103,30 @@ def get_branding() -> Branding:
     if _branding_instance is None:
         _branding_instance = Branding()
     return _branding_instance
+
+
+# Convenience constant for backwards compatibility
+# Use BRANDING['key'] to access branding values as a dictionary
+def _get_branding_dict() -> dict:
+    """Get branding configuration as a dictionary."""
+    b = get_branding()
+    return {
+        "platform_name": b.platform_name,
+        "platform_name_ar": b.platform_name_ar,
+        "platform_short_name": b.platform_short_name,
+        "platform_version": b.platform_version,
+        "client_name": b.client_name,
+        "client_name_ar": b.client_name_ar,
+        "client_country": b.client_country,
+        "client_country_ar": b.client_country_ar,
+        "author_name": b.author_name,
+        "author_name_ar": b.author_name_ar,
+        "author_mobile": b.author_mobile,
+        "author_email": b.author_email,
+        "footer_text": b.footer_text,
+        "footer_text_ar": b.footer_text_ar,
+        "confidentiality_notice": b.confidentiality_notice,
+        "confidentiality_notice_ar": b.confidentiality_notice_ar,
+    }
+
+BRANDING = _get_branding_dict()

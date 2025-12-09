@@ -1,0 +1,7 @@
+# packages.txt
+# System-level dependencies for Streamlit Community Cloud
+# These will be installed via apt-get
+
+# Required for reportlab PDF generation
+libfreetype6-dev
+libffi-dev

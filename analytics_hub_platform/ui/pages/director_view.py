@@ -13,6 +13,7 @@ heads of analytics. It features:
 """
 
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -37,6 +38,7 @@ from analytics_hub_platform.domain.services import (
     get_regional_comparison,
 )
 from analytics_hub_platform.utils.narratives import generate_director_narrative
+from analytics_hub_platform.utils.kpi_utils import get_kpi_unit, get_delta_suffix
 from analytics_hub_platform.locale import get_strings
 
 
@@ -69,11 +71,17 @@ def render_director_view() -> None:
         )
         
         df = repo.get_all_indicators(settings.default_tenant_id)
-        snapshot = get_executive_snapshot(df, filter_params, filters.language)
-        sustainability = get_sustainability_summary(df, filter_params, filters.language)
+        snapshot = get_executive_snapshot(df, filter_params, filters.language) or {}
+        sustainability = get_sustainability_summary(df, filter_params, filters.language) or {}
         
     except Exception as e:
         st.error(f"Error loading data: {str(e)}")
+        return
+    
+    # Check for no data
+    if snapshot.get("status") == "no_data" or sustainability.get("status") == "no_data":
+        st.warning(f"⚠️ No data available for the selected period (Q{filters.quarter} {filters.year}) and region. Please select a different time period or region.")
+        render_footer(filters.language)
         return
     
     # Tabs for different analysis views
@@ -164,8 +172,8 @@ def render_overview_tab(snapshot: dict, sustainability: dict, theme, filters) ->
     col_left, col_right = st.columns([2, 1])
     
     with col_left:
-        narrative = generate_director_narrative(snapshot, sustainability, filters.language)
-        st.markdown(f"""
+        narrative = generate_director_narrative(snapshot, filters.language)
+        narrative_html = f"""
         <div style="
             background: {theme.colors.surface};
             border: 1px solid {theme.colors.border};
@@ -175,7 +183,8 @@ def render_overview_tab(snapshot: dict, sustainability: dict, theme, filters) ->
         ">
             {narrative}
         </div>
-        """, unsafe_allow_html=True)
+        """
+        components.html(narrative_html, height=300, scrolling=True)
     
     with col_right:
         # Quick stats
@@ -189,10 +198,11 @@ def render_overview_tab(snapshot: dict, sustainability: dict, theme, filters) ->
         st.markdown(f"**Improvements:** {len(improvements)}")
         st.markdown(f"**Deteriorations:** {len(deteriorations)}")
         
-        if sustainability.get("index"):
+        sus_index = sustainability.get("index")
+        if sus_index is not None:
             st.metric(
                 "Sustainability Index",
-                f"{sustainability['index']:.1f}",
+                f"{sus_index:.1f}",
                 delta=None,
             )
 
@@ -488,22 +498,3 @@ def render_sustainability_tab(sustainability: dict, df: pd.DataFrame, theme, fil
             if raw_value is not None:
                 st.markdown(f"{status_emoji} **{name}**")
                 st.markdown(f"   Value: {raw_value:.1f} {unit} (Weight: {weight:.0%})")
-
-
-def get_kpi_unit(kpi_id: str) -> str:
-    """Get display unit for a KPI."""
-    units = {
-        "gdp_growth": "%",
-        "gdp_total": "M SAR",
-        "foreign_investment": "M SAR",
-        "export_diversity_index": "",
-        "unemployment_rate": "%",
-        "green_jobs": "K",
-        "co2_index": "",
-        "renewable_share": "%",
-        "water_efficiency": "",
-        "air_quality_index": "AQI",
-        "data_quality_score": "",
-        "sustainability_index": "",
-    }
-    return units.get(kpi_id, "")

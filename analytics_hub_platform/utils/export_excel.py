@@ -315,3 +315,7 @@ def generate_multi_sheet_excel(
     buffer.seek(0)
     
     return buffer
+
+
+# Alias for backward compatibility
+export_to_excel = generate_excel_workbook

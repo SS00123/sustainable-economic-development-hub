@@ -263,7 +263,7 @@ def render_data_quality_tab(df: pd.DataFrame, theme, filters) -> None:
                 return f'background-color: {theme.colors.status_red_bg}'
         
         st.dataframe(
-            missing_df.style.applymap(
+            missing_df.style.map(
                 color_completeness,
                 subset=["Complete %"]
             ),

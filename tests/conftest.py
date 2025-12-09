@@ -109,7 +109,7 @@ def mock_settings():
     return Settings(
         environment="test",
         debug=True,
-        db_path=":memory:",
+        database_url="sqlite:///:memory:",
         default_tenant_id="test_tenant",
     )
 

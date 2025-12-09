@@ -7,6 +7,7 @@ Dedicated page for data quality monitoring and governance.
 """
 
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -98,7 +99,7 @@ def render_data_quality_view() -> None:
     with col4:
         last_update = quality_metrics.get("last_update")
         update_str = last_update.strftime("%Y-%m-%d") if last_update else "N/A"
-        st.markdown(f"""
+        last_update_html = f"""
         <div style="
             background: {theme.colors.surface};
             border: 1px solid {theme.colors.border};
@@ -109,7 +110,8 @@ def render_data_quality_view() -> None:
             <p style="color: {theme.colors.text_muted}; font-size: 12px; text-transform: uppercase;">Last Updated</p>
             <p style="color: {theme.colors.text_primary}; font-size: 24px; font-weight: 700;">{update_str}</p>
         </div>
-        """, unsafe_allow_html=True)
+        """
+        components.html(last_update_html, height=140)
     
     st.markdown("---")
     

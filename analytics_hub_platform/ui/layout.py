@@ -40,21 +40,21 @@ def render_header(
     
     # Header container
     header_html = f"""
-    <div style="
-        background: linear-gradient(135deg, {theme.colors.primary} 0%, {theme.colors.secondary} 100%);
-        padding: 24px 32px;
-        border-radius: 12px;
-        margin-bottom: 24px;
-        box-shadow: {theme.shadows.md};
-    ">
-        <h1 style="
-            color: {theme.colors.text_inverse};
-            margin: 0;
-            font-size: {theme.typography.page_title_size}px;
-            font-weight: {theme.typography.weight_bold};
-            font-family: {theme.typography.font_family};
-        ">{title}</h1>
-    """
+        <div style="
+            background: linear-gradient(135deg, {theme.colors.primary} 0%, {theme.colors.secondary} 100%);
+            padding: 24px 32px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: {theme.shadows.md};
+        ">
+            <h1 style="
+                color: {theme.colors.text_inverse};
+                margin: 0;
+                font-size: {theme.typography.page_title_size}px;
+                font-weight: {theme.typography.weight_bold};
+                font-family: {theme.typography.font_family};
+            ">{title}</h1>
+        """
     
     if subtitle:
         header_html += f"""
@@ -79,7 +79,8 @@ def render_header(
     
     header_html += "</div>"
     
-    st.markdown(header_html, unsafe_allow_html=True)
+    # Use components.html to ensure HTML is rendered without escaping
+    st.components.v1.html(header_html, height=160)
 
 
 def render_footer(language: str = "en") -> None:
@@ -117,7 +118,8 @@ def render_footer(language: str = "en") -> None:
     </div>
     """
     
-    st.markdown(footer_html, unsafe_allow_html=True)
+    # Use components.html for proper HTML rendering
+    st.components.v1.html(footer_html, height=100)
 
 
 def render_section_header(
@@ -162,7 +164,8 @@ def render_section_header(
     
     header_html += "</div>"
     
-    st.markdown(header_html, unsafe_allow_html=True)
+    # Use components.html to avoid HTML escaping
+    st.components.v1.html(header_html, height=80)
 
 
 def render_kpi_card(
@@ -190,13 +193,21 @@ def render_kpi_card(
     """
     theme = get_theme()
     
-    # Format value
-    if isinstance(value, float):
-        display_value = f"{value:,.2f}"
-    elif isinstance(value, int):
-        display_value = f"{value:,}"
+    # Format value - handle None and convert to proper type
+    if value is None:
+        display_value = "0"
+    elif isinstance(value, (int, float)):
+        if isinstance(value, float):
+            display_value = f"{value:,.2f}"
+        else:
+            display_value = f"{value:,}"
     else:
-        display_value = str(value)
+        # Try to convert to float, fallback to string
+        try:
+            float_val = float(value)
+            display_value = f"{float_val:,.2f}"
+        except (ValueError, TypeError):
+            display_value = str(value)
     
     # Determine status colors
     status_colors = {
@@ -282,7 +293,8 @@ def render_kpi_card(
     </div>
     """
     
-    st.markdown(card_html, unsafe_allow_html=True)
+    # Use components.html to avoid any escaping issues when rendering HTML
+    st.components.v1.html(card_html, height=140)
 
 
 def render_status_badge(status: str, label: Optional[str] = None) -> str:

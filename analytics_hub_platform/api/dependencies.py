@@ -12,8 +12,11 @@ from functools import lru_cache
 from fastapi import Depends, HTTPException, Header, status
 
 from analytics_hub_platform.infrastructure.settings import Settings, get_settings
-from analytics_hub_platform.infrastructure.repository import IndicatorRepository, get_repository
+from analytics_hub_platform.infrastructure.repository import Repository, get_repository
 from analytics_hub_platform.infrastructure.security import RBACManager, UserRole
+
+# Type alias for backward compatibility
+IndicatorRepository = Repository
 
 
 # Database session dependency

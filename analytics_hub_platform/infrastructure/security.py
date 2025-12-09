@@ -27,6 +27,90 @@ logger = logging.getLogger(__name__)
 
 
 # ============================================
+# RBAC MANAGER
+# ============================================
+
+class RBACManager:
+    """
+    Role-Based Access Control Manager.
+    
+    Provides centralized permission checking for the application.
+    For PoC, uses simple role-based rules. In production, this would
+    integrate with an identity provider.
+    """
+    
+    # Permission mappings by role
+    ROLE_PERMISSIONS = {
+        UserRole.MINISTER: [
+            "view_executive_dashboard",
+            "view_director_dashboard",
+            "view_analyst_dashboard",
+            "export_pdf",
+            "export_ppt",
+            "export_excel",
+        ],
+        UserRole.EXECUTIVE: [
+            "view_executive_dashboard",
+            "view_director_dashboard",
+            "export_pdf",
+            "export_ppt",
+            "export_excel",
+        ],
+        UserRole.DIRECTOR: [
+            "view_executive_dashboard",
+            "view_director_dashboard",
+            "view_analyst_dashboard",
+            "export_pdf",
+            "export_ppt",
+            "export_excel",
+        ],
+        UserRole.ANALYST: [
+            "view_analyst_dashboard",
+            "export_excel",
+        ],
+        UserRole.ADMIN: [
+            "view_executive_dashboard",
+            "view_director_dashboard",
+            "view_analyst_dashboard",
+            "view_admin_console",
+            "export_pdf",
+            "export_ppt",
+            "export_excel",
+            "manage_users",
+            "manage_settings",
+        ],
+        UserRole.VIEWER: [
+            "view_executive_dashboard",
+        ],
+    }
+    
+    def __init__(self):
+        """Initialize RBAC manager."""
+        self._settings = get_settings()
+    
+    def has_permission(self, user: User, permission: str) -> bool:
+        """Check if user has a specific permission."""
+        if user is None:
+            return False
+        
+        role_permissions = self.ROLE_PERMISSIONS.get(user.role, [])
+        return permission in role_permissions
+    
+    def get_permissions(self, user: User) -> List[str]:
+        """Get all permissions for a user."""
+        if user is None:
+            return []
+        return self.ROLE_PERMISSIONS.get(user.role, [])
+    
+    def check_view_access(self, user: User, view_name: str) -> bool:
+        """Check if user can access a specific view."""
+        permission = f"view_{view_name}_dashboard"
+        if view_name == "admin":
+            permission = "view_admin_console"
+        return self.has_permission(user, permission)
+
+
+# ============================================
 # RATE LIMITING
 # ============================================
 

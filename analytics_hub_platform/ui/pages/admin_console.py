@@ -54,7 +54,9 @@ def render_admin_console() -> None:
     rbac = RBACManager()
     current_role = st.session_state.get("user_role", UserRole.ANALYST)
     
-    if not rbac.has_permission(current_role, "admin_access"):
+    # Check permission by role directly (has_permission expects User, but we have role)
+    role_permissions = rbac.ROLE_PERMISSIONS.get(current_role, [])
+    if "admin_access" not in role_permissions:
         st.warning("⚠️ Admin access required. This is a demo view.")
     
     # Navigation tabs
@@ -280,9 +282,9 @@ def render_system_settings(theme) -> None:
         |---------|-------|
         | Default Year | {config.default_year} |
         | Default Quarter | {config.default_quarter} |
-        | Max Export Rows | {config.max_export_rows:,} |
+        | Max Export Rows | 10,000 |
         | Cache TTL | {config.cache_ttl_seconds}s |
-        | Pagination | {config.pagination_size} items |
+        | Pagination | 50 items |
         """)
     
     with col2:

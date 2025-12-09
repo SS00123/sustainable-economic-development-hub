@@ -13,7 +13,7 @@ Models are designed to be:
 from datetime import datetime
 from enum import Enum
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 
 class UserRole(str, Enum):
@@ -226,11 +226,19 @@ class FilterParams(BaseModel):
     Used throughout the application to standardize filtering.
     """
     tenant_id: str
-    year: Optional[int] = None
-    quarter: Optional[int] = None
+    year: Optional[int] = Field(None, ge=2000, le=2100)
+    quarter: Optional[int] = Field(None, ge=1, le=4)
     region: Optional[str] = None
     years: Optional[List[int]] = None  # For multi-year queries
     regions: Optional[List[str]] = None  # For multi-region queries
+    
+    @field_validator('quarter')
+    @classmethod
+    def validate_quarter(cls, v: Optional[int]) -> Optional[int]:
+        """Validate quarter is between 1 and 4."""
+        if v is not None and (v < 1 or v > 4):
+            raise ValueError('Quarter must be between 1 and 4')
+        return v
     
     def to_query_params(self) -> Dict[str, Any]:
         """Convert to query parameters dictionary."""
@@ -295,3 +303,39 @@ class RegionalComparison(BaseModel):
     values: List[float]
     statuses: List[KPIStatus]
     national_average: float
+
+
+class DashboardSummary(BaseModel):
+    """
+    Summary data for executive dashboard view.
+    
+    Contains aggregated metrics and status counts for quick overview.
+    """
+    total_indicators: int = 0
+    on_target_count: int = 0
+    warning_count: int = 0
+    critical_count: int = 0
+    improving_count: int = 0
+    declining_count: int = 0
+    
+    # Overall percentages
+    on_target_percentage: float = 0.0
+    warning_percentage: float = 0.0
+    critical_percentage: float = 0.0
+    
+    # Key metrics
+    average_achievement: float = 0.0
+    sustainability_index: Optional[float] = None  # Composite sustainability score 0-100
+    top_performers: List[Dict[str, Any]] = Field(default_factory=list)
+    attention_needed: List[Dict[str, Any]] = Field(default_factory=list)
+    
+    # Time context
+    period: str = ""
+    comparison_period: Optional[str] = None
+    
+    def calculate_percentages(self) -> None:
+        """Calculate percentages based on counts."""
+        if self.total_indicators > 0:
+            self.on_target_percentage = (self.on_target_count / self.total_indicators) * 100
+            self.warning_percentage = (self.warning_count / self.total_indicators) * 100
+            self.critical_percentage = (self.critical_count / self.total_indicators) * 100

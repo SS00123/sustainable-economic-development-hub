@@ -10,6 +10,7 @@ Services are the primary interface for UI and API layers.
 
 from typing import Optional, List, Dict, Any, Tuple
 from datetime import datetime
+from functools import lru_cache
 
 import pandas as pd
 import yaml
@@ -34,8 +35,9 @@ from analytics_hub_platform.domain.indicators import (
 )
 
 
+@lru_cache(maxsize=1)
 def _load_kpi_catalog() -> Dict[str, Any]:
-    """Load KPI catalog from YAML file."""
+    """Load KPI catalog from YAML file. Cached for performance."""
     catalog_path = Path(__file__).parent.parent / "config" / "kpi_catalog.yaml"
     if catalog_path.exists():
         with open(catalog_path, "r", encoding="utf-8") as f:
@@ -108,7 +110,15 @@ def get_executive_snapshot(
     if len(current) > 0:
         current_agg = current.mean(numeric_only=True)
     else:
-        current_agg = pd.Series()
+        # No data for selected filters - return safe default
+        return {
+            "period": f"Q{filters.quarter} {filters.year}",
+            "comparison_period": f"Q{prev_quarter} {prev_year}",
+            "metrics": {},
+            "top_improvements": [],
+            "top_deteriorations": [],
+            "status": "no_data",
+        }
     
     if len(previous) > 0:
         previous_agg = previous.mean(numeric_only=True)
@@ -140,15 +150,15 @@ def get_executive_snapshot(
     changes = []
     
     for kpi_id in key_kpis:
-        current_val = current_agg.get(kpi_id)
-        previous_val = previous_agg.get(kpi_id)
+        current_val = current_agg.get(kpi_id, None)
+        previous_val = previous_agg.get(kpi_id, None)
         
-        if pd.isna(current_val):
+        if current_val is None or pd.isna(current_val):
             current_val = None
         else:
             current_val = round(float(current_val), 2)
         
-        if pd.isna(previous_val):
+        if previous_val is None or pd.isna(previous_val):
             previous_val = None
         else:
             previous_val = round(float(previous_val), 2)
@@ -180,7 +190,7 @@ def get_executive_snapshot(
         snapshot["metrics"][kpi_id] = metric
         
         # Track changes for improvements/deteriorations
-        if pct_change is not None:
+        if pct_change is not None and not pd.isna(pct_change):
             direction = get_change_direction(abs_change, higher_is_better)
             changes.append({
                 "kpi_id": kpi_id,
@@ -230,7 +240,12 @@ def get_sustainability_summary(
         current = current[current["region"] == filters.region]
     
     if len(current) == 0:
-        return {"index": None, "breakdown": [], "status": "unknown"}
+        return {
+            "index": None,
+            "breakdown": [],
+            "status": "no_data",
+            "period": f"Q{filters.quarter} {filters.year}",
+        }
     
     # Aggregate across regions if needed
     indicators = current.mean(numeric_only=True).to_dict()

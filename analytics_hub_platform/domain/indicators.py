@@ -15,6 +15,7 @@ thresholds and weights, ensuring consistency and maintainability.
 
 from typing import Optional, Dict, Any, List, Tuple
 from pathlib import Path
+from functools import lru_cache
 
 import yaml
 
@@ -205,8 +206,9 @@ def get_status_from_catalog(
 # SUSTAINABILITY INDEX CALCULATION
 # ============================================
 
+@lru_cache(maxsize=1)
 def _load_kpi_catalog() -> Dict[str, Any]:
-    """Load KPI catalog from YAML file."""
+    """Load KPI catalog from YAML file. Cached for performance."""
     catalog_path = Path(__file__).parent.parent / "config" / "kpi_catalog.yaml"
     if catalog_path.exists():
         with open(catalog_path, "r", encoding="utf-8") as f:

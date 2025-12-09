@@ -6,6 +6,7 @@ Ministry of Economy and Planning
 FastAPI route definitions for REST API endpoints.
 """
 
+import logging
 from typing import Optional, List
 from datetime import datetime
 
@@ -20,8 +21,8 @@ from analytics_hub_platform.api.dependencies import (
     require_analyst,
     FilterDependency,
     PaginationParams,
+    IndicatorRepository,
 )
-from analytics_hub_platform.infrastructure.repository import IndicatorRepository
 from analytics_hub_platform.domain.models import FilterParams
 from analytics_hub_platform.domain.services import (
     get_sustainability_summary,
@@ -109,6 +110,10 @@ class ErrorResponse(BaseModel):
     """Error response."""
     detail: str
     code: Optional[str] = None
+    error_type: Optional[str] = None
+
+
+logger = logging.getLogger(__name__)
 
 
 def create_api_router() -> APIRouter:

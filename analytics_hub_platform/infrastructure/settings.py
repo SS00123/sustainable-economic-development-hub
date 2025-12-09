@@ -4,7 +4,7 @@ Sustainable Economic Development Analytics Hub
 Ministry of Economy and Planning
 
 This module provides environment-aware settings using Pydantic Settings.
-Settings can be loaded from environment variables or .env files.
+Settings can be loaded from environment variables, .env files, or Streamlit secrets.
 """
 
 import os
@@ -13,12 +13,35 @@ from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+def _get_streamlit_secrets():
+    """Try to load Streamlit secrets if available."""
+    try:
+        import streamlit as st
+        if hasattr(st, 'secrets'):
+            # Check if secrets actually exist before accessing
+            try:
+                # This will raise an error if no secrets.toml exists
+                if len(st.secrets) > 0:
+                    return st.secrets
+            except Exception:
+                # Secrets file doesn't exist or is empty
+                pass
+    except (ImportError, AttributeError):
+        pass
+    return None
+
+
 class Settings(BaseSettings):
     """
     Application settings with environment variable support.
     
-    All settings can be overridden via environment variables.
-    Example: DATABASE_URL=postgresql://... will override the default SQLite URL.
+    All settings can be overridden via:
+    1. Streamlit secrets (.streamlit/secrets.toml)
+    2. Environment variables
+    3. .env file
+    4. Default values
+    
+    Priority: Streamlit secrets > Environment > .env > Defaults
     """
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -70,6 +93,44 @@ class Settings(BaseSettings):
     # Streamlit
     streamlit_port: int = 8501
     
+    def __init__(self, **kwargs):
+        """Initialize settings with Streamlit secrets support."""
+        # Try to load from Streamlit secrets first
+        secrets = _get_streamlit_secrets()
+        if secrets:
+            # Override with Streamlit secrets if available
+            if "database" in secrets:
+                kwargs.setdefault("database_url", secrets["database"].get("DATABASE_URL", kwargs.get("database_url")))
+                kwargs.setdefault("default_tenant_id", secrets["database"].get("DEFAULT_TENANT_ID", kwargs.get("default_tenant_id")))
+            
+            if "app" in secrets:
+                kwargs.setdefault("environment", secrets["app"].get("ENVIRONMENT", kwargs.get("environment")))
+                kwargs.setdefault("debug", secrets["app"].get("DEBUG", kwargs.get("debug")))
+                kwargs.setdefault("log_level", secrets["app"].get("LOG_LEVEL", kwargs.get("log_level")))
+        
+        super().__init__(**kwargs)
+    sso_client_secret: Optional[str] = None
+    
+    # Logging
+    log_level: str = "INFO"
+    log_file: Optional[str] = None
+    
+    # Caching
+    cache_enabled: bool = True
+    cache_ttl_seconds: int = 300
+    
+    # Default tenant
+    default_tenant_id: str = "mep-sa-001"
+    default_tenant_name: str = "Ministry of Economy and Planning"
+    
+    # API
+    api_host: str = "0.0.0.0"
+    api_port: int = 8000
+    api_prefix: str = "/api/v1"
+    
+    # Streamlit
+    streamlit_port: int = 8501
+    
     def is_production(self) -> bool:
         """Check if running in production environment."""
         return self.environment.lower() == "production"
@@ -77,6 +138,18 @@ class Settings(BaseSettings):
     def is_development(self) -> bool:
         """Check if running in development environment."""
         return self.environment.lower() == "development"
+    
+    @property
+    def db_path(self) -> Optional[str]:
+        """
+        Extract database file path from SQLite URL.
+        
+        Returns the path portion of a SQLite database URL,
+        or None if using a different database type.
+        """
+        if self.database_url.startswith("sqlite:///"):
+            return self.database_url.replace("sqlite:///", "")
+        return None
     
     def get_database_url(self) -> str:
         """

@@ -234,3 +234,21 @@ def reload_config() -> AppConfig:
     get_config.cache_clear()
     _config_instance = None
     return get_config()
+
+
+# Convenience constant: List of Saudi Arabia administrative regions
+REGIONS = [
+    "Riyadh",
+    "Makkah",
+    "Madinah",
+    "Eastern Province",
+    "Qassim",
+    "Asir",
+    "Tabuk",
+    "Hail",
+    "Northern Borders",
+    "Jazan",
+    "Najran",
+    "Al Bahah",
+    "Al Jawf",
+]

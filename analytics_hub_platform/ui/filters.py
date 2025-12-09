@@ -115,106 +115,111 @@ def render_global_filters(
     if not years:
         years = config.available_years
     
-    with st.sidebar:
-        st.markdown("### 🎯 Filters")
+    # Note: Renders directly without st.sidebar context since caller handles that
+    st.markdown("### 🎯 Filters")
+    st.markdown("---")
+    
+    # Role selector (for demo - simulates different user personas)
+    if show_role:
+        roles = {
+            "minister": "👔 Minister / Executive",
+            "director": "📊 Director / Head of Analytics",
+            "analyst": "🔬 Data Analyst",
+            "admin": "⚙️ Administrator",
+        }
+        
+        # Normalize user_role to lowercase for matching
+        current_role = st.session_state.user_role.lower() if st.session_state.user_role else "director"
+        if current_role not in roles:
+            current_role = "director"
+        
+        selected_role = st.selectbox(
+            "View As (Demo)",
+            options=list(roles.keys()),
+            format_func=lambda x: roles[x],
+            index=list(roles.keys()).index(current_role),
+            key="role_selector",
+            help="Select a role to view the dashboard from that persona's perspective",
+        )
+        st.session_state.user_role = selected_role
         st.markdown("---")
+    
+    # Time period filters
+    if show_year or show_quarter:
+        st.markdown("**📅 Time Period**")
         
-        # Role selector (for demo - simulates different user personas)
-        if show_role:
-            roles = {
-                "minister": "👔 Minister / Executive",
-                "director": "📊 Director / Head of Analytics",
-                "analyst": "🔬 Data Analyst",
-                "admin": "⚙️ Administrator",
-            }
-            
-            selected_role = st.selectbox(
-                "View As (Demo)",
-                options=list(roles.keys()),
-                format_func=lambda x: roles[x],
-                index=list(roles.keys()).index(st.session_state.user_role),
-                key="role_selector",
-                help="Select a role to view the dashboard from that persona's perspective",
-            )
-            st.session_state.user_role = selected_role
-            st.markdown("---")
+        col1, col2 = st.columns(2) if not compact else (st, st)
         
-        # Time period filters
-        if show_year or show_quarter:
-            st.markdown("**📅 Time Period**")
-            
-            col1, col2 = st.columns(2) if not compact else (st, st)
-            
-            if show_year:
-                with col1 if not compact else st:
-                    selected_year = st.selectbox(
-                        "Year",
-                        options=years,
-                        index=years.index(st.session_state.filter_year) if st.session_state.filter_year in years else 0,
-                        key="year_selector",
-                    )
-                    st.session_state.filter_year = selected_year
-            
-            if show_quarter:
-                with col2 if not compact else st:
-                    selected_quarter = st.selectbox(
-                        "Quarter",
-                        options=[1, 2, 3, 4],
-                        format_func=lambda x: f"Q{x}",
-                        index=st.session_state.filter_quarter - 1,
-                        key="quarter_selector",
-                    )
-                    st.session_state.filter_quarter = selected_quarter
+        if show_year:
+            with col1 if not compact else st:
+                selected_year = st.selectbox(
+                    "Year",
+                    options=years,
+                    index=years.index(st.session_state.filter_year) if st.session_state.filter_year in years else 0,
+                    key="year_selector",
+                )
+                st.session_state.filter_year = selected_year
         
-        # Region filter
-        if show_region:
-            st.markdown("**🗺️ Region**")
-            
-            region_options = ["all"] + available_regions
-            region_labels = {"all": "🌍 All Regions"}
-            region_labels.update({r: r for r in available_regions})
-            
-            current_region = st.session_state.filter_region
-            if current_region not in region_options:
-                current_region = "all"
-            
-            selected_region = st.selectbox(
-                "Region",
-                options=region_options,
-                format_func=lambda x: region_labels.get(x, x),
-                index=region_options.index(current_region),
-                key="region_selector",
-            )
-            st.session_state.filter_region = selected_region
+        if show_quarter:
+            with col2 if not compact else st:
+                selected_quarter = st.selectbox(
+                    "Quarter",
+                    options=[1, 2, 3, 4],
+                    format_func=lambda x: f"Q{x}",
+                    index=st.session_state.filter_quarter - 1,
+                    key="quarter_selector",
+                )
+                st.session_state.filter_quarter = selected_quarter
+    
+    # Region filter
+    if show_region:
+        st.markdown("**🗺️ Region**")
         
-        # Language filter
-        if show_language:
-            st.markdown("**🌐 Language**")
-            
-            languages = {
-                "en": "🇬🇧 English",
-                "ar": "🇸🇦 العربية",
-            }
-            
-            selected_language = st.radio(
-                "Display Language",
-                options=list(languages.keys()),
-                format_func=lambda x: languages[x],
-                index=list(languages.keys()).index(st.session_state.filter_language),
-                key="language_selector",
-                horizontal=True,
-            )
-            st.session_state.filter_language = selected_language
+        region_options = ["all"] + available_regions
+        region_labels = {"all": "🌍 All Regions"}
+        region_labels.update({r: r for r in available_regions})
         
-        st.markdown("---")
+        current_region = st.session_state.filter_region
+        if current_region not in region_options:
+            current_region = "all"
         
-        # Show current selection summary
-        st.markdown("**Current Selection:**")
-        st.markdown(f"""
-        - **Period:** Q{st.session_state.filter_quarter} {st.session_state.filter_year}
-        - **Region:** {st.session_state.filter_region.title() if st.session_state.filter_region != "all" else "All Regions"}
-        - **Language:** {"English" if st.session_state.filter_language == "en" else "Arabic"}
-        """)
+        selected_region = st.selectbox(
+            "Region",
+            options=region_options,
+            format_func=lambda x: region_labels.get(x, x),
+            index=region_options.index(current_region),
+            key="region_selector",
+        )
+        st.session_state.filter_region = selected_region
+    
+    # Language filter
+    if show_language:
+        st.markdown("**🌐 Language**")
+        
+        languages = {
+            "en": "🇬🇧 English",
+            "ar": "🇸🇦 العربية",
+        }
+        
+        selected_language = st.radio(
+            "Display Language",
+            options=list(languages.keys()),
+            format_func=lambda x: languages[x],
+            index=list(languages.keys()).index(st.session_state.filter_language),
+            key="language_selector",
+            horizontal=True,
+        )
+        st.session_state.filter_language = selected_language
+    
+    st.markdown("---")
+    
+    # Show current selection summary
+    st.markdown("**Current Selection:**")
+    st.markdown(f"""
+    - **Period:** Q{st.session_state.filter_quarter} {st.session_state.filter_year}
+    - **Region:** {st.session_state.filter_region.title() if st.session_state.filter_region != "all" else "All Regions"}
+    - **Language:** {"English" if st.session_state.filter_language == "en" else "Arabic"}
+    """)
     
     return get_filter_state()
 

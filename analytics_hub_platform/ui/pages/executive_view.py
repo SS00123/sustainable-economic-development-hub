@@ -12,6 +12,7 @@ ministers and top leadership. It features:
 """
 
 import streamlit as st
+import streamlit.components.v1 as components
 import plotly.express as px
 import plotly.graph_objects as go
 
@@ -31,6 +32,7 @@ from analytics_hub_platform.infrastructure.settings import get_settings
 from analytics_hub_platform.domain.models import FilterParams
 from analytics_hub_platform.domain.services import get_executive_snapshot, get_sustainability_summary
 from analytics_hub_platform.utils.narratives import generate_executive_narrative
+from analytics_hub_platform.utils.kpi_utils import get_kpi_unit, get_delta_suffix
 from analytics_hub_platform.locale import get_strings
 
 
@@ -68,6 +70,12 @@ def render_executive_view() -> None:
         
     except Exception as e:
         st.error(f"Error loading data: {str(e)}")
+        return
+    
+    # Check for no data
+    if snapshot.get("status") == "no_data" or sustainability.get("status") == "no_data":
+        st.warning(f"⚠️ No data available for the selected period (Q{filters.quarter} {filters.year}) and region. Please select a different time period or region.")
+        render_footer(filters.language)
         return
     
     # Sustainability Index - Prominent Display
@@ -113,34 +121,37 @@ def render_executive_view() -> None:
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
-        status = sustainability.get("status", "unknown")
+        status = sustainability.get("status", "unknown") if sustainability else "unknown"
         status_labels = {"green": "On Track", "amber": "At Risk", "red": "Critical"}
         
-        st.markdown(f"""
+        status_html = f"""
         <div style="text-align: center; padding: 20px;">
             <h3 style="color: {theme.colors.text_muted}; margin-bottom: 16px;">Status</h3>
             {render_status_badge(status, status_labels.get(status, "Unknown"))}
         </div>
-        """, unsafe_allow_html=True)
+        """
+        components.html(status_html, height=100)
         
-        st.markdown(f"""
+        period_html = f"""
         <div style="text-align: center; padding: 20px;">
             <p style="color: {theme.colors.text_muted}; font-size: 12px;">Period</p>
             <p style="color: {theme.colors.text_primary}; font-size: 18px; font-weight: 600;">
                 Q{filters.quarter} {filters.year}
             </p>
         </div>
-        """, unsafe_allow_html=True)
+        """
+        components.html(period_html, height=80)
     
     with col3:
         # Top contributors to index
         breakdown = sustainability.get("breakdown", [])[:3]
         
-        st.markdown(f"""
+        contributors_header = f"""
         <div style="padding: 10px;">
             <h4 style="color: {theme.colors.text_muted}; margin-bottom: 12px;">Top Contributors</h4>
         </div>
-        """, unsafe_allow_html=True)
+        """
+        components.html(contributors_header, height=50)
         
         for item in breakdown:
             name = item.get("name", item.get("name_en", ""))
@@ -164,10 +175,14 @@ def render_executive_view() -> None:
     for col, kpi_id in zip(cols1, row1_kpis):
         with col:
             kpi = metrics.get(kpi_id, {})
+            kpi_value = kpi.get("value")
+            if kpi_value is None:
+                kpi_value = 0
             render_kpi_card(
                 label=kpi.get("display_name", kpi_id),
-                value=kpi.get("value", 0) or 0,
+                value=float(kpi_value) if kpi_value is not None else 0.0,
                 delta=kpi.get("change_percent"),
+                delta_suffix=get_delta_suffix(kpi_id),
                 status=kpi.get("status", "neutral"),
                 unit=get_kpi_unit(kpi_id),
                 higher_is_better=kpi.get("higher_is_better", True),
@@ -182,10 +197,14 @@ def render_executive_view() -> None:
     for col, kpi_id in zip(cols2, row2_kpis):
         with col:
             kpi = metrics.get(kpi_id, {})
+            kpi_value = kpi.get("value")
+            if kpi_value is None:
+                kpi_value = 0
             render_kpi_card(
                 label=kpi.get("display_name", kpi_id),
-                value=kpi.get("value", 0) or 0,
+                value=float(kpi_value) if kpi_value is not None else 0.0,
                 delta=kpi.get("change_percent"),
+                delta_suffix=get_delta_suffix(kpi_id),
                 status=kpi.get("status", "neutral"),
                 unit=get_kpi_unit(kpi_id),
                 higher_is_better=kpi.get("higher_is_better", True),
@@ -202,17 +221,16 @@ def render_executive_view() -> None:
     
     narrative = generate_executive_narrative(snapshot, filters.language)
     
-    st.markdown(f"""
+    # Render narrative with components.html for proper HTML rendering
+    narrative_html = f"""
     <div style="
-        background: {theme.colors.surface};
-        border: 1px solid {theme.colors.border};
-        border-radius: 12px;
-        padding: 24px;
-        line-height: 1.8;
-    ">
-        {narrative}
-    </div>
-    """, unsafe_allow_html=True)
+        color: #4B5563;
+        font-size: 14px;
+        margin: 8px 0 8px 0;
+        font-family: 'Segoe UI', 'Roboto', 'Source Sans 3', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    ">{narrative}</div>
+    """
+    components.html(narrative_html, height=400, scrolling=True)
     
     st.markdown("<br>", unsafe_allow_html=True)
     
@@ -220,9 +238,10 @@ def render_executive_view() -> None:
     col_imp, col_det = st.columns(2)
     
     with col_imp:
-        st.markdown(f"""
+        improvements_header = f"""
         <h4 style="color: {theme.colors.status_green};">📈 Top Improvements</h4>
-        """, unsafe_allow_html=True)
+        """
+        components.html(improvements_header, height=40)
         
         improvements = snapshot.get("top_improvements", [])
         if improvements:
@@ -232,9 +251,10 @@ def render_executive_view() -> None:
             st.markdown("*No significant improvements*")
     
     with col_det:
-        st.markdown(f"""
+        attention_header = f"""
         <h4 style="color: {theme.colors.status_red};">📉 Areas Needing Attention</h4>
-        """, unsafe_allow_html=True)
+        """
+        components.html(attention_header, height=40)
         
         deteriorations = snapshot.get("top_deteriorations", [])
         if deteriorations:
@@ -245,33 +265,3 @@ def render_executive_view() -> None:
     
     # Footer
     render_footer(filters.language)
-
-
-def get_kpi_unit(kpi_id: str) -> str:
-    """Get display unit for a KPI."""
-    units = {
-        "gdp_growth": "%",
-        "gdp_total": "M SAR",
-        "foreign_investment": "M SAR",
-        "export_diversity_index": "",
-        "economic_complexity": "",
-        "unemployment_rate": "%",
-        "green_jobs": "K",
-        "skills_gap_index": "",
-        "social_progress_score": "",
-        "digital_readiness": "",
-        "innovation_index": "",
-        "co2_index": "",
-        "co2_total": "MT",
-        "renewable_share": "%",
-        "energy_intensity": "MJ/SAR",
-        "water_efficiency": "",
-        "waste_recycling_rate": "%",
-        "forest_coverage": "%",
-        "air_quality_index": "AQI",
-        "co2_per_gdp": "t/M SAR",
-        "co2_per_capita": "t/cap",
-        "data_quality_score": "",
-        "sustainability_index": "",
-    }
-    return units.get(kpi_id, "")

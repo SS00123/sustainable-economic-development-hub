@@ -5,13 +5,16 @@ Sustainable Economic Development Analytics Hub
 Ministry of Economy and Planning
 
 Run this script to initialize the database with synthetic data.
+
+Usage:
+    python scripts/init_db.py
 """
 
 import sys
 from pathlib import Path
 
-# Add project root to path
-project_root = Path(__file__).parent
+# Add project root to path (one level above scripts/)
+project_root = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(project_root))
 
 from analytics_hub_platform.infrastructure.db_init import initialize_database
