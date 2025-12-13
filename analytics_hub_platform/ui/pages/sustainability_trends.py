@@ -100,7 +100,7 @@ def render_sustainability_trends() -> None:
         font=dict(family=theme.typography.font_family),
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
     
     st.markdown("---")
     
@@ -139,7 +139,7 @@ def render_sustainability_trends() -> None:
         font=dict(family=theme.typography.font_family),
     )
     
-    st.plotly_chart(fig2, use_container_width=True)
+    st.plotly_chart(fig2, width="stretch")
     
     # Footer
     render_footer(filters.language)

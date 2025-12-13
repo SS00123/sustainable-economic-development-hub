@@ -10,6 +10,7 @@ Settings can be loaded from environment variables, .env files, or Streamlit secr
 import os
 from typing import Optional
 from functools import lru_cache
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -80,6 +81,26 @@ class Settings(BaseSettings):
     # Caching
     cache_enabled: bool = True
     cache_ttl_seconds: int = 300
+
+    # ML defaults
+    ml_random_state: int = 42
+    anomaly_if_contamination: float = 0.1
+    synthetic_seed: int = 42
+    
+    # JWT Configuration
+    jwt_secret_key: SecretStr = SecretStr("change-this-secret-in-production-env")  # Override via JWT_SECRET_KEY env var
+    jwt_algorithm: str = "HS256"
+    jwt_access_token_expire_minutes: int = 60
+    
+    # LLM Configuration
+    llm_provider: str = "auto"  # "openai", "anthropic", "mock", or "auto"
+    llm_model_name: Optional[str] = None  # Model name (provider-specific)
+    llm_api_key: Optional[SecretStr] = None  # API key (prefer env variables)
+    openai_api_key: Optional[SecretStr] = None  # OpenAI API key (SecretStr prevents logging)
+    anthropic_api_key: Optional[SecretStr] = None  # Anthropic API key (SecretStr prevents logging)
+    llm_timeout: int = 30  # API timeout in seconds
+    llm_max_retries: int = 2  # Maximum retry attempts
+    llm_cache_ttl: int = 3600  # Cache TTL in seconds (1 hour)
     
     # Default tenant
     default_tenant_id: str = "mep-sa-001"
@@ -109,27 +130,6 @@ class Settings(BaseSettings):
                 kwargs.setdefault("log_level", secrets["app"].get("LOG_LEVEL", kwargs.get("log_level")))
         
         super().__init__(**kwargs)
-    sso_client_secret: Optional[str] = None
-    
-    # Logging
-    log_level: str = "INFO"
-    log_file: Optional[str] = None
-    
-    # Caching
-    cache_enabled: bool = True
-    cache_ttl_seconds: int = 300
-    
-    # Default tenant
-    default_tenant_id: str = "mep-sa-001"
-    default_tenant_name: str = "Ministry of Economy and Planning"
-    
-    # API
-    api_host: str = "0.0.0.0"
-    api_port: int = 8000
-    api_prefix: str = "/api/v1"
-    
-    # Streamlit
-    streamlit_port: int = 8501
     
     def is_production(self) -> bool:
         """Check if running in production environment."""

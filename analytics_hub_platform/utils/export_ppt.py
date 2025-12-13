@@ -35,46 +35,19 @@ def hex_to_rgb(hex_color: str) -> RGBColor:
     )
 
 
-def generate_ppt_presentation(
-    data: pd.DataFrame,
-    title: str = "Sustainability Analytics Report",
-    subtitle: Optional[str] = None,
-    summary_metrics: Optional[dict] = None,
-    language: str = "en",
-) -> BytesIO:
-    """
-    Generate a PowerPoint presentation from indicator data.
-    
-    Args:
-        data: DataFrame containing indicator data
-        title: Presentation title
-        subtitle: Optional subtitle
-        summary_metrics: Optional dict of key metrics to highlight
-        language: Language code (en/ar)
-    
-    Returns:
-        BytesIO buffer containing the PPTX
-    """
-    if not PPTX_AVAILABLE:
-        raise ImportError(
-            "python-pptx is required for PPT export. "
-            "Install with: pip install python-pptx"
-        )
-    
-    buffer = BytesIO()
-    theme = get_theme()
-    
-    # Create presentation
-    prs = Presentation()
-    prs.slide_width = Inches(13.333)
-    prs.slide_height = Inches(7.5)
-    
-    primary_color = hex_to_rgb(theme.colors.primary)
-    secondary_color = hex_to_rgb(theme.colors.secondary)
+# =============================================================================
+# SLIDE BUILDER FUNCTIONS
+# =============================================================================
+
+def _add_title_slide(
+    prs: "Presentation",
+    title: str,
+    subtitle: Optional[str],
+    primary_color: "RGBColor",
+) -> None:
+    """Add title slide to presentation."""
     white = RGBColor(255, 255, 255)
-    
-    # Slide 1: Title Slide
-    slide_layout = prs.slide_layouts[6]  # Blank layout
+    slide_layout = prs.slide_layouts[6]
     slide = prs.slides.add_slide(slide_layout)
     
     # Background shape
@@ -124,143 +97,168 @@ def generate_ppt_presentation(
     footer_para.font.size = Pt(14)
     footer_para.font.color.rgb = RGBColor(200, 200, 200)
     footer_para.alignment = PP_ALIGN.CENTER
+
+
+def _add_executive_summary_slide(
+    prs: "Presentation",
+    summary_metrics: dict,
+    primary_color: "RGBColor",
+) -> None:
+    """Add executive summary slide with KPI cards."""
+    white = RGBColor(255, 255, 255)
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
     
-    # Slide 2: Executive Summary
-    if summary_metrics:
-        slide = prs.slides.add_slide(prs.slide_layouts[6])
-        
-        # Header
-        header = slide.shapes.add_shape(
-            MSO_SHAPE.RECTANGLE,
-            Inches(0), Inches(0),
-            prs.slide_width, Inches(1.2)
-        )
-        header.fill.solid()
-        header.fill.fore_color.rgb = primary_color
-        header.line.fill.background()
-        
-        header_text = slide.shapes.add_textbox(
-            Inches(0.5), Inches(0.35),
-            Inches(12), Inches(0.6)
-        )
-        h_frame = header_text.text_frame
-        h_para = h_frame.paragraphs[0]
-        h_para.text = "Executive Summary"
-        h_para.font.size = Pt(28)
-        h_para.font.bold = True
-        h_para.font.color.rgb = white
-        
-        # KPI Cards
-        metrics_list = list(summary_metrics.items())[:8]  # Max 8 metrics
-        
-        cols = 4
-        rows = (len(metrics_list) + cols - 1) // cols
-        
-        card_width = Inches(2.8)
-        card_height = Inches(1.8)
-        start_x = Inches(0.7)
-        start_y = Inches(1.8)
-        h_gap = Inches(0.3)
-        v_gap = Inches(0.3)
-        
-        for idx, (metric_name, metric_value) in enumerate(metrics_list):
-            row = idx // cols
-            col = idx % cols
-            
-            x = start_x + (card_width + h_gap) * col
-            y = start_y + (card_height + v_gap) * row
-            
-            # Card background
-            card = slide.shapes.add_shape(
-                MSO_SHAPE.ROUNDED_RECTANGLE,
-                x, y, card_width, card_height
-            )
-            card.fill.solid()
-            card.fill.fore_color.rgb = RGBColor(248, 250, 252)
-            card.line.color.rgb = RGBColor(226, 232, 240)
-            
-            # Metric name
-            name_box = slide.shapes.add_textbox(
-                x + Inches(0.15), y + Inches(0.2),
-                card_width - Inches(0.3), Inches(0.5)
-            )
-            name_frame = name_box.text_frame
-            name_para = name_frame.paragraphs[0]
-            name_para.text = str(metric_name)[:25]
-            name_para.font.size = Pt(11)
-            name_para.font.color.rgb = RGBColor(100, 116, 139)
-            
-            # Metric value
-            value_box = slide.shapes.add_textbox(
-                x + Inches(0.15), y + Inches(0.7),
-                card_width - Inches(0.3), Inches(0.8)
-            )
-            value_frame = value_box.text_frame
-            value_para = value_frame.paragraphs[0]
-            value_para.text = str(metric_value)
-            value_para.font.size = Pt(28)
-            value_para.font.bold = True
-            value_para.font.color.rgb = primary_color
+    # Header
+    header = slide.shapes.add_shape(
+        MSO_SHAPE.RECTANGLE,
+        Inches(0), Inches(0),
+        prs.slide_width, Inches(1.2)
+    )
+    header.fill.solid()
+    header.fill.fore_color.rgb = primary_color
+    header.line.fill.background()
     
-    # Slide 3: Data Table (if data provided)
-    if not data.empty:
-        slide = prs.slides.add_slide(prs.slide_layouts[6])
+    header_text = slide.shapes.add_textbox(
+        Inches(0.5), Inches(0.35),
+        Inches(12), Inches(0.6)
+    )
+    h_frame = header_text.text_frame
+    h_para = h_frame.paragraphs[0]
+    h_para.text = "Executive Summary"
+    h_para.font.size = Pt(28)
+    h_para.font.bold = True
+    h_para.font.color.rgb = white
+    
+    # KPI Cards
+    _add_metric_cards(slide, summary_metrics, primary_color)
+
+
+def _add_metric_cards(
+    slide,
+    summary_metrics: dict,
+    primary_color: "RGBColor",
+) -> None:
+    """Add metric cards to a slide."""
+    metrics_list = list(summary_metrics.items())[:8]  # Max 8 metrics
+    
+    cols = 4
+    card_width = Inches(2.8)
+    card_height = Inches(1.8)
+    start_x = Inches(0.7)
+    start_y = Inches(1.8)
+    h_gap = Inches(0.3)
+    v_gap = Inches(0.3)
+    
+    for idx, (metric_name, metric_value) in enumerate(metrics_list):
+        row = idx // cols
+        col = idx % cols
         
-        # Header
-        header = slide.shapes.add_shape(
-            MSO_SHAPE.RECTANGLE,
-            Inches(0), Inches(0),
-            prs.slide_width, Inches(1.2)
+        x = start_x + (card_width + h_gap) * col
+        y = start_y + (card_height + v_gap) * row
+        
+        # Card background
+        card = slide.shapes.add_shape(
+            MSO_SHAPE.ROUNDED_RECTANGLE,
+            x, y, card_width, card_height
         )
-        header.fill.solid()
-        header.fill.fore_color.rgb = primary_color
-        header.line.fill.background()
+        card.fill.solid()
+        card.fill.fore_color.rgb = RGBColor(248, 250, 252)
+        card.line.color.rgb = RGBColor(226, 232, 240)
         
-        header_text = slide.shapes.add_textbox(
-            Inches(0.5), Inches(0.35),
-            Inches(12), Inches(0.6)
+        # Metric name
+        name_box = slide.shapes.add_textbox(
+            x + Inches(0.15), y + Inches(0.2),
+            card_width - Inches(0.3), Inches(0.5)
         )
-        h_frame = header_text.text_frame
-        h_para = h_frame.paragraphs[0]
-        h_para.text = "Data Overview"
-        h_para.font.size = Pt(28)
-        h_para.font.bold = True
-        h_para.font.color.rgb = white
+        name_frame = name_box.text_frame
+        name_para = name_frame.paragraphs[0]
+        name_para.text = str(metric_name)[:25]
+        name_para.font.size = Pt(11)
+        name_para.font.color.rgb = RGBColor(100, 116, 139)
         
-        # Simple table representation
-        display_cols = [c for c in ["year", "quarter", "region", "sustainability_index"] if c in data.columns][:4]
+        # Metric value
+        value_box = slide.shapes.add_textbox(
+            x + Inches(0.15), y + Inches(0.7),
+            card_width - Inches(0.3), Inches(0.8)
+        )
+        value_frame = value_box.text_frame
+        value_para = value_frame.paragraphs[0]
+        value_para.text = str(metric_value)
+        value_para.font.size = Pt(28)
+        value_para.font.bold = True
+        value_para.font.color.rgb = primary_color
+
+
+def _add_data_table_slide(
+    prs: "Presentation",
+    data: pd.DataFrame,
+    primary_color: "RGBColor",
+) -> None:
+    """Add data table slide to presentation."""
+    white = RGBColor(255, 255, 255)
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    
+    # Header
+    header = slide.shapes.add_shape(
+        MSO_SHAPE.RECTANGLE,
+        Inches(0), Inches(0),
+        prs.slide_width, Inches(1.2)
+    )
+    header.fill.solid()
+    header.fill.fore_color.rgb = primary_color
+    header.line.fill.background()
+    
+    header_text = slide.shapes.add_textbox(
+        Inches(0.5), Inches(0.35),
+        Inches(12), Inches(0.6)
+    )
+    h_frame = header_text.text_frame
+    h_para = h_frame.paragraphs[0]
+    h_para.text = "Data Overview"
+    h_para.font.size = Pt(28)
+    h_para.font.bold = True
+    h_para.font.color.rgb = white
+    
+    # Simple table representation
+    display_cols = [c for c in ["year", "quarter", "region", "sustainability_index"] if c in data.columns][:4]
+    
+    if display_cols:
+        rows_data = data.head(10)[display_cols].values.tolist()
+        n_rows = len(rows_data) + 1  # +1 for header
+        n_cols = len(display_cols)
         
-        if display_cols:
-            rows_data = data.head(10)[display_cols].values.tolist()
-            n_rows = len(rows_data) + 1  # +1 for header
-            n_cols = len(display_cols)
-            
-            table = slide.shapes.add_table(
-                n_rows, n_cols,
-                Inches(0.5), Inches(1.5),
-                Inches(12), Inches(4)
-            ).table
-            
-            # Header row
-            for col_idx, col_name in enumerate(display_cols):
-                cell = table.cell(0, col_idx)
-                cell.text = col_name.replace("_", " ").title()
-                cell.fill.solid()
-                cell.fill.fore_color.rgb = primary_color
+        table = slide.shapes.add_table(
+            n_rows, n_cols,
+            Inches(0.5), Inches(1.5),
+            Inches(12), Inches(4)
+        ).table
+        
+        # Header row
+        for col_idx, col_name in enumerate(display_cols):
+            cell = table.cell(0, col_idx)
+            cell.text = col_name.replace("_", " ").title()
+            cell.fill.solid()
+            cell.fill.fore_color.rgb = primary_color
+            para = cell.text_frame.paragraphs[0]
+            para.font.color.rgb = white
+            para.font.bold = True
+            para.font.size = Pt(12)
+        
+        # Data rows
+        for row_idx, row_data in enumerate(rows_data):
+            for col_idx, value in enumerate(row_data):
+                cell = table.cell(row_idx + 1, col_idx)
+                cell.text = str(value)[:20]
                 para = cell.text_frame.paragraphs[0]
-                para.font.color.rgb = white
-                para.font.bold = True
-                para.font.size = Pt(12)
-            
-            # Data rows
-            for row_idx, row_data in enumerate(rows_data):
-                for col_idx, value in enumerate(row_data):
-                    cell = table.cell(row_idx + 1, col_idx)
-                    cell.text = str(value)[:20]
-                    para = cell.text_frame.paragraphs[0]
-                    para.font.size = Pt(11)
-    
-    # Slide 4: Thank You / Contact
+                para.font.size = Pt(11)
+
+
+def _add_thank_you_slide(
+    prs: "Presentation",
+    primary_color: "RGBColor",
+) -> None:
+    """Add thank you/contact slide to presentation."""
+    white = RGBColor(255, 255, 255)
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     
     background = slide.shapes.add_shape(
@@ -302,6 +300,61 @@ def generate_ppt_presentation(
     p2.font.size = Pt(14)
     p2.font.color.rgb = RGBColor(200, 200, 200)
     p2.alignment = PP_ALIGN.CENTER
+
+
+# =============================================================================
+# MAIN EXPORT FUNCTIONS
+# =============================================================================
+
+def generate_ppt_presentation(
+    data: pd.DataFrame,
+    title: str = "Sustainability Analytics Report",
+    subtitle: Optional[str] = None,
+    summary_metrics: Optional[dict] = None,
+    language: str = "en",
+) -> BytesIO:
+    """
+    Generate a PowerPoint presentation from indicator data.
+    
+    Args:
+        data: DataFrame containing indicator data
+        title: Presentation title
+        subtitle: Optional subtitle
+        summary_metrics: Optional dict of key metrics to highlight
+        language: Language code (en/ar)
+    
+    Returns:
+        BytesIO buffer containing the PPTX
+    """
+    if not PPTX_AVAILABLE:
+        raise ImportError(
+            "python-pptx is required for PPT export. "
+            "Install with: pip install python-pptx"
+        )
+    
+    buffer = BytesIO()
+    theme = get_theme()
+    
+    # Create presentation
+    prs = Presentation()
+    prs.slide_width = Inches(13.333)
+    prs.slide_height = Inches(7.5)
+    
+    primary_color = hex_to_rgb(theme.colors.primary)
+    
+    # Slide 1: Title Slide
+    _add_title_slide(prs, title, subtitle, primary_color)
+    
+    # Slide 2: Executive Summary
+    if summary_metrics:
+        _add_executive_summary_slide(prs, summary_metrics, primary_color)
+    
+    # Slide 3: Data Table (if data provided)
+    if not data.empty:
+        _add_data_table_slide(prs, data, primary_color)
+    
+    # Slide 4: Thank You / Contact
+    _add_thank_you_slide(prs, primary_color)
     
     # Save to buffer
     prs.save(buffer)

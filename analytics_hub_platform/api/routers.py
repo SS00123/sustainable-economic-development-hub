@@ -8,10 +8,11 @@ FastAPI route definitions for REST API endpoints.
 
 import logging
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel, Field
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, ConfigDict, Field
 
 from analytics_hub_platform.api.dependencies import (
     get_current_tenant,
@@ -29,6 +30,12 @@ from analytics_hub_platform.domain.services import (
     get_data_quality_metrics,
 )
 from analytics_hub_platform.config.config import get_config, REGIONS
+from analytics_hub_platform.infrastructure.exceptions import (
+    AnalyticsHubError,
+    ValidationError,
+    NotFoundError,
+    DataError,
+)
 
 
 # Response Models
@@ -40,49 +47,95 @@ class HealthResponse(BaseModel):
 
 
 class IndicatorResponse(BaseModel):
-    """Single indicator record response."""
-    id: int
-    tenant_id: str
-    year: int
-    quarter: int
-    region: str
-    sustainability_index: Optional[float] = None
-    co2_per_gdp: Optional[float] = None
-    co2_per_capita: Optional[float] = None
-    renewable_energy_pct: Optional[float] = None
-    green_investment_pct: Optional[float] = None
-    gdp_growth: Optional[float] = None
-    employment_rate: Optional[float] = None
-    data_quality_score: Optional[float] = None
+    """Single indicator record response with all sustainability metrics."""
+    id: int = Field(..., description="Unique record identifier")
+    tenant_id: str = Field(..., description="Tenant/organization identifier")
+    year: int = Field(..., ge=2015, le=2030, description="Reporting year")
+    quarter: int = Field(..., ge=1, le=4, description="Reporting quarter (1-4)")
+    region: str = Field(..., description="Saudi region identifier")
+    sustainability_index: Optional[float] = Field(None, ge=0, le=100, description="Composite sustainability score (0-100)")
+    co2_per_gdp: Optional[float] = Field(None, description="CO2 emissions per unit GDP (kg/$)")
+    co2_per_capita: Optional[float] = Field(None, description="CO2 emissions per capita (tonnes)")
+    renewable_energy_pct: Optional[float] = Field(None, ge=0, le=100, description="Renewable energy share (%)")
+    green_investment_pct: Optional[float] = Field(None, ge=0, le=100, description="Green investment share (%)")
+    gdp_growth: Optional[float] = Field(None, description="GDP growth rate (%)")
+    employment_rate: Optional[float] = Field(None, ge=0, le=100, description="Employment rate (%)")
+    data_quality_score: Optional[float] = Field(None, ge=0, le=100, description="Data quality score (0-100)")
+
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "id": 1,
+            "tenant_id": "ministry_mep",
+            "year": 2024,
+            "quarter": 1,
+            "region": "riyadh",
+            "sustainability_index": 72.5,
+            "co2_per_gdp": 0.45,
+            "co2_per_capita": 18.2,
+            "renewable_energy_pct": 12.5,
+            "green_investment_pct": 8.3,
+            "gdp_growth": 4.2,
+            "employment_rate": 94.5,
+            "data_quality_score": 98.5,
+        }
+    })
 
 
 class IndicatorListResponse(BaseModel):
-    """Paginated list of indicators."""
-    data: List[IndicatorResponse]
-    total: int
-    page: int
-    page_size: int
-    total_pages: int
+    """Paginated list of indicator records."""
+    data: List[IndicatorResponse] = Field(..., description="List of indicator records")
+    total: int = Field(..., description="Total number of matching records")
+    page: int = Field(..., ge=1, description="Current page number")
+    page_size: int = Field(..., ge=1, le=100, description="Records per page")
+    total_pages: int = Field(..., ge=0, description="Total number of pages")
+
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "data": [{"id": 1, "tenant_id": "ministry_mep", "year": 2024, "quarter": 1, "region": "riyadh", "sustainability_index": 72.5}],
+            "total": 150,
+            "page": 1,
+            "page_size": 20,
+            "total_pages": 8,
+        }
+    })
 
 
 class SustainabilitySummaryResponse(BaseModel):
-    """Sustainability summary response."""
-    sustainability_index: float
-    sustainability_trend: float
-    co2_per_gdp: float
-    co2_per_capita: float
-    renewable_energy_pct: float
-    green_investment_pct: float
-    data_quality_score: float
-    period: str
-    region: Optional[str] = None
+    """Aggregated sustainability metrics summary."""
+    sustainability_index: float = Field(..., description="Current sustainability index value")
+    sustainability_trend: float = Field(..., description="Quarter-over-quarter change")
+    co2_per_gdp: float = Field(..., description="CO2 intensity per GDP")
+    co2_per_capita: float = Field(..., description="Per-capita CO2 emissions")
+    renewable_energy_pct: float = Field(..., description="Renewable energy share")
+    green_investment_pct: float = Field(..., description="Green investment share")
+    data_quality_score: float = Field(..., description="Data quality score")
+    period: str = Field(..., description="Reporting period (e.g., 'Q1 2024')")
+    region: Optional[str] = Field(None, description="Region filter applied, or 'all'")
+
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "sustainability_index": 72.5,
+            "sustainability_trend": 2.3,
+            "co2_per_gdp": 0.45,
+            "co2_per_capita": 18.2,
+            "renewable_energy_pct": 12.5,
+            "green_investment_pct": 8.3,
+            "data_quality_score": 98.5,
+            "period": "Q1 2024",
+            "region": "all",
+        }
+    })
 
 
 class RegionalComparisonResponse(BaseModel):
-    """Regional comparison item."""
-    region: str
-    sustainability_index: float
-    rank: int
+    """Regional comparison with ranking."""
+    region: str = Field(..., description="Region identifier")
+    sustainability_index: float = Field(..., description="Average sustainability index")
+    rank: int = Field(..., ge=1, description="Performance ranking (1 = best)")
+
+    model_config = ConfigDict(json_schema_extra={
+        "example": {"region": "riyadh", "sustainability_index": 78.5, "rank": 1}
+    })
 
 
 class TimeSeriesPoint(BaseModel):
@@ -107,13 +160,61 @@ class DataQualityResponse(BaseModel):
 
 
 class ErrorResponse(BaseModel):
-    """Error response."""
-    detail: str
-    code: Optional[str] = None
-    error_type: Optional[str] = None
+    """Error response model for API errors."""
+    detail: str = Field(..., description="Human-readable error message")
+    code: Optional[str] = Field(None, description="Machine-readable error code")
+    error_type: Optional[str] = Field(None, description="Error type/category")
+    correlation_id: Optional[str] = Field(None, description="Request correlation ID for debugging")
+
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "detail": "Invalid quarter value. Must be between 1 and 4.",
+            "code": "VALIDATION_ERROR",
+            "correlation_id": "req-abc123-def456",
+        }
+    })
 
 
 logger = logging.getLogger(__name__)
+
+
+def handle_exception(e: Exception) -> HTTPException:
+    """
+    Convert exceptions to appropriate HTTP responses.
+    
+    Args:
+        e: Exception to handle
+    
+    Returns:
+        HTTPException with appropriate status code
+    """
+    if isinstance(e, ValidationError):
+        return HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+    elif isinstance(e, NotFoundError):
+        return HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+    elif isinstance(e, DataError):
+        return HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(e),
+        )
+    elif isinstance(e, AnalyticsHubError):
+        return HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e),
+        )
+    else:
+        # Log unexpected errors
+        logger.exception("Unexpected error in API endpoint")
+        return HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An internal error occurred. Please try again later.",
+        )
 
 
 def create_api_router() -> APIRouter:
@@ -137,7 +238,7 @@ def create_api_router() -> APIRouter:
         """Check API health status."""
         return HealthResponse(
             status="ok",
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             version="1.0.0",
         )
     
@@ -204,11 +305,10 @@ def create_api_router() -> APIRouter:
                 total_pages=total_pages,
             )
             
+        except HTTPException:
+            raise
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=str(e),
-            )
+            raise handle_exception(e)
     
     # Sustainability summary
     @router.get(
@@ -253,11 +353,10 @@ def create_api_router() -> APIRouter:
                 region=region,
             )
             
+        except HTTPException:
+            raise
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=str(e),
-            )
+            raise handle_exception(e)
     
     # Regional comparison
     @router.get(
@@ -298,11 +397,10 @@ def create_api_router() -> APIRouter:
                 for _, row in regional.iterrows()
             ]
             
+        except HTTPException:
+            raise
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=str(e),
-            )
+            raise handle_exception(e)
     
     # Time series
     @router.get(
@@ -353,11 +451,10 @@ def create_api_router() -> APIRouter:
                 ],
             )
             
+        except HTTPException:
+            raise
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=str(e),
-            )
+            raise handle_exception(e)
     
     # Data quality
     @router.get(
@@ -390,11 +487,10 @@ def create_api_router() -> APIRouter:
                 missing_by_kpi=metrics.get("missing_by_kpi", {}),
             )
             
+        except HTTPException:
+            raise
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=str(e),
-            )
+            raise handle_exception(e)
     
     # Regions reference data
     @router.get(

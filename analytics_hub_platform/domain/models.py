@@ -10,10 +10,15 @@ Models are designed to be:
 - Extensible for future requirements
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field, ConfigDict, field_validator
+
+
+def utc_now() -> datetime:
+    """Return current UTC datetime (timezone-aware)."""
+    return datetime.now(timezone.utc)
 
 
 class UserRole(str, Enum):
@@ -54,8 +59,8 @@ class Tenant(BaseModel):
     name_ar: Optional[str] = Field(None, description="Arabic display name")
     country_code: str = Field(default="SA", description="ISO country code")
     is_active: bool = Field(default=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
     
     # Configuration overrides for this tenant
     config_overrides: Optional[Dict[str, Any]] = Field(default=None)
@@ -77,8 +82,8 @@ class User(BaseModel):
     name_ar: Optional[str] = Field(None, description="Arabic display name")
     role: UserRole = Field(default=UserRole.VIEWER)
     is_active: bool = Field(default=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
     
     # Preferences
     preferred_language: str = Field(default="en")

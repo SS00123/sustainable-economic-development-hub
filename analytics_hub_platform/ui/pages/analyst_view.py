@@ -167,7 +167,7 @@ def render_data_explorer_tab(df: pd.DataFrame, theme, filters) -> None:
     # Display data
     st.dataframe(
         filtered_df.iloc[start_idx:end_idx],
-        use_container_width=True,
+        width=None,
         height=400,
     )
     
@@ -179,7 +179,7 @@ def render_data_explorer_tab(df: pd.DataFrame, theme, filters) -> None:
     if len(numeric_cols) > 0:
         st.dataframe(
             filtered_df[numeric_cols].describe().round(2),
-            use_container_width=True,
+            width=None,
         )
 
 
@@ -267,7 +267,7 @@ def render_data_quality_tab(df: pd.DataFrame, theme, filters) -> None:
                 color_completeness,
                 subset=["Complete %"]
             ),
-            use_container_width=True,
+            width=None,
             height=400,
         )
     
@@ -286,7 +286,7 @@ def render_data_quality_tab(df: pd.DataFrame, theme, filters) -> None:
         freshness.columns = ["Region", "Last Update", "Avg Quality"]
         freshness = freshness.sort_values("Last Update", ascending=False)
         
-        st.dataframe(freshness, use_container_width=True)
+        st.dataframe(freshness, width=None)
     else:
         st.info("Timestamp data not available for freshness analysis.")
 

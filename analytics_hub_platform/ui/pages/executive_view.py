@@ -118,7 +118,7 @@ def render_executive_view() -> None:
             font=dict(family=theme.typography.font_family),
         )
         
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
     
     with col2:
         status = sustainability.get("status", "unknown") if sustainability else "unknown"

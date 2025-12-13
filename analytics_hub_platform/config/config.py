@@ -236,19 +236,7 @@ def reload_config() -> AppConfig:
     return get_config()
 
 
-# Convenience constant: List of Saudi Arabia administrative regions
-REGIONS = [
-    "Riyadh",
-    "Makkah",
-    "Madinah",
-    "Eastern Province",
-    "Qassim",
-    "Asir",
-    "Tabuk",
-    "Hail",
-    "Northern Borders",
-    "Jazan",
-    "Najran",
-    "Al Bahah",
-    "Al Jawf",
-]
+# Import from centralized constants for backwards compatibility
+from analytics_hub_platform.config.constants import SAUDI_REGIONS as REGIONS
+
+__all__ = ["get_config", "reload_config", "AppConfig", "REGIONS"]

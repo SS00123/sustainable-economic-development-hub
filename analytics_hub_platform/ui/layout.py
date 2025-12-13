@@ -18,6 +18,93 @@ def inject_custom_css() -> None:
     """Inject custom CSS styles into the Streamlit app."""
     theme = get_theme()
     st.markdown(theme.get_streamlit_custom_css(), unsafe_allow_html=True)
+    # Global aesthetic enhancements shared across all pages
+    st.markdown(
+        f"""
+        <style>
+            /* Page canvas */
+            .main {{
+                background: radial-gradient(120% 120% at 20% 20%, rgba(27,127,140,0.12), transparent),
+                            radial-gradient(120% 120% at 80% 0%, rgba(18,67,109,0.10), transparent),
+                            {theme.colors.background};
+            }}
+            .block-container {{
+                padding-top: 1.5rem !important;
+                padding-bottom: 2rem !important;
+                max-width: 1200px;
+            }}
+            /* Glass surfaces */
+            .glass-box {{
+                background: rgba(255,255,255,0.78);
+                border: 1px solid {theme.colors.border};
+                box-shadow: 0 12px 40px -18px rgba(17, 24, 39, 0.35);
+                border-radius: 16px;
+                padding: 16px 18px;
+                backdrop-filter: blur(6px);
+            }}
+            /* Pills for highlights/filters */
+            .pill {{
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+                padding: 10px 14px;
+                border-radius: 999px;
+                background: linear-gradient(120deg, rgba(27,127,140,0.12), rgba(18,67,109,0.07));
+                border: 1px solid {theme.colors.border};
+                color: {theme.colors.text_secondary};
+                font-weight: 600;
+                font-size: 13px;
+            }}
+            /* Inline labels for compact filters */
+            .filter-label {{
+                font-size: 12px;
+                letter-spacing: 0.5px;
+                text-transform: uppercase;
+                color: {theme.colors.text_muted};
+                margin-bottom: 6px;
+            }}
+            /* Card hover lift */
+            .element-container:hover > div[data-testid="stMarkdownContainer"],
+            .element-container:hover > div[data-testid="stVerticalBlock"] > div {{
+                transform: translateY(-1px);
+                transition: transform 0.15s ease, box-shadow 0.15s ease;
+                box-shadow: {theme.shadows.md};
+            }}
+
+            /* Soft entrance animations */
+            @keyframes fadeUp {{
+                0% {{ opacity: 0; transform: translateY(12px); }}
+                100% {{ opacity: 1; transform: translateY(0); }}
+            }}
+            .glass-box, .stPlotlyChart, .stMetric, .element-container > div {{
+                animation: fadeUp 320ms ease both;
+            }}
+            /* Stagger columns slightly */
+            .stColumn:nth-child(1) > div {{ animation-delay: 40ms; }}
+            .stColumn:nth-child(2) > div {{ animation-delay: 80ms; }}
+            .stColumn:nth-child(3) > div {{ animation-delay: 120ms; }}
+            .stColumn:nth-child(4) > div {{ animation-delay: 160ms; }}
+            /* Buttons and selects polish */
+            button[kind="secondary"], button[kind="primary"], .stSelectbox > div {{
+                border-radius: 10px !important;
+                box-shadow: {theme.shadows.sm};
+                transition: transform 0.12s ease, box-shadow 0.12s ease;
+            }}
+            button:hover, .stSelectbox > div:hover {{
+                transform: translateY(-1px);
+                box-shadow: {theme.shadows.md};
+            }}
+            /* Section divider accent */
+            hr {{
+                border: none;
+                height: 1px;
+                background: linear-gradient(90deg, transparent, {theme.colors.secondary}, transparent);
+            }}
+        
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def render_header(

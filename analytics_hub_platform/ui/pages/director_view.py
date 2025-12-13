@@ -287,7 +287,7 @@ def render_trends_tab(df: pd.DataFrame, theme, filters) -> None:
             font=dict(family=theme.typography.font_family),
         )
         
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
     
     st.markdown("---")
     
@@ -330,7 +330,7 @@ def render_trends_tab(df: pd.DataFrame, theme, filters) -> None:
             font=dict(family=theme.typography.font_family),
         )
         
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
 
 def render_regional_tab(df: pd.DataFrame, theme, filters) -> None:
@@ -410,7 +410,7 @@ def render_regional_tab(df: pd.DataFrame, theme, filters) -> None:
             font=dict(family=theme.typography.font_family),
         )
         
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
     
     with col2:
         st.markdown("**📊 Statistics**")
@@ -481,7 +481,7 @@ def render_sustainability_tab(sustainability: dict, df: pd.DataFrame, theme, fil
             font=dict(family=theme.typography.font_family),
         )
         
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
     
     with col2:
         st.markdown("**📋 Component Details**")

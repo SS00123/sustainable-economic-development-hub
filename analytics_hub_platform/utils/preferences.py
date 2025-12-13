@@ -8,11 +8,16 @@ User preference management for personalization.
 
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass, field, asdict
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 from pathlib import Path
 
 import streamlit as st
+
+
+def _utc_now_iso() -> str:
+    """Return current UTC datetime as ISO string."""
+    return datetime.now(timezone.utc).isoformat()
 
 
 @dataclass
@@ -98,7 +103,7 @@ class UserPreferences:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         data = asdict(self)
-        data["updated_at"] = datetime.utcnow().isoformat()
+        data["updated_at"] = _utc_now_iso()
         return data
     
     @classmethod
@@ -131,7 +136,7 @@ def get_user_preferences() -> UserPreferences:
     """
     if PREFERENCES_KEY not in st.session_state:
         st.session_state[PREFERENCES_KEY] = UserPreferences(
-            created_at=datetime.utcnow().isoformat()
+            created_at=_utc_now_iso()
         )
     
     prefs = st.session_state[PREFERENCES_KEY]
@@ -154,7 +159,7 @@ def save_user_preferences(preferences: UserPreferences) -> bool:
     Returns:
         True if successful
     """
-    preferences.updated_at = datetime.utcnow().isoformat()
+    preferences.updated_at = _utc_now_iso()
     st.session_state[PREFERENCES_KEY] = preferences
     
     # In production, this would persist to database
@@ -263,7 +268,7 @@ def reset_preferences() -> UserPreferences:
     Returns:
         New default UserPreferences
     """
-    prefs = UserPreferences(created_at=datetime.utcnow().isoformat())
+    prefs = UserPreferences(created_at=_utc_now_iso())
     st.session_state[PREFERENCES_KEY] = prefs
     return prefs
 

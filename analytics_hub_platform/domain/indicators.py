@@ -225,13 +225,26 @@ def get_sustainability_weights(catalog: Optional[Dict[str, Any]] = None) -> Dict
     """
     if catalog is None:
         catalog = _load_kpi_catalog()
+        # Use cached version when using default catalog
+        return _get_weights_cached()
     
+    # Non-cached path for custom catalog
+    return _extract_weights(catalog)
+
+
+@lru_cache(maxsize=1)
+def _get_weights_cached() -> Dict[str, float]:
+    """Cached version using default catalog."""
+    return _extract_weights(_load_kpi_catalog())
+
+
+def _extract_weights(catalog: Dict[str, Any]) -> Dict[str, float]:
+    """Extract weights from catalog dictionary."""
     weights = {}
     for kpi in catalog.get("kpis", []):
         weight = kpi.get("default_weight_in_sustainability_index", 0.0)
         if weight > 0:
             weights[kpi["id"]] = weight
-    
     return weights
 
 
@@ -244,7 +257,21 @@ def get_kpi_ranges(catalog: Optional[Dict[str, Any]] = None) -> Dict[str, Tuple[
     """
     if catalog is None:
         catalog = _load_kpi_catalog()
+        # Use cached version when using default catalog
+        return _get_ranges_cached()
     
+    # Non-cached path for custom catalog
+    return _extract_ranges(catalog)
+
+
+@lru_cache(maxsize=1)
+def _get_ranges_cached() -> Dict[str, Tuple[float, float, bool]]:
+    """Cached version using default catalog."""
+    return _extract_ranges(_load_kpi_catalog())
+
+
+def _extract_ranges(catalog: Dict[str, Any]) -> Dict[str, Tuple[float, float, bool]]:
+    """Extract ranges from catalog dictionary."""
     ranges = {}
     for kpi in catalog.get("kpis", []):
         if kpi.get("min_value") is not None and kpi.get("max_value") is not None:
@@ -252,7 +279,6 @@ def get_kpi_ranges(catalog: Optional[Dict[str, Any]] = None) -> Dict[str, Tuple[
             # Inverse normalization for "lower is better" indicators
             inverse = higher_is_better is False
             ranges[kpi["id"]] = (kpi["min_value"], kpi["max_value"], inverse)
-    
     return ranges
 
 

@@ -3,15 +3,23 @@ Streamlit Application Entry Point
 Sustainable Economic Development Analytics Hub
 Ministry of Economy and Planning
 
-Run with: streamlit run app.py
+Multi-page structure:
+- Dashboard (Minister View)
+- KPIs
+- Trends
+- Data
+- Advanced Analytics
+- Settings
+
+Run with: streamlit run streamlit_app.py
 """
 
 import streamlit as st
 
 # Page configuration (must be first Streamlit command)
 st.set_page_config(
-    page_title="Sustainable Economic Development Analytics Hub",
-    page_icon="🌱",
+    page_title="Sustainable Economic Development – Minister View",
+    page_icon="📊",
     layout="wide",
     initial_sidebar_state="collapsed",
     menu_items={
@@ -24,14 +32,12 @@ st.set_page_config(
         
         Data-driven insights for sustainable development policy.
         
-        Version 1.0.0
+        Version 2.0.0 – Multi-Page Architecture
         """,
     },
 )
 
 from analytics_hub_platform.infrastructure.db_init import initialize_database
-from analytics_hub_platform.ui.layout import inject_custom_css
-from analytics_hub_platform.ui.pages.unified_dashboard import render_unified_dashboard
 
 
 def initialize_session_state() -> None:
@@ -41,8 +47,9 @@ def initialize_session_state() -> None:
         "quarter": 4,
         "region": "all",
         "language": "en",
-        "user_role": "ANALYST",
+        "user_role": "EXECUTIVE",
         "initialized": False,
+        "theme": "dark",
     }
 
     for key, value in defaults.items():
@@ -51,7 +58,7 @@ def initialize_session_state() -> None:
 
 
 def main() -> None:
-    """Main application entry point."""
+    """Main application entry point - redirects to Dashboard page."""
     # Initialize session
     initialize_session_state()
 
@@ -60,11 +67,25 @@ def main() -> None:
         initialize_database()
         st.session_state["initialized"] = True
 
-    # Inject global CSS theme
-    inject_custom_css()
-
-    # Render unified professional dashboard (all in one page, no sidebar/tabs)
-    render_unified_dashboard()
+    # Welcome page
+    st.markdown("""
+    # 📊 Sustainable Economic Development Analytics Hub
+    
+    **Ministry of Economy and Planning**
+    
+    Welcome to the Analytics Hub. Please use the sidebar navigation to access different sections:
+    
+    - **📊 Dashboard** - Executive overview for ministerial briefing
+    - **📈 KPIs** - Detailed key performance indicators
+    - **📊 Trends** - Historical analysis and time-series
+    - **📋 Data** - Data quality and raw data view
+    - **🧠 Advanced Analytics** - ML forecasting and AI insights
+    - **⚙️ Settings** - Configuration and preferences
+    
+    ---
+    
+    💡 **Tip:** Use the sidebar menu (▶️) to navigate between pages.
+    """)
 
 
 if __name__ == "__main__":

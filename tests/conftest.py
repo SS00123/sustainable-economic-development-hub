@@ -8,7 +8,7 @@ Shared fixtures and configuration for tests.
 import pytest
 import pandas as pd
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 import tempfile
 import os
@@ -57,7 +57,7 @@ def sample_indicator_data():
                     "gdp_growth": np.random.uniform(2, 5),
                     "employment_rate": np.random.uniform(88, 95),
                     "data_quality_score": np.random.uniform(70, 95),
-                    "created_at": datetime.utcnow().isoformat(),
+                    "created_at": datetime.now(timezone.utc).isoformat(),
                 })
     
     return pd.DataFrame(data)

@@ -30,6 +30,17 @@ from analytics_hub_platform.domain.services import (
     get_kpi_timeseries,
     get_regional_comparison,
 )
+from analytics_hub_platform.domain.ml_services import (
+    KPIForecaster,
+    AnomalyDetector,
+    AnomalySeverity,
+    forecast_kpi,
+    detect_kpi_anomalies,
+)
+from analytics_hub_platform.domain.llm_service import (
+    generate_recommendations,
+    get_llm_service,
+)
 
 __all__ = [
     # Models
@@ -53,4 +64,13 @@ __all__ = [
     "get_executive_snapshot",
     "get_kpi_timeseries",
     "get_regional_comparison",
+    # ML Services
+    "KPIForecaster",
+    "AnomalyDetector",
+    "AnomalySeverity",
+    "forecast_kpi",
+    "detect_kpi_anomalies",
+    # LLM Services
+    "generate_recommendations",
+    "get_llm_service",
 ]

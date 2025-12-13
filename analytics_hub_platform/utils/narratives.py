@@ -287,29 +287,27 @@ def _generate_arabic_director_narrative(summary: DashboardSummary) -> str:
     return "\n".join(lines)
 
 
-def _generate_english_narrative(summary: DashboardSummary) -> str:
-    """Generate English executive narrative with clear paragraph structure."""
+# =============================================================================
+# NARRATIVE SECTION BUILDERS
+# =============================================================================
+
+def _build_executive_summary_section(summary: DashboardSummary) -> List[str]:
+    """Build the executive summary section of the narrative."""
     lines = []
-    
-    # === EXECUTIVE SUMMARY ===
     lines.append("### 📊 Executive Summary")
     lines.append("")
     
-    # Sustainability Index with clear interpretation
     if summary.sustainability_index is not None:
         index_val = summary.sustainability_index
         if index_val >= 70:
             status_emoji = "🟢"
             assessment = "**strong performance**"
-            action = "Continue current trajectory with focus on maintaining momentum."
         elif index_val >= 50:
             status_emoji = "🟡"
             assessment = "**moderate progress**"
-            action = "Targeted interventions required in underperforming areas."
         else:
             status_emoji = "🔴"
             assessment = "**significant challenges**"
-            action = "Immediate strategic action required across multiple dimensions."
         
         lines.append(
             f"{status_emoji} The **Sustainability Index** stands at **{index_val:.1f} points**, "
@@ -317,84 +315,104 @@ def _generate_english_narrative(summary: DashboardSummary) -> str:
         )
         lines.append("")
     
-    # Period context as metadata
     if summary.period:
         lines.append(f"📅 *Reporting Period: {summary.period}*")
         lines.append("")
         lines.append("---")
         lines.append("")
     
-    # === PERFORMANCE DISTRIBUTION ===
-    if summary.total_indicators > 0:
-        lines.append("### 🎯 Performance Distribution")
-        lines.append("")
-        
-        total = summary.total_indicators
-        on_target_pct = (summary.on_target_count / total) * 100
-        warning_pct = (summary.warning_count / total) * 100
-        critical_pct = (summary.critical_count / total) * 100
-        
-        # Visual performance bar (text-based)
-        if summary.on_target_count > 0:
-            ind_word = _plural(summary.on_target_count, "indicator", "indicators")
-            lines.append(
-                f"🟢 **On Track** — **{summary.on_target_count}** {ind_word} ({on_target_pct:.0f}%) "
-                f"meeting or exceeding targets"
-            )
-            lines.append("")
-        
-        if summary.warning_count > 0:
-            ind_word = _plural(summary.warning_count, "indicator", "indicators")
-            lines.append(
-                f"🟡 **Monitoring Required** — **{summary.warning_count}** {ind_word} ({warning_pct:.0f}%) "
-                f"within acceptable range but below optimal"
-            )
-            lines.append("")
-        
-        if summary.critical_count > 0:
-            ind_word = _plural(summary.critical_count, "indicator", "indicators")
-            lines.append(
-                f"🔴 **Action Needed** — **{summary.critical_count}** {ind_word} ({critical_pct:.0f}%) "
-                f"require immediate corrective measures"
-            )
-            lines.append("")
-        
-        lines.append("---")
-        lines.append("")
+    return lines
+
+
+def _build_performance_distribution_section(summary: DashboardSummary) -> List[str]:
+    """Build the performance distribution section of the narrative."""
+    lines = []
     
-    # === TREND ANALYSIS ===
-    if summary.improving_count > 0 or summary.declining_count > 0:
-        lines.append("### 📈 Trend Analysis")
-        lines.append("")
-        
-        imp_word = _plural(summary.improving_count, "indicator", "indicators")
-        dec_word = _plural(summary.declining_count, "indicator", "indicators")
-        
-        total_changing = summary.improving_count + summary.declining_count
-        
-        if summary.improving_count > summary.declining_count:
-            trend_emoji = "📈"
-            trend_assessment = "**Positive trajectory**"
-        elif summary.declining_count > summary.improving_count:
-            trend_emoji = "📉"
-            trend_assessment = "**Concerning trends**"
-        else:
-            trend_emoji = "↔️"
-            trend_assessment = "**Mixed dynamics**"
-        
+    if summary.total_indicators <= 0:
+        return lines
+    
+    lines.append("### 🎯 Performance Distribution")
+    lines.append("")
+    
+    total = summary.total_indicators
+    on_target_pct = (summary.on_target_count / total) * 100
+    warning_pct = (summary.warning_count / total) * 100
+    critical_pct = (summary.critical_count / total) * 100
+    
+    if summary.on_target_count > 0:
+        ind_word = _plural(summary.on_target_count, "indicator", "indicators")
         lines.append(
-            f"{trend_emoji} {trend_assessment}: **{summary.improving_count}** {imp_word} showing improvement, "
-            f"while **{summary.declining_count}** {dec_word} experiencing decline."
+            f"🟢 **On Track** — **{summary.on_target_count}** {ind_word} ({on_target_pct:.0f}%) "
+            f"meeting or exceeding targets"
         )
         lines.append("")
-        lines.append("---")
+    
+    if summary.warning_count > 0:
+        ind_word = _plural(summary.warning_count, "indicator", "indicators")
+        lines.append(
+            f"🟡 **Monitoring Required** — **{summary.warning_count}** {ind_word} ({warning_pct:.0f}%) "
+            f"within acceptable range but below optimal"
+        )
         lines.append("")
     
-    # === KEY HIGHLIGHTS ===
-    has_highlights = summary.top_performers or summary.attention_needed
-    if has_highlights:
-        lines.append("### 💡 Key Highlights")
+    if summary.critical_count > 0:
+        ind_word = _plural(summary.critical_count, "indicator", "indicators")
+        lines.append(
+            f"🔴 **Action Needed** — **{summary.critical_count}** {ind_word} ({critical_pct:.0f}%) "
+            f"require immediate corrective measures"
+        )
         lines.append("")
+    
+    lines.append("---")
+    lines.append("")
+    
+    return lines
+
+
+def _build_trend_analysis_section(summary: DashboardSummary) -> List[str]:
+    """Build the trend analysis section of the narrative."""
+    lines = []
+    
+    if summary.improving_count <= 0 and summary.declining_count <= 0:
+        return lines
+    
+    lines.append("### 📈 Trend Analysis")
+    lines.append("")
+    
+    imp_word = _plural(summary.improving_count, "indicator", "indicators")
+    dec_word = _plural(summary.declining_count, "indicator", "indicators")
+    
+    if summary.improving_count > summary.declining_count:
+        trend_emoji = "📈"
+        trend_assessment = "**Positive trajectory**"
+    elif summary.declining_count > summary.improving_count:
+        trend_emoji = "📉"
+        trend_assessment = "**Concerning trends**"
+    else:
+        trend_emoji = "↔️"
+        trend_assessment = "**Mixed dynamics**"
+    
+    lines.append(
+        f"{trend_emoji} {trend_assessment}: **{summary.improving_count}** {imp_word} showing improvement, "
+        f"while **{summary.declining_count}** {dec_word} experiencing decline."
+    )
+    lines.append("")
+    lines.append("---")
+    lines.append("")
+    
+    return lines
+
+
+def _build_key_highlights_section(summary: DashboardSummary) -> List[str]:
+    """Build the key highlights section of the narrative."""
+    lines = []
+    
+    has_highlights = summary.top_performers or summary.attention_needed
+    if not has_highlights:
+        return lines
+    
+    lines.append("### 💡 Key Highlights")
+    lines.append("")
     
     # Top performers with context
     if summary.top_performers:
@@ -404,7 +422,6 @@ def _generate_english_narrative(summary: DashboardSummary) -> str:
             name = _get_item_name(item)
             value = _get_item_value(item)
             
-            # Add achievement context
             if value > 20:
                 context = " (exceptional growth)"
             elif value > 10:
@@ -423,7 +440,6 @@ def _generate_english_narrative(summary: DashboardSummary) -> str:
             name = _get_item_name(item)
             value = _get_item_value(item)
             
-            # Add urgency context
             abs_value = abs(value)
             if abs_value > 15:
                 urgency = " — *High priority*"
@@ -435,32 +451,53 @@ def _generate_english_narrative(summary: DashboardSummary) -> str:
             lines.append(f"{idx}. **{name}**: {_format_signed_percent(value)}{urgency}")
         lines.append("")
     
-    # === STRATEGIC RECOMMENDATION ===
-    if summary.sustainability_index is not None:
-        lines.append("---")
-        lines.append("")
-        lines.append("### 🎯 Strategic Recommendation")
-        lines.append("")
-        
-        index_val = summary.sustainability_index
-        if index_val >= 70:
-            lines.append(
-                "✅ **Maintain and Optimize**: Current performance is strong. "
-                "Focus on sustaining gains, sharing best practices across lagging indicators, "
-                "and preparing for next-phase targets."
-            )
-        elif index_val >= 50:
-            lines.append(
-                "⚡ **Accelerate Progress**: Performance is on track but requires focused intervention. "
-                "Prioritize resources toward critical/warning indicators, establish quarterly review checkpoints, "
-                "and strengthen cross-ministerial coordination."
-            )
-        else:
-            lines.append(
-                "🚨 **Urgent Action Required**: Current trajectory requires immediate course correction. "
-                "Recommend establishing a task force to address critical indicators, "
-                "conducting root-cause analysis for declining metrics, and reallocating resources to high-impact interventions."
-            )
+    return lines
+
+
+def _build_strategic_recommendation_section(summary: DashboardSummary) -> List[str]:
+    """Build the strategic recommendation section of the narrative."""
+    lines = []
+    
+    if summary.sustainability_index is None:
+        return lines
+    
+    lines.append("---")
+    lines.append("")
+    lines.append("### 🎯 Strategic Recommendation")
+    lines.append("")
+    
+    index_val = summary.sustainability_index
+    if index_val >= 70:
+        lines.append(
+            "✅ **Maintain and Optimize**: Current performance is strong. "
+            "Focus on sustaining gains, sharing best practices across lagging indicators, "
+            "and preparing for next-phase targets."
+        )
+    elif index_val >= 50:
+        lines.append(
+            "⚡ **Accelerate Progress**: Performance is on track but requires focused intervention. "
+            "Prioritize resources toward critical/warning indicators, establish quarterly review checkpoints, "
+            "and strengthen cross-ministerial coordination."
+        )
+    else:
+        lines.append(
+            "🚨 **Urgent Action Required**: Current trajectory requires immediate course correction. "
+            "Recommend establishing a task force to address critical indicators, "
+            "conducting root-cause analysis for declining metrics, and reallocating resources to high-impact interventions."
+        )
+    
+    return lines
+
+
+def _generate_english_narrative(summary: DashboardSummary) -> str:
+    """Generate English executive narrative with clear paragraph structure."""
+    lines: List[str] = []
+    
+    lines.extend(_build_executive_summary_section(summary))
+    lines.extend(_build_performance_distribution_section(summary))
+    lines.extend(_build_trend_analysis_section(summary))
+    lines.extend(_build_key_highlights_section(summary))
+    lines.extend(_build_strategic_recommendation_section(summary))
     
     return "\n".join(lines)
 

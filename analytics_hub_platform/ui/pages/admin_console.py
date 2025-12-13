@@ -110,7 +110,7 @@ def render_kpi_management(theme) -> None:
     
     st.dataframe(
         df,
-        use_container_width=True,
+        width=None,
         hide_index=True,
     )
     
@@ -249,7 +249,7 @@ def render_user_roles(theme) -> None:
     
     df = pd.DataFrame(roles_data)
     
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    st.dataframe(df, width=None, hide_index=True)
     
     # Current session role selector (demo)
     st.markdown("### Demo Role Selector")
@@ -308,14 +308,14 @@ def render_system_settings(theme) -> None:
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        if st.button("🔄 Refresh Cache", use_container_width=True):
+        if st.button("🔄 Refresh Cache", use_container_width=False):
             st.cache_data.clear()
             st.success("Cache cleared!")
     
     with col2:
-        if st.button("📊 Regenerate Data", use_container_width=True):
+        if st.button("📊 Regenerate Data", use_container_width=False):
             st.info("Data regeneration available in development mode.")
     
     with col3:
-        if st.button("📋 Export Logs", use_container_width=True):
+        if st.button("📋 Export Logs", use_container_width=False):
             st.info("Log export functionality.")

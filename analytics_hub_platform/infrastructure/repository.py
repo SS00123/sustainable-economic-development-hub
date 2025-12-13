@@ -21,6 +21,7 @@ from analytics_hub_platform.infrastructure.db_init import (
     tenants,
     users,
 )
+from analytics_hub_platform.infrastructure.caching import cached, get_cache
 from analytics_hub_platform.domain.models import (
     FilterParams,
     IndicatorRecord,
@@ -63,7 +64,8 @@ class Repository:
             filters: Optional filter parameters
             
         Returns:
-            DataFrame with indicator data
+            DataFrame with indicator data (columns: year, quarter, region, kpi values)
+            Empty DataFrame if no data found
         """
         query = select(sustainability_indicators).where(
             sustainability_indicators.c.tenant_id == tenant_id
@@ -101,7 +103,8 @@ class Repository:
             filters: Optional filter parameters
             
         Returns:
-            DataFrame with latest indicator data
+            DataFrame with latest indicator data (single period)
+            Empty DataFrame if no data found
         """
         # First, find the latest period if not specified
         if filters is None or (filters.year is None and filters.quarter is None):
@@ -155,12 +158,13 @@ class Repository:
         
         Args:
             tenant_id: Tenant identifier
-            indicator_id: Column name of the indicator
-            region: Optional region filter
-            years: Optional list of years to include
+            indicator_id: Column name of the indicator (e.g., 'gdp_growth')
+            region: Optional region filter (e.g., 'riyadh', 'all')
+            years: Optional list of years to include (e.g., [2022, 2023, 2024])
             
         Returns:
-            DataFrame with time series data
+            DataFrame with time series data (columns: year, quarter, region, indicator_value)
+            Empty DataFrame if indicator not found or no data
         """
         # Select only the needed columns
         columns = [

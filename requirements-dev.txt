@@ -1,0 +1,24 @@
+# Sustainable Economic Development Analytics Hub
+# Development Requirements
+# Ministry of Economy and Planning
+# Author: Eng. Sultan Albuqami
+
+# Install production requirements first
+-r requirements.txt
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+
+# Code Quality & Formatting
+ruff>=0.1.0
+black>=23.0.0
+mypy>=1.6.0
+
+# Pre-commit Hooks
+pre-commit>=3.5.0
+
+# Development Tools
+ipython>=8.12.0
+jupyter>=1.0.0

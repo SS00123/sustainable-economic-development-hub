@@ -281,6 +281,70 @@ def meets_wcag_contrast(
     return ratio >= threshold
 
 
+def get_accessible_text_color(
+    background: str,
+    light_text: str = "#FFFFFF",
+    dark_text: str = "#111827",
+    level: ContrastLevel = ContrastLevel.AA
+) -> str:
+    """
+    Get accessible text color (light or dark) based on background.
+    
+    Automatically selects light or dark text color based on which
+    provides better contrast against the background.
+    
+    Args:
+        background: Background color hex
+        light_text: Light text option (default white)
+        dark_text: Dark text option (default dark gray)
+        level: WCAG level to meet
+    
+    Returns:
+        Hex color for text that meets WCAG contrast requirements
+    """
+    light_ratio = check_contrast_ratio(light_text, background)
+    dark_ratio = check_contrast_ratio(dark_text, background)
+    
+    # Return whichever provides better contrast
+    return light_text if light_ratio > dark_ratio else dark_text
+
+
+def validate_theme_colors(theme_colors: Dict[str, str]) -> Dict[str, str]:
+    """
+    Validate theme colors for accessibility and return warnings.
+    
+    Args:
+        theme_colors: Dictionary of color definitions from theme
+    
+    Returns:
+        Dictionary mapping color pairs to warning messages
+    """
+    warnings = {}
+    
+    # Common text/background combinations to check
+    checks = [
+        ("text_primary", "background", False),
+        ("text_secondary", "background", False),
+        ("text_muted", "surface", False),
+        ("text_inverse", "primary", False),
+        ("text_inverse", "secondary", False),
+    ]
+    
+    for fg_key, bg_key, is_large in checks:
+        if fg_key in theme_colors and bg_key in theme_colors:
+            fg = theme_colors[fg_key]
+            bg = theme_colors[bg_key]
+            
+            if not meets_wcag_contrast(fg, bg, ContrastLevel.AA, is_large):
+                ratio = check_contrast_ratio(fg, bg)
+                warnings[f"{fg_key}_on_{bg_key}"] = (
+                    f"Low contrast: {fg_key} on {bg_key} "
+                    f"(ratio: {ratio:.2f}, needs 4.5+)"
+                )
+    
+    return warnings
+
+
 def get_accessible_css() -> str:
     """
     Generate CSS for accessibility features.
@@ -345,3 +409,7 @@ def get_accessible_css() -> str:
         border: 0;
     }
     """
+
+
+# Alias for backward compatibility
+calculate_contrast_ratio = check_contrast_ratio

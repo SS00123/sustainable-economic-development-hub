@@ -32,10 +32,23 @@ cd analytics_hub_platform
 pip install -r requirements.txt
 
 # Run the app
-streamlit run app.py
+streamlit run streamlit_app.py
 ```
 
 The app will open in your browser at `http://localhost:8501`
+
+### 🐳 Run with Docker
+
+```bash
+# Build the image
+docker build -t analytics-hub .
+
+# Run the Streamlit dashboard on port 8501
+docker run --rm -p 8501:8501 analytics-hub
+
+# Or launch the stack (dashboard + optional FastAPI) with compose
+docker compose up --build
+```
 
 ---
 
@@ -147,7 +160,7 @@ python scripts/init_db.py
 After completing setup, run the Streamlit dashboard:
 
 ```bash
-streamlit run app.py
+streamlit run streamlit_app.py
 ```
 
 The dashboard will be available at `http://localhost:8501`
@@ -159,7 +172,7 @@ The dashboard will be available at `http://localhost:8501`
 ### Streamlit Dashboard
 
 ```bash
-streamlit run app.py
+streamlit run streamlit_app.py
 ```
 
 The dashboard will be available at `http://localhost:8501`
@@ -236,10 +249,15 @@ The platform supports three primary personas:
 | `DATABASE_URL` | Database connection string | `sqlite:///analytics_hub.db` |
 | `LOG_LEVEL` | Logging level | `INFO` |
 | `RATE_LIMIT_EXPORTS` | Max exports per minute | `10` |
+| `ML_RANDOM_STATE` | Default random seed for ML components | `42` |
+| `ANOMALY_IF_CONTAMINATION` | IsolationForest contamination ratio | `0.1` |
+| `SYNTHETIC_SEED` | Seed for synthetic data generation utilities | `42` |
 
 ### KPI Catalog
 
 KPI definitions, thresholds, and weights are configured in `config/kpi_catalog.yaml`.
+
+Synthetic data generation and lightweight CSV validation utilities live under `analytics_hub_platform/utils/` (see `synthetic_generator.py` and `excel_importer.py`).
 
 ---
 

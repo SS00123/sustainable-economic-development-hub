@@ -13,8 +13,8 @@ for production deployment.
 """
 
 import random
-from datetime import datetime, timedelta
-from typing import Optional
+from datetime import datetime, timedelta, timezone
+from typing import Optional, Dict, Any
 from functools import lru_cache
 
 from sqlalchemy import (
@@ -29,10 +29,16 @@ from sqlalchemy import (
     MetaData,
     Table,
     Index,
+    text,
 )
 from sqlalchemy.engine import Engine
 
 from analytics_hub_platform.infrastructure.settings import get_settings
+
+
+def utc_now() -> datetime:
+    """Return current UTC datetime (timezone-aware)."""
+    return datetime.now(timezone.utc)
 
 
 # Database metadata
@@ -91,7 +97,7 @@ sustainability_indicators = Table(
     
     # Metadata
     Column("source_system", String(100)),
-    Column("load_timestamp", DateTime, default=datetime.utcnow),
+    Column("load_timestamp", DateTime, default=utc_now),
     Column("load_batch_id", String(50)),
     
     # Indexes for common queries
@@ -109,8 +115,8 @@ tenants = Table(
     Column("name_ar", String(200)),
     Column("country_code", String(10), default="SA"),
     Column("is_active", Boolean, default=True),
-    Column("created_at", DateTime, default=datetime.utcnow),
-    Column("updated_at", DateTime, default=datetime.utcnow, onupdate=datetime.utcnow),
+    Column("created_at", DateTime, default=utc_now),
+    Column("updated_at", DateTime, default=utc_now, onupdate=utc_now),
     Column("config_overrides", Text),  # JSON string for tenant-specific config
 )
 
@@ -127,8 +133,8 @@ users = Table(
     Column("role", String(50), nullable=False, default="viewer"),
     Column("is_active", Boolean, default=True),
     Column("preferred_language", String(10), default="en"),
-    Column("created_at", DateTime, default=datetime.utcnow),
-    Column("updated_at", DateTime, default=datetime.utcnow, onupdate=datetime.utcnow),
+    Column("created_at", DateTime, default=utc_now),
+    Column("updated_at", DateTime, default=utc_now, onupdate=utc_now),
     # Extension Point: Add SSO-related columns here
     # Column("sso_id", String(200)),
     # Column("last_login", DateTime),
@@ -140,7 +146,7 @@ audit_log = Table(
     "audit_log",
     metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
-    Column("timestamp", DateTime, default=datetime.utcnow),
+    Column("timestamp", DateTime, default=utc_now),
     Column("tenant_id", String(50)),
     Column("user_id", String(50)),
     Column("action", String(100), nullable=False),
@@ -158,26 +164,120 @@ audit_log = Table(
 # ============================================
 
 _engine: Optional[Engine] = None
+_engine_lock = None  # Lazy initialization for threading
+
+def _get_engine_lock():
+    """Get or create the engine lock (lazy init to avoid import issues)."""
+    global _engine_lock
+    if _engine_lock is None:
+        import threading
+        _engine_lock = threading.Lock()
+    return _engine_lock
 
 
 @lru_cache(maxsize=1)
 def get_engine() -> Engine:
     """
-    Get or create the database engine.
+    Get or create the database engine with connection pooling.
+    
+    Connection Pool Configuration:
+    - pool_size: Number of connections to keep open (default: 5)
+    - max_overflow: Extra connections allowed beyond pool_size (default: 10)
+    - pool_timeout: Seconds to wait for connection from pool (default: 30)
+    - pool_recycle: Seconds before connection is recycled (default: 1800 = 30 min)
+    - pool_pre_ping: Test connections before use (default: True)
     
     Returns:
         SQLAlchemy Engine instance
     """
     global _engine
-    if _engine is None:
-        settings = get_settings()
-        _engine = create_engine(
-            settings.database_url,
-            echo=settings.database_echo,
-            # For SQLite, enable foreign key support
-            connect_args={"check_same_thread": False} if "sqlite" in settings.database_url else {},
-        )
-    return _engine
+    
+    with _get_engine_lock():
+        if _engine is None:
+            settings = get_settings()
+            
+            # Determine if SQLite (no pooling) or production DB
+            is_sqlite = "sqlite" in settings.database_url.lower()
+            
+            if is_sqlite:
+                # SQLite doesn't support connection pooling well
+                _engine = create_engine(
+                    settings.database_url,
+                    echo=settings.database_echo,
+                    connect_args={"check_same_thread": False},
+                )
+            else:
+                # Production database with connection pooling
+                _engine = create_engine(
+                    settings.database_url,
+                    echo=settings.database_echo,
+                    pool_size=getattr(settings, 'db_pool_size', 5),
+                    max_overflow=getattr(settings, 'db_max_overflow', 10),
+                    pool_timeout=getattr(settings, 'db_pool_timeout', 30),
+                    pool_recycle=getattr(settings, 'db_pool_recycle', 1800),
+                    pool_pre_ping=True,  # Test connections before use
+                )
+        
+        return _engine
+
+
+def check_database_health() -> Dict[str, Any]:
+    """
+    Check database connectivity and pool status.
+    
+    Returns:
+        Dictionary with health check results
+    """
+    result = {
+        "status": "unknown",
+        "connected": False,
+        "pool_size": 0,
+        "checked_out": 0,
+        "overflow": 0,
+        "message": "",
+    }
+    
+    try:
+        engine = get_engine()
+        
+        # Test connection
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+            result["connected"] = True
+        
+        # Get pool status (if pooled)
+        pool = engine.pool
+        if hasattr(pool, 'size'):
+            result["pool_size"] = pool.size()
+        if hasattr(pool, 'checkedout'):
+            result["checked_out"] = pool.checkedout()
+        if hasattr(pool, 'overflow'):
+            result["overflow"] = pool.overflow()
+        
+        result["status"] = "healthy"
+        result["message"] = "Database connection successful"
+        
+    except Exception as e:
+        result["status"] = "unhealthy"
+        result["message"] = str(e)
+    
+    return result
+
+
+def dispose_engine() -> None:
+    """
+    Dispose of the engine and all pooled connections.
+    
+    Call this during shutdown or when reconfiguring the database.
+    """
+    global _engine
+    
+    with _get_engine_lock():
+        if _engine is not None:
+            _engine.dispose()
+            _engine = None
+            # Clear the lru_cache
+            get_engine.cache_clear()
 
 
 def create_tables() -> None:
@@ -190,39 +290,11 @@ def create_tables() -> None:
 # SYNTHETIC DATA GENERATION
 # ============================================
 
-# Saudi Arabia regions
-REGIONS = [
-    "Riyadh",
-    "Makkah",
-    "Madinah",
-    "Eastern Province",
-    "Qassim",
-    "Asir",
-    "Tabuk",
-    "Hail",
-    "Northern Borders",
-    "Jazan",
-    "Najran",
-    "Al Bahah",
-    "Al Jawf",
-]
-
-# Regional characteristics (for realistic data generation)
-REGION_PROFILES = {
-    "Riyadh": {"gdp_base": 800000, "population": 8.7, "urban": True},
-    "Makkah": {"gdp_base": 450000, "population": 9.0, "urban": True},
-    "Madinah": {"gdp_base": 150000, "population": 2.2, "urban": True},
-    "Eastern Province": {"gdp_base": 650000, "population": 5.0, "urban": True},
-    "Qassim": {"gdp_base": 80000, "population": 1.5, "urban": False},
-    "Asir": {"gdp_base": 75000, "population": 2.3, "urban": False},
-    "Tabuk": {"gdp_base": 55000, "population": 0.95, "urban": False},
-    "Hail": {"gdp_base": 45000, "population": 0.75, "urban": False},
-    "Northern Borders": {"gdp_base": 35000, "population": 0.4, "urban": False},
-    "Jazan": {"gdp_base": 45000, "population": 1.7, "urban": False},
-    "Najran": {"gdp_base": 30000, "population": 0.6, "urban": False},
-    "Al Bahah": {"gdp_base": 25000, "population": 0.5, "urban": False},
-    "Al Jawf": {"gdp_base": 28000, "population": 0.55, "urban": False},
-}
+# Import from centralized constants
+from analytics_hub_platform.config.constants import (
+    SAUDI_REGIONS as REGIONS,
+    REGION_PROFILES,
+)
 
 
 def _generate_with_trend(base: float, year: int, base_year: int = 2020, 

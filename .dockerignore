@@ -1,0 +1,48 @@
+# Build context exclusions to keep Docker images slim
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Test and tool caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.cache/
+
+# Jupyter
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# Git metadata
+.git
+.gitignore
+
+# Local data and databases
+analytics_hub.db
+*.db
+*.sqlite
+*.sqlite3
+data/local/
+data/temp/
+
+# Streamlit
+.streamlit/cache/
+.streamlit/secrets.toml
+
+# Misc
+*.log
+*.tmp
+*.bak
+
+# Compose override (local only)
+docker-compose.override.yml

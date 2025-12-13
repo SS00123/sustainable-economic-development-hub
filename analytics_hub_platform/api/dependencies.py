@@ -8,12 +8,32 @@ FastAPI dependency injection for database, auth, and services.
 
 from typing import Optional, Generator
 from functools import lru_cache
+import logging
 
 from fastapi import Depends, HTTPException, Header, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from analytics_hub_platform.infrastructure.settings import Settings, get_settings
 from analytics_hub_platform.infrastructure.repository import Repository, get_repository
-from analytics_hub_platform.infrastructure.security import RBACManager, UserRole
+from analytics_hub_platform.infrastructure.security import RBACManager
+from analytics_hub_platform.infrastructure.auth import (
+    get_jwt_handler,
+    authenticate_user,
+    get_mock_users,
+)
+from analytics_hub_platform.infrastructure.exceptions import (
+    AuthenticationError,
+    InvalidTokenError,
+    TokenExpiredError,
+    AuthorizationError,
+)
+from analytics_hub_platform.domain.models import User, UserRole
+
+
+logger = logging.getLogger(__name__)
+
+# Security scheme for Swagger docs
+security_scheme = HTTPBearer(auto_error=False)
 
 # Type alias for backward compatibility
 IndicatorRepository = Repository
@@ -56,31 +76,108 @@ async def get_current_tenant(
     return settings.default_tenant_id
 
 
-# User authentication (stub for SSO integration)
+# User authentication with proper JWT validation
 async def get_current_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_scheme),
     authorization: Optional[str] = Header(None),
     x_user_id: Optional[str] = Header(None, alias="X-User-ID"),
-) -> dict:
+    settings: Settings = Depends(get_settings),
+) -> User:
     """
-    Get current authenticated user.
+    Get current authenticated user from JWT token.
     
-    In production, this would validate JWT/SSO tokens.
-    For the PoC, we use a stub implementation.
+    In production, validates JWT token from Authorization header.
+    In development mode, falls back to mock users for testing.
     
     Args:
-        authorization: Authorization header
-        x_user_id: User ID header (for testing)
+        credentials: Bearer token from HTTPBearer scheme
+        authorization: Raw Authorization header
+        x_user_id: User ID header (for testing/development)
     
     Returns:
-        User information dictionary
+        Authenticated User model
+    
+    Raises:
+        HTTPException: 401 if authentication fails
     """
-    # Stub implementation for demo
-    return {
-        "user_id": x_user_id or "demo_user",
-        "name": "Demo User",
-        "email": "demo@ministry.gov.sa",
-        "role": UserRole.ANALYST,
-    }
+    # Extract token from credentials or header
+    token = None
+    if credentials and credentials.credentials:
+        token = credentials.credentials
+    elif authorization and authorization.startswith("Bearer "):
+        token = authorization.split(" ", 1)[1]
+    
+    # Try token-based authentication first
+    if token:
+        try:
+            jwt_handler = get_jwt_handler()
+            user = jwt_handler.get_user_from_token(token)
+            logger.debug(f"Authenticated user via JWT: {user.email}")
+            return user
+        except TokenExpiredError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token has expired",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        except InvalidTokenError as e:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=e.message,
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+    
+    # Development mode: allow header-based user switching for testing
+    if settings.is_development():
+        if x_user_id:
+            mock_users = get_mock_users()
+            user = mock_users.get(x_user_id.lower())
+            if user:
+                logger.debug(f"Development mode: Using mock user {x_user_id}")
+                return user
+        
+        # Default demo user in development
+        logger.debug("Development mode: Using default demo user")
+        return get_mock_users()["demo"]
+    
+    # Production mode: require valid token
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Authentication required",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
+# Optional authentication (for endpoints that work with/without auth)
+async def get_current_user_optional(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_scheme),
+    authorization: Optional[str] = Header(None),
+    settings: Settings = Depends(get_settings),
+) -> Optional[User]:
+    """
+    Get current user if authenticated, None otherwise.
+    
+    Use this for endpoints that have different behavior for
+    authenticated vs anonymous users.
+    """
+    token = None
+    if credentials and credentials.credentials:
+        token = credentials.credentials
+    elif authorization and authorization.startswith("Bearer "):
+        token = authorization.split(" ", 1)[1]
+    
+    if token:
+        try:
+            jwt_handler = get_jwt_handler()
+            return jwt_handler.get_user_from_token(token)
+        except (InvalidTokenError, TokenExpiredError):
+            return None
+    
+    # Development mode: return demo user
+    if settings.is_development():
+        return get_mock_users()["demo"]
+    
+    return None
 
 
 # Role-based access control
@@ -99,26 +196,28 @@ class RoleChecker:
     
     async def __call__(
         self,
-        user: dict = Depends(get_current_user),
-    ) -> dict:
+        user: User = Depends(get_current_user),
+    ) -> User:
         """
         Check if user has required role.
         
         Args:
-            user: Current user info
+            user: Current authenticated user
         
         Returns:
-            User info if authorized
+            User if authorized
         
         Raises:
-            HTTPException: If not authorized
+            HTTPException: 403 if not authorized
         """
-        user_role = user.get("role", UserRole.ANALYST)
-        
-        if user_role not in self.allowed_roles:
+        if user.role not in self.allowed_roles:
+            logger.warning(
+                f"Access denied for user {user.email}: "
+                f"role {user.role.value} not in {[r.value for r in self.allowed_roles]}"
+            )
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Insufficient permissions",
+                detail="Insufficient permissions for this resource",
             )
         
         return user
@@ -146,9 +245,9 @@ async def get_indicator_repository(
     return get_repository()
 
 
-# Rate limiting dependency
+# Rate limiting dependency with proper thread safety
 class RateLimiter:
-    """Simple rate limiting dependency."""
+    """Thread-safe rate limiting dependency."""
     
     def __init__(self, requests_per_minute: int = 60):
         """
@@ -157,45 +256,51 @@ class RateLimiter:
         Args:
             requests_per_minute: Maximum requests per minute
         """
+        import threading
         self.requests_per_minute = requests_per_minute
         self._requests: dict = {}
+        self._lock = threading.Lock()
     
     async def __call__(
         self,
-        user: dict = Depends(get_current_user),
+        user: User = Depends(get_current_user),
     ) -> None:
         """
         Check rate limit for user.
         
         Args:
-            user: Current user info
+            user: Current authenticated user
         
         Raises:
-            HTTPException: If rate limit exceeded
+            HTTPException: 429 if rate limit exceeded
         """
         import time
         
-        user_id = user.get("user_id", "anonymous")
+        user_id = user.id
         current_time = time.time()
         
-        # Clean old entries
-        if user_id in self._requests:
-            self._requests[user_id] = [
-                t for t in self._requests[user_id]
-                if current_time - t < 60
-            ]
-        else:
-            self._requests[user_id] = []
-        
-        # Check limit
-        if len(self._requests[user_id]) >= self.requests_per_minute:
-            raise HTTPException(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="Rate limit exceeded. Please try again later.",
-            )
-        
-        # Record request
-        self._requests[user_id].append(current_time)
+        with self._lock:
+            # Clean old entries
+            if user_id in self._requests:
+                self._requests[user_id] = [
+                    t for t in self._requests[user_id]
+                    if current_time - t < 60
+                ]
+            else:
+                self._requests[user_id] = []
+            
+            # Check limit
+            if len(self._requests[user_id]) >= self.requests_per_minute:
+                oldest = min(self._requests[user_id])
+                retry_after = int(60 - (current_time - oldest))
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail="Rate limit exceeded. Please try again later.",
+                    headers={"Retry-After": str(max(1, retry_after))},
+                )
+            
+            # Record request
+            self._requests[user_id].append(current_time)
 
 
 # Pagination parameters
