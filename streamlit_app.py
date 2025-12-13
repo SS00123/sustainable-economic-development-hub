@@ -24,7 +24,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
     menu_items={
         "Get Help": "https://ministry.gov.sa/help",
-        "Report a bug": "mailto:support@ministry.gov.sa",
+        "Report a bug": "mailto:sultan_mutep@hotmail.com",
         "About": """
         # Sustainable Economic Development Analytics Hub
         

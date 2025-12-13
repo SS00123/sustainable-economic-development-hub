@@ -216,8 +216,8 @@ with main_col:
         ---
         
         **Support:**  
-        📧 support@ministry.gov.sa  
-        📞 +966 XX XXX XXXX
+        📧 sultan_mutep@hotmail.com  
+        📞 0553112800
         """)
     
     spacer("lg")

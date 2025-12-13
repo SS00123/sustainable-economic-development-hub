@@ -394,6 +394,6 @@ The full OpenAPI specification is available at:
 
 ## Support
 
-- **Email**: api-support@ministry.gov.sa
+- **Email**: sultan_mutep@hotmail.com
 - **Documentation**: https://docs.analytics-hub.gov.sa
 - **Issue Tracker**: https://github.com/ministry/analytics-hub/issues

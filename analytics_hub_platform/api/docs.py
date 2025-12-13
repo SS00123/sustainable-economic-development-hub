@@ -290,7 +290,7 @@ the version number. Deprecated endpoints include a `Deprecation` header.
 ## Support
 
 For API support or to report issues:
-- Email: api-support@ministry.gov.sa
+- Email: sultan_mutep@hotmail.com
 - Documentation: https://docs.analytics-hub.gov.sa
 """
 
@@ -304,7 +304,7 @@ def get_openapi_config() -> Dict[str, Any]:
         "openapi_tags": API_TAGS,
         "contact": {
             "name": "API Support",
-            "email": "api-support@ministry.gov.sa",
+            "email": "sultan_mutep@hotmail.com",
             "url": "https://docs.analytics-hub.gov.sa",
         },
         "license_info": {
