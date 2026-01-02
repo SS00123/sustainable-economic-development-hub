@@ -44,7 +44,12 @@ class JWTHandler:
     
     @property
     def _secret_key(self) -> str:
-        """Get the secret key, handling SecretStr."""
+        """Get the secret key, handling SecretStr and None."""
+        if self._settings.jwt_secret_key is None:
+            raise AuthenticationError(
+                message="JWT secret key not configured",
+                code="JWT_NOT_CONFIGURED",
+            )
         return self._settings.jwt_secret_key.get_secret_value()
     
     @property

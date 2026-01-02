@@ -16,6 +16,9 @@ import os
 # Ensure test environment
 os.environ["ANALYTICS_HUB_ENV"] = "test"
 os.environ["ANALYTICS_HUB_DEBUG"] = "true"
+os.environ["ENVIRONMENT"] = "test"
+os.environ["ALLOW_INSECURE_JWT_SECRET"] = "true"
+os.environ["JWT_SECRET_KEY"] = "test-jwt-secret-key-for-testing-only-32chars"
 
 
 @pytest.fixture(scope="session")

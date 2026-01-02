@@ -8,10 +8,19 @@ Settings can be loaded from environment variables, .env files, or Streamlit secr
 """
 
 import os
+import logging
 from typing import Optional
 from functools import lru_cache
-from pydantic import SecretStr
+from pydantic import SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+logger = logging.getLogger(__name__)
+
+
+class ConfigurationError(Exception):
+    """Raised when required configuration is missing or invalid."""
+    pass
 
 
 def _get_streamlit_secrets():
@@ -88,9 +97,14 @@ class Settings(BaseSettings):
     synthetic_seed: int = 42
     
     # JWT Configuration
-    jwt_secret_key: SecretStr = SecretStr("change-this-secret-in-production-env")  # Override via JWT_SECRET_KEY env var
+    # SECURITY: In production, JWT_SECRET_KEY MUST be set via environment variable
+    # The default value is only for development/testing
+    jwt_secret_key: Optional[SecretStr] = None  # REQUIRED in production - set via JWT_SECRET_KEY env var
     jwt_algorithm: str = "HS256"
     jwt_access_token_expire_minutes: int = 60
+    
+    # Flag to allow insecure defaults (only for testing)
+    allow_insecure_jwt_secret: bool = False
     
     # LLM Configuration
     llm_provider: str = "auto"  # "openai", "anthropic", "mock", or "auto"
@@ -114,6 +128,56 @@ class Settings(BaseSettings):
     # Streamlit
     streamlit_port: int = 8501
     
+    @model_validator(mode="after")
+    def validate_production_settings(self) -> "Settings":
+        """
+        Validate that required settings are provided in production.
+        
+        SECURITY: Ensures JWT secret is properly configured in production.
+        In development, allows insecure defaults for convenience.
+        """
+        if self.is_production():
+            # JWT secret is REQUIRED in production
+            if self.jwt_secret_key is None:
+                raise ConfigurationError(
+                    "JWT_SECRET_KEY environment variable is REQUIRED in production. "
+                    "Generate a secure key with: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
+                )
+            
+            # Check for weak JWT secret in production
+            secret_value = self.jwt_secret_key.get_secret_value()
+            if len(secret_value) < 32:
+                raise ConfigurationError(
+                    "JWT_SECRET_KEY must be at least 32 characters in production."
+                )
+            
+            if secret_value in ("change-this-secret-in-production-env", "test-secret", "secret"):
+                raise ConfigurationError(
+                    "JWT_SECRET_KEY appears to be a default/test value. "
+                    "Use a secure random key in production."
+                )
+        else:
+            # Development mode - use insecure default if not provided
+            if self.jwt_secret_key is None:
+                if self.allow_insecure_jwt_secret or self.environment in ("development", "test", "testing"):
+                    # Use development-only default (will be rejected in production)
+                    object.__setattr__(
+                        self, 
+                        "jwt_secret_key", 
+                        SecretStr("dev-only-insecure-secret-do-not-use-in-production")
+                    )
+                    logger.warning(
+                        "Using insecure default JWT secret. "
+                        "Set JWT_SECRET_KEY environment variable for production."
+                    )
+                else:
+                    raise ConfigurationError(
+                        "JWT_SECRET_KEY not set. Set the environment variable or "
+                        "use ALLOW_INSECURE_JWT_SECRET=true for development."
+                    )
+        
+        return self
+    
     def __init__(self, **kwargs):
         """Initialize settings with Streamlit secrets support."""
         # Try to load from Streamlit secrets first
@@ -136,8 +200,12 @@ class Settings(BaseSettings):
         return self.environment.lower() == "production"
     
     def is_development(self) -> bool:
-        """Check if running in development environment."""
-        return self.environment.lower() == "development"
+        """Check if running in development or test environment."""
+        return self.environment.lower() in ("development", "test", "testing")
+    
+    def is_test(self) -> bool:
+        """Check if running in test environment."""
+        return self.environment.lower() in ("test", "testing")
     
     @property
     def db_path(self) -> Optional[str]:
