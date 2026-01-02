@@ -7,14 +7,16 @@ This module provides WCAG 2.1 Level AA compliant utilities for the Analytics Hub
 Includes: accessible components, keyboard navigation, ARIA support, RTL handling.
 """
 
-from typing import Optional, Dict, Any, List
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
+from typing import Any
+
 import streamlit as st
 
 
 class WCAGLevel(str, Enum):
     """WCAG conformance levels."""
+
     A = "A"
     AA = "AA"
     AAA = "AAA"
@@ -23,21 +25,21 @@ class WCAGLevel(str, Enum):
 @dataclass
 class AccessibleComponentConfig:
     """Configuration for accessible components."""
-    
+
     # WCAG 2.1 AA Requirements
     min_contrast_ratio: float = 4.5  # For normal text
     min_contrast_ratio_large: float = 3.0  # For large text (18pt+)
     min_touch_target: int = 44  # Minimum touch target size in pixels
     min_focus_indicator: int = 2  # Minimum focus indicator width in pixels
-    
+
     # Timing
     min_focus_visible_time: int = 2000  # Minimum time focus must be visible (ms)
     animation_duration_limit: int = 5000  # Max animation duration before pause (ms)
-    
+
     # Text
     min_line_height: float = 1.5  # Minimum line height for readability
     max_line_length: int = 80  # Maximum characters per line
-    
+
     # Language
     lang: str = "en"
     dir: str = "ltr"
@@ -47,6 +49,7 @@ class AccessibleComponentConfig:
 # ACCESSIBLE CSS GENERATION
 # =============================================================================
 
+
 def get_wcag_compliant_css(
     rtl: bool = False,
     high_contrast: bool = False,
@@ -54,19 +57,19 @@ def get_wcag_compliant_css(
 ) -> str:
     """
     Generate WCAG 2.1 AA compliant CSS.
-    
+
     Args:
         rtl: Enable right-to-left layout
         high_contrast: Enable high contrast mode
         large_text: Enable larger text sizes
-    
+
     Returns:
         CSS string with accessibility features
     """
     direction = "rtl" if rtl else "ltr"
     text_align = "right" if rtl else "left"
     base_font_size = "18px" if large_text else "16px"
-    
+
     # High contrast color overrides
     if high_contrast:
         text_color = "#FFFFFF"
@@ -86,7 +89,7 @@ def get_wcag_compliant_css(
     /* =================================================================
        WCAG 2.1 AA Compliant Styles
        ================================================================= */
-    
+
     /* ---- Global Accessibility Settings ---- */
     :root {{
         --a11y-text-color: {text_color};
@@ -99,44 +102,44 @@ def get_wcag_compliant_css(
         --a11y-font-size: {base_font_size};
         --a11y-line-height: 1.5;
     }}
-    
+
     /* ---- Document Direction (RTL/LTR) ---- */
     html, body, [data-testid="stAppViewContainer"] {{
         direction: {direction};
         text-align: {text_align};
     }}
-    
+
     /* ---- Base Typography for Readability ---- */
     body {{
         font-size: var(--a11y-font-size);
         line-height: var(--a11y-line-height);
         letter-spacing: 0.01em;
     }}
-    
+
     /* Ensure text is readable - WCAG 1.4.12 */
     p, li, td, th, label {{
         line-height: var(--a11y-line-height);
         max-width: 80ch; /* Limit line length */
     }}
-    
+
     /* ---- Focus Indicators (WCAG 2.4.7, 2.4.11) ---- */
     *:focus {{
         outline: var(--a11y-focus-width) solid var(--a11y-focus-color) !important;
         outline-offset: 2px !important;
     }}
-    
+
     *:focus:not(:focus-visible) {{
         outline: none !important;
     }}
-    
+
     *:focus-visible {{
         outline: var(--a11y-focus-width) solid var(--a11y-focus-color) !important;
         outline-offset: 2px !important;
         box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.25) !important;
     }}
-    
+
     /* ---- Touch Targets (WCAG 2.5.5) ---- */
-    button, 
+    button,
     [role="button"],
     input[type="checkbox"],
     input[type="radio"],
@@ -148,7 +151,7 @@ def get_wcag_compliant_css(
         min-width: var(--a11y-min-target) !important;
         padding: 8px 16px !important;
     }}
-    
+
     /* ---- Skip Links (WCAG 2.4.1) ---- */
     .skip-link {{
         position: absolute;
@@ -163,12 +166,12 @@ def get_wcag_compliant_css(
         border-radius: 0 0 8px 0;
         transition: top 0.15s ease;
     }}
-    
+
     .skip-link:focus {{
         top: 0;
         outline: none !important;
     }}
-    
+
     /* ---- Screen Reader Only Content ---- */
     .sr-only,
     .visually-hidden {{
@@ -182,7 +185,7 @@ def get_wcag_compliant_css(
         white-space: nowrap !important;
         border: 0 !important;
     }}
-    
+
     /* ---- Reduced Motion (WCAG 2.3.3) ---- */
     @media (prefers-reduced-motion: reduce) {{
         *,
@@ -193,31 +196,31 @@ def get_wcag_compliant_css(
             transition-duration: 0.01ms !important;
             scroll-behavior: auto !important;
         }}
-        
+
         .dark-card:hover {{
             transform: none !important;
         }}
     }}
-    
+
     /* ---- High Contrast Mode (WCAG 1.4.11) ---- */
     @media (prefers-contrast: high) {{
         * {{
             border-color: var(--a11y-border-color) !important;
         }}
-        
+
         .dark-card,
         .kpi-card,
         .stMetric {{
             border: 2px solid var(--a11y-border-color) !important;
             background: var(--a11y-bg-color) !important;
         }}
-        
+
         button,
         [role="button"] {{
             border: 2px solid currentColor !important;
         }}
     }}
-    
+
     /* ---- Error States (WCAG 1.4.1) ---- */
     .error-message,
     [role="alert"] {{
@@ -226,102 +229,106 @@ def get_wcag_compliant_css(
         padding-left: 12px;
         font-weight: 500;
     }}
-    
+
     /* Error icon for non-color indication */
     .error-message::before {{
         content: "⚠️ ";
     }}
-    
+
     /* ---- Success States ---- */
     .success-message {{
         color: #51cf66;
         border-left: 4px solid #51cf66;
         padding-left: 12px;
     }}
-    
+
     .success-message::before {{
         content: "✓ ";
     }}
-    
+
     /* ---- Link Styling (WCAG 1.4.1) ---- */
     a {{
         color: var(--a11y-link-color);
         text-decoration: underline;
         text-underline-offset: 3px;
     }}
-    
+
     a:hover {{
         text-decoration-thickness: 2px;
     }}
-    
+
     /* ---- Form Labels (WCAG 1.3.1, 3.3.2) ---- */
     label {{
         display: block;
         margin-bottom: 4px;
         font-weight: 500;
     }}
-    
+
     /* Required field indicator */
     .required::after {{
         content: " *";
         color: #ff6b6b;
     }}
-    
+
     /* ---- Data Tables (WCAG 1.3.1) ---- */
     table {{
         border-collapse: collapse;
         width: 100%;
     }}
-    
+
     th, td {{
         padding: 12px;
         text-align: {text_align};
         border-bottom: 1px solid var(--a11y-border-color);
     }}
-    
+
     th {{
         font-weight: bold;
         background: rgba(255, 255, 255, 0.05);
     }}
-    
+
     /* ---- Chart Accessibility ---- */
     .chart-description {{
         position: absolute;
         left: -9999px;
     }}
-    
+
     /* ---- RTL Specific Styles ---- */
-    {"" if not rtl else '''
+    {
+        ""
+        if not rtl
+        else '''
     .nav a .dot {
         margin-left: 10px;
         margin-right: 0;
     }
-    
+
     .delta {
         margin-right: 10px;
         margin-left: 0;
     }
-    
+
     .card-sub {
         text-align: right;
     }
-    
+
     [dir="rtl"] .stSelectbox > div {
         text-align: right;
     }
-    '''}
-    
+    '''
+    }
+
     /* ---- Print Styles (WCAG) ---- */
     @media print {{
         * {{
             background: white !important;
             color: black !important;
         }}
-        
+
         a {{
             text-decoration: underline;
         }}
-        
+
         a[href]::after {{
             content: " (" attr(href) ")";
         }}
@@ -334,18 +341,19 @@ def get_wcag_compliant_css(
 # ACCESSIBLE COMPONENT HELPERS
 # =============================================================================
 
+
 def accessible_card(
     title: str,
     content: str,
     *,
-    aria_label: Optional[str] = None,
+    aria_label: str | None = None,
     role: str = "region",
     level: int = 2,
     landmark: bool = True,
 ) -> str:
     """
     Generate accessible card HTML with proper ARIA attributes.
-    
+
     Args:
         title: Card title
         content: Card content HTML
@@ -353,14 +361,16 @@ def accessible_card(
         role: ARIA role (region, article, etc.)
         level: Heading level (1-6)
         landmark: Whether this is a landmark region
-    
+
     Returns:
         Accessible HTML string
     """
     aria_labelledby = f"card-title-{hash(title) % 10000}"
-    aria_attrs = f'aria-labelledby="{aria_labelledby}"' if not aria_label else f'aria-label="{aria_label}"'
+    aria_attrs = (
+        f'aria-labelledby="{aria_labelledby}"' if not aria_label else f'aria-label="{aria_label}"'
+    )
     role_attr = f'role="{role}"' if landmark else ""
-    
+
     return f"""
     <div class="dark-card" {role_attr} {aria_attrs} tabindex="0">
         <h{level} id="{aria_labelledby}" class="card-title">{title}</h{level}>
@@ -374,20 +384,20 @@ def accessible_card(
 def accessible_metric(
     label: str,
     value: str,
-    delta: Optional[str] = None,
-    delta_description: Optional[str] = None,
+    delta: str | None = None,
+    delta_description: str | None = None,
     unit: str = "",
 ) -> str:
     """
     Generate accessible metric display with screen reader support.
-    
+
     Args:
         label: Metric label
         value: Current value
         delta: Change value (e.g., "+5.2%")
         delta_description: Description of change for screen readers
         unit: Unit of measurement
-    
+
     Returns:
         Accessible HTML string
     """
@@ -397,10 +407,10 @@ def accessible_metric(
         sr_description += f" {unit}"
     if delta and delta_description:
         sr_description += f", {delta_description}"
-    
+
     delta_html = ""
     if delta:
-        is_positive = delta.startswith("+") or (delta[0].isdigit() and float(delta.rstrip('%')) > 0)
+        is_positive = delta.startswith("+") or (delta[0].isdigit() and float(delta.rstrip("%")) > 0)
         delta_class = "positive" if is_positive else "negative"
         arrow = "▲" if is_positive else "▼"
         delta_html = f"""
@@ -408,7 +418,7 @@ def accessible_metric(
             {arrow} {delta}
         </span>
         """
-    
+
     return f"""
     <div class="metric-container" role="status" aria-live="polite">
         <span class="sr-only">{sr_description}</span>
@@ -426,11 +436,11 @@ def accessible_chart_wrapper(
     chart_element: Any,
     title: str,
     description: str,
-    data_summary: Optional[str] = None,
+    data_summary: str | None = None,
 ) -> None:
     """
     Wrap a chart with accessible description for screen readers.
-    
+
     Args:
         chart_element: Streamlit chart element
         title: Chart title
@@ -439,12 +449,12 @@ def accessible_chart_wrapper(
     """
     # Generate unique ID
     chart_id = f"chart-{hash(title) % 10000}"
-    
+
     # Screen reader description
     sr_text = f"Chart: {title}. {description}"
     if data_summary:
         sr_text += f" Key data: {data_summary}"
-    
+
     st.markdown(
         f"""
         <figure role="img" aria-labelledby="{chart_id}-desc" tabindex="0">
@@ -452,41 +462,41 @@ def accessible_chart_wrapper(
                 {sr_text}
             </figcaption>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
-    
+
     # Render the chart
-    if hasattr(chart_element, '__call__'):
+    if callable(chart_element):
         chart_element()
-    
+
     st.markdown("</figure>", unsafe_allow_html=True)
 
 
 def accessible_data_table(
-    headers: List[str],
-    rows: List[List[str]],
+    headers: list[str],
+    rows: list[list[str]],
     caption: str,
     sortable: bool = False,
 ) -> str:
     """
     Generate accessible data table HTML.
-    
+
     Args:
         headers: Column headers
         rows: Table data rows
         caption: Table caption for screen readers
         sortable: Whether columns are sortable
-    
+
     Returns:
         Accessible table HTML
     """
     # Generate header cells
     header_cells = ""
-    for i, header in enumerate(headers):
+    for header in headers:
         scope = 'scope="col"'
         sort_attr = 'aria-sort="none"' if sortable else ""
-        header_cells += f'<th {scope} {sort_attr}>{header}</th>'
-    
+        header_cells += f"<th {scope} {sort_attr}>{header}</th>"
+
     # Generate data rows
     body_rows = ""
     for row in rows:
@@ -496,9 +506,9 @@ def accessible_data_table(
                 # First column as row header
                 cells += f'<th scope="row">{cell}</th>'
             else:
-                cells += f'<td>{cell}</td>'
-        body_rows += f'<tr>{cells}</tr>'
-    
+                cells += f"<td>{cell}</td>"
+        body_rows += f"<tr>{cells}</tr>"
+
     return f"""
     <table role="table" aria-label="{caption}">
         <caption class="sr-only">{caption}</caption>
@@ -515,7 +525,7 @@ def accessible_data_table(
 def inject_skip_link(main_content_id: str = "main-content") -> None:
     """
     Inject skip link for keyboard navigation (WCAG 2.4.1).
-    
+
     Args:
         main_content_id: ID of main content area
     """
@@ -525,7 +535,7 @@ def inject_skip_link(main_content_id: str = "main-content") -> None:
             Skip to main content
         </a>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 
@@ -535,14 +545,14 @@ def inject_live_region() -> None:
     """
     st.markdown(
         """
-        <div id="live-region" 
-             role="status" 
-             aria-live="polite" 
+        <div id="live-region"
+             role="status"
+             aria-live="polite"
              aria-atomic="true"
              class="sr-only">
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 
@@ -550,10 +560,11 @@ def inject_live_region() -> None:
 # RTL (RIGHT-TO-LEFT) SUPPORT
 # =============================================================================
 
+
 def get_rtl_css() -> str:
     """
     Get CSS for right-to-left (RTL) layout support.
-    
+
     Returns:
         RTL-specific CSS
     """
@@ -564,33 +575,33 @@ def get_rtl_css() -> str:
         direction: rtl;
         text-align: right;
     }
-    
+
     [dir="rtl"] .dark-card {
         direction: rtl;
     }
-    
+
     [dir="rtl"] .nav a {
         flex-direction: row-reverse;
     }
-    
+
     [dir="rtl"] .delta {
         margin-right: 10px;
         margin-left: 0;
     }
-    
+
     [dir="rtl"] .stSelectbox {
         direction: rtl;
     }
-    
+
     [dir="rtl"] .card-value {
         direction: ltr; /* Keep numbers LTR */
         unicode-bidi: embed;
     }
-    
+
     [dir="rtl"] .topbar {
         flex-direction: row-reverse;
     }
-    
+
     /* Arabic font stack */
     [lang="ar"] {
         font-family: 'Noto Sans Arabic', 'Segoe UI', 'Arial', sans-serif;
@@ -602,12 +613,12 @@ def get_rtl_css() -> str:
 def set_document_direction(lang: str = "en") -> None:
     """
     Set document direction based on language.
-    
+
     Args:
         lang: Language code (en, ar, etc.)
     """
     direction = "rtl" if lang in ["ar", "he", "fa", "ur"] else "ltr"
-    
+
     st.markdown(
         f"""
         <script>
@@ -615,7 +626,7 @@ def set_document_direction(lang: str = "en") -> None:
             document.documentElement.setAttribute('lang', '{lang}');
         </script>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 
@@ -623,10 +634,11 @@ def set_document_direction(lang: str = "en") -> None:
 # KEYBOARD NAVIGATION
 # =============================================================================
 
+
 def get_keyboard_navigation_js() -> str:
     """
     Get JavaScript for enhanced keyboard navigation.
-    
+
     Returns:
         JavaScript for keyboard navigation
     """
@@ -639,7 +651,7 @@ def get_keyboard_navigation_js() -> str:
             if (e.key === 'Tab') {
                 document.body.classList.add('keyboard-navigation');
             }
-            
+
             // Escape to close modals/dropdowns
             if (e.key === 'Escape') {
                 const activeElement = document.activeElement;
@@ -647,15 +659,15 @@ def get_keyboard_navigation_js() -> str:
                     activeElement.blur();
                 }
             }
-            
+
             // Arrow key navigation for card grids
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
                 const cards = Array.from(document.querySelectorAll('.dark-card[tabindex="0"]'));
                 const currentIndex = cards.indexOf(document.activeElement);
-                
+
                 if (currentIndex !== -1) {
                     let nextIndex = currentIndex;
-                    
+
                     switch(e.key) {
                         case 'ArrowRight':
                         case 'ArrowDown':
@@ -666,7 +678,7 @@ def get_keyboard_navigation_js() -> str:
                             nextIndex = (currentIndex - 1 + cards.length) % cards.length;
                             break;
                     }
-                    
+
                     if (nextIndex !== currentIndex) {
                         e.preventDefault();
                         cards[nextIndex].focus();
@@ -674,7 +686,7 @@ def get_keyboard_navigation_js() -> str:
                 }
             }
         });
-        
+
         // Remove keyboard navigation class on mouse use
         document.addEventListener('mousedown', function() {
             document.body.classList.remove('keyboard-navigation');
@@ -688,10 +700,11 @@ def get_keyboard_navigation_js() -> str:
 # UTILITY FUNCTIONS
 # =============================================================================
 
+
 def announce(message: str, priority: str = "polite") -> None:
     """
     Announce a message to screen readers via live region.
-    
+
     Args:
         message: Message to announce
         priority: 'polite' or 'assertive'
@@ -706,7 +719,7 @@ def announce(message: str, priority: str = "polite") -> None:
             }}
         </script>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 
@@ -717,12 +730,12 @@ def format_number_accessible(
 ) -> str:
     """
     Format number for accessibility with proper localization.
-    
+
     Args:
         value: Number to format
         lang: Language code
         precision: Decimal precision
-    
+
     Returns:
         Formatted number string
     """
@@ -738,7 +751,7 @@ def format_number_accessible(
 def get_accessibility_statement() -> str:
     """
     Get accessibility statement for the application.
-    
+
     Returns:
         HTML accessibility statement
     """
@@ -746,12 +759,12 @@ def get_accessibility_statement() -> str:
     <div role="region" aria-label="Accessibility Statement">
         <h2>Accessibility Statement</h2>
         <p>
-            The Sustainable Economic Development Analytics Hub is committed to ensuring 
-            digital accessibility for people with disabilities. We are continually 
-            improving the user experience for everyone and applying the relevant 
+            The Sustainable Economic Development Analytics Hub is committed to ensuring
+            digital accessibility for people with disabilities. We are continually
+            improving the user experience for everyone and applying the relevant
             accessibility standards.
         </p>
-        
+
         <h3>Conformance Status</h3>
         <p>
             This application aims to conform to WCAG 2.1 Level AA. We have implemented:
@@ -767,10 +780,10 @@ def get_accessibility_statement() -> str:
             <li>ARIA landmarks and labels</li>
             <li>Right-to-left (RTL) language support</li>
         </ul>
-        
+
         <h3>Feedback</h3>
         <p>
-            We welcome your feedback on the accessibility of this application. 
+            We welcome your feedback on the accessibility of this application.
             Please contact us if you encounter accessibility barriers.
         </p>
     </div>

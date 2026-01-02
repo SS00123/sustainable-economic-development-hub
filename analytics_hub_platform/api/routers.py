@@ -7,40 +7,39 @@ FastAPI route definitions for REST API endpoints.
 """
 
 import logging
-from typing import Optional, List
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from analytics_hub_platform.api.dependencies import (
+    FilterDependency,
+    IndicatorRepository,
+    PaginationParams,
     get_current_tenant,
-    get_indicator_repository,
     get_filters,
+    get_indicator_repository,
     get_pagination,
     require_analyst,
-    FilterDependency,
-    PaginationParams,
-    IndicatorRepository,
 )
+from analytics_hub_platform.config.config import REGIONS, get_config
 from analytics_hub_platform.domain.models import FilterParams
 from analytics_hub_platform.domain.services import (
-    get_sustainability_summary,
     get_data_quality_metrics,
+    get_sustainability_summary,
 )
-from analytics_hub_platform.config.config import get_config, REGIONS
 from analytics_hub_platform.infrastructure.exceptions import (
     AnalyticsHubError,
-    ValidationError,
-    NotFoundError,
     DataError,
+    NotFoundError,
+    ValidationError,
 )
 
 
 # Response Models
 class HealthResponse(BaseModel):
     """Health check response."""
+
     status: str = "ok"
     timestamp: str
     version: str
@@ -48,60 +47,84 @@ class HealthResponse(BaseModel):
 
 class IndicatorResponse(BaseModel):
     """Single indicator record response with all sustainability metrics."""
+
     id: int = Field(..., description="Unique record identifier")
     tenant_id: str = Field(..., description="Tenant/organization identifier")
     year: int = Field(..., ge=2015, le=2030, description="Reporting year")
     quarter: int = Field(..., ge=1, le=4, description="Reporting quarter (1-4)")
     region: str = Field(..., description="Saudi region identifier")
-    sustainability_index: Optional[float] = Field(None, ge=0, le=100, description="Composite sustainability score (0-100)")
-    co2_per_gdp: Optional[float] = Field(None, description="CO2 emissions per unit GDP (kg/$)")
-    co2_per_capita: Optional[float] = Field(None, description="CO2 emissions per capita (tonnes)")
-    renewable_energy_pct: Optional[float] = Field(None, ge=0, le=100, description="Renewable energy share (%)")
-    green_investment_pct: Optional[float] = Field(None, ge=0, le=100, description="Green investment share (%)")
-    gdp_growth: Optional[float] = Field(None, description="GDP growth rate (%)")
-    employment_rate: Optional[float] = Field(None, ge=0, le=100, description="Employment rate (%)")
-    data_quality_score: Optional[float] = Field(None, ge=0, le=100, description="Data quality score (0-100)")
+    sustainability_index: float | None = Field(
+        None, ge=0, le=100, description="Composite sustainability score (0-100)"
+    )
+    co2_per_gdp: float | None = Field(None, description="CO2 emissions per unit GDP (kg/$)")
+    co2_per_capita: float | None = Field(None, description="CO2 emissions per capita (tonnes)")
+    renewable_energy_pct: float | None = Field(
+        None, ge=0, le=100, description="Renewable energy share (%)"
+    )
+    green_investment_pct: float | None = Field(
+        None, ge=0, le=100, description="Green investment share (%)"
+    )
+    gdp_growth: float | None = Field(None, description="GDP growth rate (%)")
+    employment_rate: float | None = Field(None, ge=0, le=100, description="Employment rate (%)")
+    data_quality_score: float | None = Field(
+        None, ge=0, le=100, description="Data quality score (0-100)"
+    )
 
-    model_config = ConfigDict(json_schema_extra={
-        "example": {
-            "id": 1,
-            "tenant_id": "ministry_mep",
-            "year": 2024,
-            "quarter": 1,
-            "region": "riyadh",
-            "sustainability_index": 72.5,
-            "co2_per_gdp": 0.45,
-            "co2_per_capita": 18.2,
-            "renewable_energy_pct": 12.5,
-            "green_investment_pct": 8.3,
-            "gdp_growth": 4.2,
-            "employment_rate": 94.5,
-            "data_quality_score": 98.5,
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "id": 1,
+                "tenant_id": "ministry_mep",
+                "year": 2024,
+                "quarter": 1,
+                "region": "riyadh",
+                "sustainability_index": 72.5,
+                "co2_per_gdp": 0.45,
+                "co2_per_capita": 18.2,
+                "renewable_energy_pct": 12.5,
+                "green_investment_pct": 8.3,
+                "gdp_growth": 4.2,
+                "employment_rate": 94.5,
+                "data_quality_score": 98.5,
+            }
         }
-    })
+    )
 
 
 class IndicatorListResponse(BaseModel):
     """Paginated list of indicator records."""
-    data: List[IndicatorResponse] = Field(..., description="List of indicator records")
+
+    data: list[IndicatorResponse] = Field(..., description="List of indicator records")
     total: int = Field(..., description="Total number of matching records")
     page: int = Field(..., ge=1, description="Current page number")
     page_size: int = Field(..., ge=1, le=100, description="Records per page")
     total_pages: int = Field(..., ge=0, description="Total number of pages")
 
-    model_config = ConfigDict(json_schema_extra={
-        "example": {
-            "data": [{"id": 1, "tenant_id": "ministry_mep", "year": 2024, "quarter": 1, "region": "riyadh", "sustainability_index": 72.5}],
-            "total": 150,
-            "page": 1,
-            "page_size": 20,
-            "total_pages": 8,
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "data": [
+                    {
+                        "id": 1,
+                        "tenant_id": "ministry_mep",
+                        "year": 2024,
+                        "quarter": 1,
+                        "region": "riyadh",
+                        "sustainability_index": 72.5,
+                    }
+                ],
+                "total": 150,
+                "page": 1,
+                "page_size": 20,
+                "total_pages": 8,
+            }
         }
-    })
+    )
 
 
 class SustainabilitySummaryResponse(BaseModel):
     """Aggregated sustainability metrics summary."""
+
     sustainability_index: float = Field(..., description="Current sustainability index value")
     sustainability_trend: float = Field(..., description="Quarter-over-quarter change")
     co2_per_gdp: float = Field(..., description="CO2 intensity per GDP")
@@ -110,69 +133,78 @@ class SustainabilitySummaryResponse(BaseModel):
     green_investment_pct: float = Field(..., description="Green investment share")
     data_quality_score: float = Field(..., description="Data quality score")
     period: str = Field(..., description="Reporting period (e.g., 'Q1 2024')")
-    region: Optional[str] = Field(None, description="Region filter applied, or 'all'")
+    region: str | None = Field(None, description="Region filter applied, or 'all'")
 
-    model_config = ConfigDict(json_schema_extra={
-        "example": {
-            "sustainability_index": 72.5,
-            "sustainability_trend": 2.3,
-            "co2_per_gdp": 0.45,
-            "co2_per_capita": 18.2,
-            "renewable_energy_pct": 12.5,
-            "green_investment_pct": 8.3,
-            "data_quality_score": 98.5,
-            "period": "Q1 2024",
-            "region": "all",
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "sustainability_index": 72.5,
+                "sustainability_trend": 2.3,
+                "co2_per_gdp": 0.45,
+                "co2_per_capita": 18.2,
+                "renewable_energy_pct": 12.5,
+                "green_investment_pct": 8.3,
+                "data_quality_score": 98.5,
+                "period": "Q1 2024",
+                "region": "all",
+            }
         }
-    })
+    )
 
 
 class RegionalComparisonResponse(BaseModel):
     """Regional comparison with ranking."""
+
     region: str = Field(..., description="Region identifier")
     sustainability_index: float = Field(..., description="Average sustainability index")
     rank: int = Field(..., ge=1, description="Performance ranking (1 = best)")
 
-    model_config = ConfigDict(json_schema_extra={
-        "example": {"region": "riyadh", "sustainability_index": 78.5, "rank": 1}
-    })
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"region": "riyadh", "sustainability_index": 78.5, "rank": 1}}
+    )
 
 
 class TimeSeriesPoint(BaseModel):
     """Time series data point."""
+
     period: str
     value: float
 
 
 class TimeSeriesResponse(BaseModel):
     """Time series response."""
+
     indicator: str
-    data: List[TimeSeriesPoint]
+    data: list[TimeSeriesPoint]
 
 
 class DataQualityResponse(BaseModel):
     """Data quality metrics response."""
+
     completeness: float
     avg_quality_score: float
     records_count: int
-    last_update: Optional[str] = None
+    last_update: str | None = None
     missing_by_kpi: dict
 
 
 class ErrorResponse(BaseModel):
     """Error response model for API errors."""
-    detail: str = Field(..., description="Human-readable error message")
-    code: Optional[str] = Field(None, description="Machine-readable error code")
-    error_type: Optional[str] = Field(None, description="Error type/category")
-    correlation_id: Optional[str] = Field(None, description="Request correlation ID for debugging")
 
-    model_config = ConfigDict(json_schema_extra={
-        "example": {
-            "detail": "Invalid quarter value. Must be between 1 and 4.",
-            "code": "VALIDATION_ERROR",
-            "correlation_id": "req-abc123-def456",
+    detail: str = Field(..., description="Human-readable error message")
+    code: str | None = Field(None, description="Machine-readable error code")
+    error_type: str | None = Field(None, description="Error type/category")
+    correlation_id: str | None = Field(None, description="Request correlation ID for debugging")
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "detail": "Invalid quarter value. Must be between 1 and 4.",
+                "code": "VALIDATION_ERROR",
+                "correlation_id": "req-abc123-def456",
+            }
         }
-    })
+    )
 
 
 logger = logging.getLogger(__name__)
@@ -181,10 +213,10 @@ logger = logging.getLogger(__name__)
 def handle_exception(e: Exception) -> HTTPException:
     """
     Convert exceptions to appropriate HTTP responses.
-    
+
     Args:
         e: Exception to handle
-    
+
     Returns:
         HTTPException with appropriate status code
     """
@@ -220,13 +252,13 @@ def handle_exception(e: Exception) -> HTTPException:
 def create_api_router() -> APIRouter:
     """
     Create and configure the main API router.
-    
+
     Returns:
         Configured APIRouter instance
     """
     router = APIRouter()
     config = get_config()
-    
+
     # Health check
     @router.get(
         "/health",
@@ -238,10 +270,10 @@ def create_api_router() -> APIRouter:
         """Check API health status."""
         return HealthResponse(
             status="ok",
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             version="1.0.0",
         )
-    
+
     # Indicators CRUD
     @router.get(
         "/indicators",
@@ -258,12 +290,12 @@ def create_api_router() -> APIRouter:
     ):
         """
         Get paginated list of sustainability indicators.
-        
+
         Supports filtering by year, quarter, and region.
         """
         try:
             df = repo.get_all_indicators(tenant_id)
-            
+
             # Apply filters
             if filters.year:
                 df = df[df["year"] == filters.year]
@@ -271,13 +303,13 @@ def create_api_router() -> APIRouter:
                 df = df[df["quarter"] == filters.quarter]
             if filters.region:
                 df = df[df["region"] == filters.region]
-            
+
             total = len(df)
             total_pages = (total + pagination.page_size - 1) // pagination.page_size
-            
+
             # Paginate
-            df_page = df.iloc[pagination.offset:pagination.offset + pagination.limit]
-            
+            df_page = df.iloc[pagination.offset : pagination.offset + pagination.limit]
+
             data = [
                 IndicatorResponse(
                     id=idx,
@@ -296,7 +328,7 @@ def create_api_router() -> APIRouter:
                 )
                 for idx, row in df_page.iterrows()
             ]
-            
+
             return IndicatorListResponse(
                 data=data,
                 total=total,
@@ -304,12 +336,12 @@ def create_api_router() -> APIRouter:
                 page_size=pagination.page_size,
                 total_pages=total_pages,
             )
-            
+
         except HTTPException:
             raise
         except Exception as e:
             raise handle_exception(e)
-    
+
     # Sustainability summary
     @router.get(
         "/sustainability/summary",
@@ -321,7 +353,7 @@ def create_api_router() -> APIRouter:
         tenant_id: str = Depends(get_current_tenant),
         year: int = Query(default=None),
         quarter: int = Query(default=None, ge=1, le=4),
-        region: Optional[str] = Query(default=None),
+        region: str | None = Query(default=None),
         repo: IndicatorRepository = Depends(get_indicator_repository),
     ):
         """
@@ -329,18 +361,18 @@ def create_api_router() -> APIRouter:
         """
         try:
             df = repo.get_all_indicators(tenant_id)
-            
+
             filter_params = FilterParams(
                 tenant_id=tenant_id,
                 year=year or config.default_year,
                 quarter=quarter or config.default_quarter,
                 region=region,
             )
-            
+
             summary = get_sustainability_summary(df, filter_params)
-            
+
             period = f"Q{filter_params.quarter} {filter_params.year}"
-            
+
             return SustainabilitySummaryResponse(
                 sustainability_index=summary.get("sustainability_index", 0),
                 sustainability_trend=summary.get("sustainability_trend", 0),
@@ -352,16 +384,16 @@ def create_api_router() -> APIRouter:
                 period=period,
                 region=region,
             )
-            
+
         except HTTPException:
             raise
         except Exception as e:
             raise handle_exception(e)
-    
+
     # Regional comparison
     @router.get(
         "/sustainability/regions",
-        response_model=List[RegionalComparisonResponse],
+        response_model=list[RegionalComparisonResponse],
         tags=["Sustainability"],
         summary="Get regional sustainability comparison",
     )
@@ -376,18 +408,18 @@ def create_api_router() -> APIRouter:
         """
         try:
             df = repo.get_all_indicators(tenant_id)
-            
+
             # Filter by period
             if year:
                 df = df[df["year"] == year]
             if quarter:
                 df = df[df["quarter"] == quarter]
-            
+
             # Aggregate by region
             regional = df.groupby("region")["sustainability_index"].mean().reset_index()
             regional = regional.sort_values("sustainability_index", ascending=False)
             regional["rank"] = range(1, len(regional) + 1)
-            
+
             return [
                 RegionalComparisonResponse(
                     region=row["region"],
@@ -396,12 +428,12 @@ def create_api_router() -> APIRouter:
                 )
                 for _, row in regional.iterrows()
             ]
-            
+
         except HTTPException:
             raise
         except Exception as e:
             raise handle_exception(e)
-    
+
     # Time series
     @router.get(
         "/sustainability/timeseries/{indicator}",
@@ -412,34 +444,38 @@ def create_api_router() -> APIRouter:
     async def get_timeseries(
         indicator: str,
         tenant_id: str = Depends(get_current_tenant),
-        region: Optional[str] = Query(default=None),
+        region: str | None = Query(default=None),
         repo: IndicatorRepository = Depends(get_indicator_repository),
     ):
         """
         Get time series data for a specific indicator.
         """
         valid_indicators = [
-            "sustainability_index", "co2_per_gdp", "co2_per_capita",
-            "renewable_energy_pct", "green_investment_pct", "gdp_growth",
+            "sustainability_index",
+            "co2_per_gdp",
+            "co2_per_capita",
+            "renewable_energy_pct",
+            "green_investment_pct",
+            "gdp_growth",
         ]
-        
+
         if indicator not in valid_indicators:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Invalid indicator. Must be one of: {valid_indicators}",
             )
-        
+
         try:
             df = repo.get_all_indicators(tenant_id)
-            
+
             if region:
                 df = df[df["region"] == region]
-            
+
             # Aggregate by period
             ts = df.groupby(["year", "quarter"])[indicator].mean().reset_index()
             ts["period"] = ts.apply(lambda r: f"Q{int(r['quarter'])} {int(r['year'])}", axis=1)
             ts = ts.sort_values(["year", "quarter"])
-            
+
             return TimeSeriesResponse(
                 indicator=indicator,
                 data=[
@@ -450,12 +486,12 @@ def create_api_router() -> APIRouter:
                     for _, row in ts.iterrows()
                 ],
             )
-            
+
         except HTTPException:
             raise
         except Exception as e:
             raise handle_exception(e)
-    
+
     # Data quality
     @router.get(
         "/data-quality",
@@ -472,13 +508,13 @@ def create_api_router() -> APIRouter:
         """
         try:
             df = repo.get_all_indicators(tenant_id)
-            
+
             filter_params = FilterParams(tenant_id=tenant_id)
             metrics = get_data_quality_metrics(df, filter_params)
-            
+
             last_update = metrics.get("last_update")
             last_update_str = last_update.isoformat() if last_update else None
-            
+
             return DataQualityResponse(
                 completeness=metrics.get("completeness", 0),
                 avg_quality_score=metrics.get("avg_quality_score", 0),
@@ -486,27 +522,27 @@ def create_api_router() -> APIRouter:
                 last_update=last_update_str,
                 missing_by_kpi=metrics.get("missing_by_kpi", {}),
             )
-            
+
         except HTTPException:
             raise
         except Exception as e:
             raise handle_exception(e)
-    
+
     # Regions reference data
     @router.get(
         "/reference/regions",
-        response_model=List[str],
+        response_model=list[str],
         tags=["Reference"],
         summary="Get list of regions",
     )
     async def get_regions():
         """Get list of Saudi regions."""
         return REGIONS
-    
+
     # Years reference data
     @router.get(
         "/reference/years",
-        response_model=List[int],
+        response_model=list[int],
         tags=["Reference"],
         summary="Get available years",
     )
@@ -521,5 +557,5 @@ def create_api_router() -> APIRouter:
             return [int(y) for y in years]
         except Exception:
             return list(range(2019, 2025))
-    
+
     return router

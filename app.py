@@ -9,18 +9,17 @@ Run:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta
-from typing import Optional
+from datetime import date, datetime
 
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-
 # -----------------------------
 # Session State Initialization
 # -----------------------------
+
 
 def init_session_state() -> None:
     """Initialize session state for navigation and search."""
@@ -275,111 +274,147 @@ def generate_demo_data(seed: int = 7) -> DemoData:
     gdp_growth = np.clip(rng.normal(3.8, 1.0, len(years)), 0.5, 7.0)
     gdp_total = np.clip(rng.normal(2500000, 200000, len(years)), 2000000, 3000000)  # Million SAR
     foreign_investment = np.clip(rng.normal(15000, 3000, len(years)), 5000, 25000)  # Million SAR
-    export_diversity = np.clip(np.linspace(45, 65, len(years)) + rng.normal(0, 3, len(years)), 30, 80)
+    export_diversity = np.clip(
+        np.linspace(45, 65, len(years)) + rng.normal(0, 3, len(years)), 30, 80
+    )
     economic_complexity = np.clip(rng.normal(0.2, 0.3, len(years)), -1.0, 1.5)
     population = np.linspace(34.0, 36.5, len(years))  # Millions
-    
-    economic_indicators = pd.DataFrame({
-        "Year": years,
-        "GDP Growth (%)": gdp_growth,
-        "GDP Total (M SAR)": gdp_total,
-        "Foreign Investment (M SAR)": foreign_investment,
-        "Export Diversity Index": export_diversity,
-        "Economic Complexity Index": economic_complexity,
-        "Population (M)": population,
-    })
+
+    economic_indicators = pd.DataFrame(
+        {
+            "Year": years,
+            "GDP Growth (%)": gdp_growth,
+            "GDP Total (M SAR)": gdp_total,
+            "Foreign Investment (M SAR)": foreign_investment,
+            "Export Diversity Index": export_diversity,
+            "Economic Complexity Index": economic_complexity,
+            "Population (M)": population,
+        }
+    )
 
     # === LABOR & SKILLS INDICATORS ===
-    unemployment_rate = np.clip(np.linspace(12.5, 8.2, len(years)) + rng.normal(0, 0.8, len(years)), 5, 15)
-    green_jobs = np.clip(np.linspace(45, 85, len(years)) + rng.normal(0, 5, len(years)), 20, 120)  # Thousands
+    unemployment_rate = np.clip(
+        np.linspace(12.5, 8.2, len(years)) + rng.normal(0, 0.8, len(years)), 5, 15
+    )
+    green_jobs = np.clip(
+        np.linspace(45, 85, len(years)) + rng.normal(0, 5, len(years)), 20, 120
+    )  # Thousands
     skills_gap = np.clip(np.linspace(55, 35, len(years)) + rng.normal(0, 3, len(years)), 20, 70)
-    
-    labor_indicators = pd.DataFrame({
-        "Year": years,
-        "Unemployment Rate (%)": unemployment_rate,
-        "Green Jobs (K)": green_jobs,
-        "Skills Gap Index": skills_gap,
-    })
+
+    labor_indicators = pd.DataFrame(
+        {
+            "Year": years,
+            "Unemployment Rate (%)": unemployment_rate,
+            "Green Jobs (K)": green_jobs,
+            "Skills Gap Index": skills_gap,
+        }
+    )
 
     # === SOCIAL & DIGITAL INDICATORS ===
-    social_progress = np.clip(np.linspace(62, 75, len(years)) + rng.normal(0, 2, len(years)), 50, 85)
-    digital_readiness = np.clip(np.linspace(58, 78, len(years)) + rng.normal(0, 3, len(years)), 45, 85)
-    innovation_index = np.clip(np.linspace(35, 52, len(years)) + rng.normal(0, 2.5, len(years)), 25, 65)
-    
-    social_indicators = pd.DataFrame({
-        "Year": years,
-        "Social Progress Score": social_progress,
-        "Digital Readiness Index": digital_readiness,
-        "Innovation Index": innovation_index,
-    })
+    social_progress = np.clip(
+        np.linspace(62, 75, len(years)) + rng.normal(0, 2, len(years)), 50, 85
+    )
+    digital_readiness = np.clip(
+        np.linspace(58, 78, len(years)) + rng.normal(0, 3, len(years)), 45, 85
+    )
+    innovation_index = np.clip(
+        np.linspace(35, 52, len(years)) + rng.normal(0, 2.5, len(years)), 25, 65
+    )
+
+    social_indicators = pd.DataFrame(
+        {
+            "Year": years,
+            "Social Progress Score": social_progress,
+            "Digital Readiness Index": digital_readiness,
+            "Innovation Index": innovation_index,
+        }
+    )
 
     # === ENVIRONMENTAL INDICATORS ===
     renew_share = np.clip(np.linspace(12, 34, len(years)) + rng.normal(0, 1.3, len(years)), 8, 40)
     co2_index = np.clip(np.linspace(100, 74, len(years)) + rng.normal(0, 2.0, len(years)), 65, 110)
-    co2_total = np.clip(np.linspace(420, 380, len(years)) + rng.normal(0, 15, len(years)), 350, 450)  # Million tons
-    energy_intensity = np.clip(np.linspace(8.5, 6.2, len(years)) + rng.normal(0, 0.4, len(years)), 4, 12)  # MJ/SAR
-    water_efficiency = np.clip(np.linspace(45, 68, len(years)) + rng.normal(0, 3, len(years)), 35, 80)
+    co2_total = np.clip(
+        np.linspace(420, 380, len(years)) + rng.normal(0, 15, len(years)), 350, 450
+    )  # Million tons
+    energy_intensity = np.clip(
+        np.linspace(8.5, 6.2, len(years)) + rng.normal(0, 0.4, len(years)), 4, 12
+    )  # MJ/SAR
+    water_efficiency = np.clip(
+        np.linspace(45, 68, len(years)) + rng.normal(0, 3, len(years)), 35, 80
+    )
     recycling_rate = np.clip(np.linspace(15, 35, len(years)) + rng.normal(0, 2, len(years)), 10, 45)
-    forest_coverage = np.clip(np.linspace(0.8, 2.1, len(years)) + rng.normal(0, 0.1, len(years)), 0.5, 3.0)
-    air_quality = np.clip(np.linspace(85, 65, len(years)) + rng.normal(0, 4, len(years)), 40, 120)  # Lower is better
-    
-    environmental_indicators = pd.DataFrame({
-        "Year": years,
-        "Renewable Share (%)": renew_share,
-        "CO₂ Intensity Index": co2_index,
-        "CO₂ Total (MT)": co2_total,
-        "Energy Intensity (MJ/SAR)": energy_intensity,
-        "Water Efficiency Index": water_efficiency,
-        "Waste Recycling Rate (%)": recycling_rate,
-        "Forest Coverage (%)": forest_coverage,
-        "Air Quality Index": air_quality,
-    })
+    forest_coverage = np.clip(
+        np.linspace(0.8, 2.1, len(years)) + rng.normal(0, 0.1, len(years)), 0.5, 3.0
+    )
+    air_quality = np.clip(
+        np.linspace(85, 65, len(years)) + rng.normal(0, 4, len(years)), 40, 120
+    )  # Lower is better
+
+    environmental_indicators = pd.DataFrame(
+        {
+            "Year": years,
+            "Renewable Share (%)": renew_share,
+            "CO₂ Intensity Index": co2_index,
+            "CO₂ Total (MT)": co2_total,
+            "Energy Intensity (MJ/SAR)": energy_intensity,
+            "Water Efficiency Index": water_efficiency,
+            "Waste Recycling Rate (%)": recycling_rate,
+            "Forest Coverage (%)": forest_coverage,
+            "Air Quality Index": air_quality,
+        }
+    )
 
     # === COMPOSITE INDICATORS ===
     # Calculate derived indicators
     co2_per_gdp = co2_total / (gdp_total / 1000)  # tons per million SAR
     co2_per_capita = co2_total / population  # tons per capita
     data_quality = np.clip(rng.normal(82, 5, len(years)), 70, 95)
-    
+
     # Calculate sustainability index (weighted average of key environmental indicators)
     sustainability_index = (
-        (100 - co2_index) * 0.15 +  # Inverted CO2 index
-        renew_share * 0.15 +
-        (100 - energy_intensity * 10) * 0.10 +  # Normalized energy intensity
-        water_efficiency * 0.10 +
-        recycling_rate * 0.10 +
-        (100 - air_quality) * 0.10 +  # Inverted air quality
-        forest_coverage * 5 * 0.05 +  # Normalized forest coverage
-        green_jobs / 2 * 0.10 +  # Normalized green jobs
-        export_diversity * 0.05 +
-        (economic_complexity + 2) * 25 * 0.05  # Normalized complexity
+        (100 - co2_index) * 0.15  # Inverted CO2 index
+        + renew_share * 0.15
+        + (100 - energy_intensity * 10) * 0.10  # Normalized energy intensity
+        + water_efficiency * 0.10
+        + recycling_rate * 0.10
+        + (100 - air_quality) * 0.10  # Inverted air quality
+        + forest_coverage * 5 * 0.05  # Normalized forest coverage
+        + green_jobs / 2 * 0.10  # Normalized green jobs
+        + export_diversity * 0.05
+        + (economic_complexity + 2) * 25 * 0.05  # Normalized complexity
     )
     sustainability_index = np.clip(sustainability_index, 0, 100)
-    
-    composite_indicators = pd.DataFrame({
-        "Year": years,
-        "CO₂ per GDP (tons/M SAR)": co2_per_gdp,
-        "CO₂ per Capita (tons/capita)": co2_per_capita,
-        "Data Quality Score": data_quality,
-        "Sustainability Index": sustainability_index,
-    })
+
+    composite_indicators = pd.DataFrame(
+        {
+            "Year": years,
+            "CO₂ per GDP (tons/M SAR)": co2_per_gdp,
+            "CO₂ per Capita (tons/capita)": co2_per_capita,
+            "Data Quality Score": data_quality,
+            "Sustainability Index": sustainability_index,
+        }
+    )
 
     # Maintain existing structures for backward compatibility
-    yearly = pd.DataFrame({
-        "Year": years,
-        "GDP Growth (%)": gdp_growth,
-        "Renewable Share (%)": renew_share,
-        "CO₂ Intensity Index": co2_index,
-    })
+    yearly = pd.DataFrame(
+        {
+            "Year": years,
+            "GDP Growth (%)": gdp_growth,
+            "Renewable Share (%)": renew_share,
+            "CO₂ Intensity Index": co2_index,
+        }
+    )
 
     # Regional snapshot for 2025
     base_activity = rng.normal(72, 6, len(regions))
     renewable_momentum = rng.normal(28, 4, len(regions))
-    region_snapshot = pd.DataFrame({
-        "Region": regions,
-        "Economic Activity": np.clip(base_activity, 55, 90),
-        "Renewable Momentum": np.clip(renewable_momentum, 15, 40),
-    }).sort_values("Economic Activity", ascending=True)
+    region_snapshot = pd.DataFrame(
+        {
+            "Region": regions,
+            "Economic Activity": np.clip(base_activity, 55, 90),
+            "Renewable Momentum": np.clip(renewable_momentum, 15, 40),
+        }
+    ).sort_values("Economic Activity", ascending=True)
 
     # Daily Economic Activity Index (last 30 days)
     end = date.today()
@@ -390,11 +425,19 @@ def generate_demo_data(seed: int = 7) -> DemoData:
     activity_daily = pd.DataFrame({"Date": days, "Index": curve})
 
     # Energy mix (donut)
-    energy_mix = pd.DataFrame({
-        "Source": ["Renewables", "Natural Gas", "Oil"],
-        "Share": [int(rng.integers(24, 33)), int(rng.integers(34, 48)), int(rng.integers(18, 32))],
-    })
-    energy_mix.loc[2, "Share"] = max(0, 100 - int(energy_mix.loc[0, "Share"]) - int(energy_mix.loc[1, "Share"]))
+    energy_mix = pd.DataFrame(
+        {
+            "Source": ["Renewables", "Natural Gas", "Oil"],
+            "Share": [
+                int(rng.integers(24, 33)),
+                int(rng.integers(34, 48)),
+                int(rng.integers(18, 32)),
+            ],
+        }
+    )
+    energy_mix.loc[2, "Share"] = max(
+        0, 100 - int(energy_mix.loc[0, "Share"]) - int(energy_mix.loc[1, "Share"])
+    )
 
     return DemoData(
         years=years,
@@ -453,10 +496,10 @@ def card_close() -> None:
 
 def plotly_base_layout(fig: go.Figure) -> go.Figure:
     fig.update_layout(
-        margin=dict(l=8, r=8, t=8, b=8),
+        margin={"l": 8, "r": 8, "t": 8, "b": 8},
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="rgba(255,255,255,0.86)", size=12),
+        font={"color": "rgba(255,255,255,0.86)", "size": 12},
         showlegend=False,
     )
     return fig
@@ -480,7 +523,7 @@ def line_chart_card(df: pd.DataFrame, title: str) -> None:
             x=x,
             y=y,
             mode="lines",
-            line=dict(color="rgba(168,85,247,0.22)", width=10, shape="spline"),
+            line={"color": "rgba(168,85,247,0.22)", "width": 10, "shape": "spline"},
             hoverinfo="skip",
         )
     )
@@ -490,8 +533,8 @@ def line_chart_card(df: pd.DataFrame, title: str) -> None:
             x=x,
             y=y,
             mode="lines+markers",
-            line=dict(color="#a855f7", width=3, shape="spline"),
-            marker=dict(size=5, color="#a855f7"),
+            line={"color": "#a855f7", "width": 3, "shape": "spline"},
+            marker={"size": 5, "color": "#a855f7"},
             hovertemplate="%{x|%b %d}<br><b>%{y:.1f}</b><extra></extra>",
         )
     )
@@ -500,13 +543,13 @@ def line_chart_card(df: pd.DataFrame, title: str) -> None:
         showgrid=False,
         zeroline=False,
         showticklabels=True,
-        tickfont=dict(color="rgba(255,255,255,0.45)", size=10),
+        tickfont={"color": "rgba(255,255,255,0.45)", "size": 10},
     )
     fig.update_yaxes(
         showgrid=True,
         gridcolor="rgba(255,255,255,0.07)",
         zeroline=False,
-        tickfont=dict(color="rgba(255,255,255,0.45)", size=10),
+        tickfont={"color": "rgba(255,255,255,0.45)", "size": 10},
     )
 
     fig.add_annotation(
@@ -518,7 +561,7 @@ def line_chart_card(df: pd.DataFrame, title: str) -> None:
         arrowcolor="rgba(255,255,255,0.35)",
         bgcolor="#7c3aed",
         bordercolor="rgba(255,255,255,0.20)",
-        font=dict(color="white", size=11),
+        font={"color": "white", "size": 11},
         borderpad=6,
         ax=-30,
         ay=-35,
@@ -539,7 +582,10 @@ def region_bar_card(df: pd.DataFrame, title: str) -> None:
             y=df["Region"],
             x=df["Economic Activity"],
             orientation="h",
-            marker=dict(color="rgba(168,85,247,0.85)", line=dict(color="rgba(255,255,255,0.10)", width=1)),
+            marker={
+                "color": "rgba(168,85,247,0.85)",
+                "line": {"color": "rgba(255,255,255,0.10)", "width": 1},
+            },
             name="Economic Activity",
             hovertemplate="%{y}<br><b>%{x:.0f}</b><extra></extra>",
         )
@@ -549,7 +595,10 @@ def region_bar_card(df: pd.DataFrame, title: str) -> None:
             y=df["Region"],
             x=df["Renewable Momentum"],
             orientation="h",
-            marker=dict(color="rgba(34,211,238,0.78)", line=dict(color="rgba(255,255,255,0.10)", width=1)),
+            marker={
+                "color": "rgba(34,211,238,0.78)",
+                "line": {"color": "rgba(255,255,255,0.10)", "width": 1},
+            },
             name="Renewable Momentum",
             hovertemplate="%{y}<br><b>%{x:.0f}</b><extra></extra>",
         )
@@ -565,7 +614,7 @@ def region_bar_card(df: pd.DataFrame, title: str) -> None:
     fig.update_yaxes(
         showgrid=False,
         zeroline=False,
-        tickfont=dict(color="rgba(255,255,255,0.78)", size=12),
+        tickfont={"color": "rgba(255,255,255,0.78)", "size": 12},
     )
 
     plotly_base_layout(fig)
@@ -584,7 +633,10 @@ def donut_chart_card(df: pd.DataFrame, title: str) -> None:
                 values=df["Share"],
                 hole=0.72,
                 sort=False,
-                marker=dict(colors=["#a855f7", "#22d3ee", "#ec4899"], line=dict(color="rgba(0,0,0,0)", width=0)),
+                marker={
+                    "colors": ["#a855f7", "#22d3ee", "#ec4899"],
+                    "line": {"color": "rgba(0,0,0,0)", "width": 0},
+                },
                 textinfo="none",
                 hovertemplate="%{label}<br><b>%{value}%</b><extra></extra>",
             )
@@ -592,13 +644,13 @@ def donut_chart_card(df: pd.DataFrame, title: str) -> None:
     )
     fig.update_layout(
         annotations=[
-            dict(
-                text="Energy<br>Mix",
-                x=0.5,
-                y=0.5,
-                font=dict(size=12, color="rgba(255,255,255,0.78)", family="sans-serif"),
-                showarrow=False,
-            )
+            {
+                "text": "Energy<br>Mix",
+                "x": 0.5,
+                "y": 0.5,
+                "font": {"size": 12, "color": "rgba(255,255,255,0.78)", "family": "sans-serif"},
+                "showarrow": False,
+            }
         ]
     )
 
@@ -637,7 +689,7 @@ def mini_metric_card(title: str, value: str, delta: float, ring: float) -> None:
                     values=[ring, 100 - ring],
                     hole=0.78,
                     sort=False,
-                    marker=dict(colors=["rgba(168,85,247,0.95)", "rgba(255,255,255,0.08)"]),
+                    marker={"colors": ["rgba(168,85,247,0.95)", "rgba(255,255,255,0.08)"]},
                     textinfo="none",
                     hoverinfo="skip",
                 )
@@ -646,13 +698,13 @@ def mini_metric_card(title: str, value: str, delta: float, ring: float) -> None:
         fig.update_layout(
             height=140,
             annotations=[
-                dict(
-                    text=f"{ring:.0f}%",
-                    x=0.5,
-                    y=0.5,
-                    showarrow=False,
-                    font=dict(color="rgba(255,255,255,0.82)", size=12),
-                )
+                {
+                    "text": f"{ring:.0f}%",
+                    "x": 0.5,
+                    "y": 0.5,
+                    "showarrow": False,
+                    "font": {"color": "rgba(255,255,255,0.82)", "size": 12},
+                }
             ],
         )
         plotly_base_layout(fig)
@@ -695,7 +747,7 @@ def yearly_bar_card(df: pd.DataFrame, title: str) -> None:
 
     fig.update_layout(barmode="group")
     fig.update_xaxes(
-        tickfont=dict(color="rgba(255,255,255,0.55)", size=10),
+        tickfont={"color": "rgba(255,255,255,0.55)", "size": 10},
         showgrid=False,
         zeroline=False,
     )
@@ -703,7 +755,7 @@ def yearly_bar_card(df: pd.DataFrame, title: str) -> None:
         showgrid=True,
         gridcolor="rgba(255,255,255,0.07)",
         zeroline=False,
-        tickfont=dict(color="rgba(255,255,255,0.45)", size=10),
+        tickfont={"color": "rgba(255,255,255,0.45)", "size": 10},
     )
 
     plotly_base_layout(fig)
@@ -724,33 +776,39 @@ def sustainability_gauge_card(score: float, title: str) -> None:
     else:
         color = "#ec4899"  # Pink for needs improvement
 
-    fig = go.Figure(go.Indicator(
-        mode = "gauge+number",
-        value = score,
-        domain = {'x': [0, 1], 'y': [0, 1]},
-        title = {'text': ""},
-        gauge = {
-            'axis': {'range': [None, 100], 'tickwidth': 1, 'tickcolor': "rgba(255,255,255,0.3)"},
-            'bar': {'color': color},
-            'bgcolor': "rgba(0,0,0,0.1)",
-            'borderwidth': 2,
-            'bordercolor': "rgba(255,255,255,0.1)",
-            'steps': [
-                {'range': [0, 50], 'color': "rgba(236,72,153,0.2)"},
-                {'range': [50, 70], 'color': "rgba(168,85,247,0.2)"},
-                {'range': [70, 100], 'color': "rgba(34,211,238,0.2)"}
-            ],
-        }
-    ))
+    fig = go.Figure(
+        go.Indicator(
+            mode="gauge+number",
+            value=score,
+            domain={"x": [0, 1], "y": [0, 1]},
+            title={"text": ""},
+            gauge={
+                "axis": {
+                    "range": [None, 100],
+                    "tickwidth": 1,
+                    "tickcolor": "rgba(255,255,255,0.3)",
+                },
+                "bar": {"color": color},
+                "bgcolor": "rgba(0,0,0,0.1)",
+                "borderwidth": 2,
+                "bordercolor": "rgba(255,255,255,0.1)",
+                "steps": [
+                    {"range": [0, 50], "color": "rgba(236,72,153,0.2)"},
+                    {"range": [50, 70], "color": "rgba(168,85,247,0.2)"},
+                    {"range": [70, 100], "color": "rgba(34,211,238,0.2)"},
+                ],
+            },
+        )
+    )
 
     fig.update_layout(
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font={'color': "white"},
+        font={"color": "white"},
         height=200,
-        margin=dict(l=20, r=20, t=20, b=20)
+        margin={"l": 20, "r": 20, "t": 20, "b": 20},
     )
-    
+
     st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
     card_close()
 
@@ -761,11 +819,11 @@ def indicators_summary_card(df: pd.DataFrame, title: str, indicators: list) -> N
 
     # Get latest year data
     latest = df.iloc[-1]
-    
-    for i, indicator in enumerate(indicators):
+
+    for _i, indicator in enumerate(indicators):
         if indicator in df.columns:
             value = latest[indicator]
-            
+
             # Determine trend (simple comparison with previous year)
             if len(df) > 1:
                 prev_value = df.iloc[-2][indicator]
@@ -775,7 +833,7 @@ def indicators_summary_card(df: pd.DataFrame, title: str, indicators: list) -> N
             else:
                 trend = "→"
                 trend_color = "#a855f7"
-            
+
             # Format value based on indicator type
             if "%" in indicator:
                 formatted_value = f"{value:.1f}%"
@@ -784,10 +842,12 @@ def indicators_summary_card(df: pd.DataFrame, title: str, indicators: list) -> N
             elif "(K)" in indicator:
                 formatted_value = f"{value:.0f}K"
             elif "(M" in indicator:
-                formatted_value = f"{value/1000000:.1f}M" if value > 1000000 else f"{value/1000:.0f}K"
+                formatted_value = (
+                    f"{value / 1000000:.1f}M" if value > 1000000 else f"{value / 1000:.0f}K"
+                )
             else:
                 formatted_value = f"{value:.1f}"
-            
+
             st.markdown(
                 f"<div style='display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);'>"
                 f"<div style='color: rgba(255,255,255,0.7); font-size: 11px;'>{indicator.replace(' (%)', '').replace(' (M SAR)', '').replace(' (K)', '')}</div>"
@@ -806,47 +866,53 @@ def environmental_trends_card(df: pd.DataFrame, title: str) -> None:
     card_open(title=title, subtitle="Key environmental indicators")
 
     fig = go.Figure()
-    
+
     # Add renewable share
-    fig.add_trace(go.Scatter(
-        x=df["Year"],
-        y=df["Renewable Share (%)"],
-        mode="lines+markers",
-        name="Renewable Share (%)",
-        line=dict(color="#22d3ee", width=2),
-        marker=dict(size=4),
-    ))
-    
+    fig.add_trace(
+        go.Scatter(
+            x=df["Year"],
+            y=df["Renewable Share (%)"],
+            mode="lines+markers",
+            name="Renewable Share (%)",
+            line={"color": "#22d3ee", "width": 2},
+            marker={"size": 4},
+        )
+    )
+
     # Add water efficiency (normalize to similar scale)
-    fig.add_trace(go.Scatter(
-        x=df["Year"],
-        y=df["Water Efficiency Index"],
-        mode="lines+markers", 
-        name="Water Efficiency",
-        line=dict(color="#a855f7", width=2),
-        marker=dict(size=4),
-    ))
-    
+    fig.add_trace(
+        go.Scatter(
+            x=df["Year"],
+            y=df["Water Efficiency Index"],
+            mode="lines+markers",
+            name="Water Efficiency",
+            line={"color": "#a855f7", "width": 2},
+            marker={"size": 4},
+        )
+    )
+
     # Add recycling rate
-    fig.add_trace(go.Scatter(
-        x=df["Year"],
-        y=df["Waste Recycling Rate (%)"],
-        mode="lines+markers",
-        name="Recycling Rate (%)",
-        line=dict(color="#ec4899", width=2),
-        marker=dict(size=4),
-    ))
+    fig.add_trace(
+        go.Scatter(
+            x=df["Year"],
+            y=df["Waste Recycling Rate (%)"],
+            mode="lines+markers",
+            name="Recycling Rate (%)",
+            line={"color": "#ec4899", "width": 2},
+            marker={"size": 4},
+        )
+    )
 
     fig.update_xaxes(
         showgrid=False,
         zeroline=False,
-        tickfont=dict(color="rgba(255,255,255,0.45)", size=10),
+        tickfont={"color": "rgba(255,255,255,0.45)", "size": 10},
     )
     fig.update_yaxes(
         showgrid=True,
         gridcolor="rgba(255,255,255,0.07)",
         zeroline=False,
-        tickfont=dict(color="rgba(255,255,255,0.45)", size=10),
+        tickfont={"color": "rgba(255,255,255,0.45)", "size": 10},
     )
 
     plotly_base_layout(fig)
@@ -876,7 +942,7 @@ def render_sidebar(active: str = "Dashboard") -> None:
         """,
         unsafe_allow_html=True,
     )
-    
+
     # Navigation structure
     nav_sections = [
         {
@@ -885,7 +951,7 @@ def render_sidebar(active: str = "Dashboard") -> None:
                 ("Dashboard", "📊"),
                 ("KPIs", "📈"),
                 ("Trends", "📉"),
-            ]
+            ],
         },
         {
             "label": "🧠 ANALYTICS",
@@ -894,21 +960,22 @@ def render_sidebar(active: str = "Dashboard") -> None:
                 ("Early Warning", "⚠️"),
                 ("AI Recommendations", "🤖"),
                 ("Regional Map", "🗺️"),
-            ]
+            ],
         },
         {
             "label": "SYSTEM",
             "items": [
                 ("Data", "📁"),
                 ("Settings", "⚙️"),
-            ]
+            ],
         },
     ]
-    
+
     # Render navigation sections
     for section in nav_sections:
         # Section header
-        st.markdown(f"""
+        st.markdown(
+            f"""
             <div style="
                 margin-top: 16px;
                 padding: 6px 12px;
@@ -919,10 +986,12 @@ def render_sidebar(active: str = "Dashboard") -> None:
                 text-transform: uppercase;
                 border-top: 1px solid rgba(255,255,255,0.08);
             ">
-                {section['label']}
+                {section["label"]}
             </div>
-        """, unsafe_allow_html=True)
-        
+        """,
+            unsafe_allow_html=True,
+        )
+
         # Section items
         for name, icon in section["items"]:
             is_active = st.session_state.current_page == name
@@ -943,7 +1012,7 @@ def render_header() -> None:
     now = datetime.now().date()
     start = date(now.year - 6, 1, 1)
     date_range = f"{start.strftime('%b %Y')} – {now.strftime('%b %Y')}"
-    
+
     # Get current page title
     page_title = st.session_state.get("current_page", "Dashboard")
     page_titles = {
@@ -963,7 +1032,7 @@ def render_header() -> None:
         st.markdown(
             f"""
             <div class="topbar">
-              <div class="title">{page_titles.get(page_title, 'Overview')}</div>
+              <div class="title">{page_titles.get(page_title, "Overview")}</div>
               <div class="daterange">Reporting period: {date_range}</div>
             </div>
             """,
@@ -1000,14 +1069,14 @@ def main() -> None:
         layout="wide",
         initial_sidebar_state="collapsed",
     )
-    
+
     # Initialize session state
     init_session_state()
-    
+
     inject_theme_css()
 
     data = generate_demo_data(seed=11)
-    
+
     # Get current page
     current_page = st.session_state.current_page
 
@@ -1018,7 +1087,7 @@ def main() -> None:
 
     with main_col:
         render_header()
-        
+
         # Route to appropriate page
         if current_page == "Dashboard":
             render_dashboard_page(data)
@@ -1044,246 +1113,331 @@ def main() -> None:
 
 def render_dashboard_page(data: DemoData) -> None:
     """Render the comprehensive dashboard page with all indicators."""
-    
+
     # Check for search query
     search_query = st.session_state.get("search_query", "").lower()
-    
+
     # === TOP ROW: SUSTAINABILITY OVERVIEW ===
     sustainability_score = data.composite_indicators.iloc[-1]["Sustainability Index"]
-    show_sustainability = not search_query or any(term in search_query for term in ["sustain", "composite", "index", "overall"])
-    
+    show_sustainability = not search_query or any(
+        term in search_query for term in ["sustain", "composite", "index", "overall"]
+    )
+
     if show_sustainability:
         sustainability_gauge_card(sustainability_score, "🎯 Sustainability Index")
         st.markdown("<br>", unsafe_allow_html=True)
-    
+
     # === ECONOMIC INDICATORS SECTION ===
-    show_economic = not search_query or any(term in search_query for term in ["economic", "gdp", "investment", "complexity", "export"])
+    show_economic = not search_query or any(
+        term in search_query for term in ["economic", "gdp", "investment", "complexity", "export"]
+    )
     if show_economic:
         st.markdown("### 📊 Economic Performance")
-        
+
         ec1, ec2, ec3 = st.columns([0.4, 0.3, 0.3], gap="large")
-        
+
         with ec1:
             line_chart_card(data.activity_daily, title="Economic Activity Index")
-        
+
         with ec2:
             indicators_summary_card(
-                data.economic_indicators, 
+                data.economic_indicators,
                 "Economic Indicators",
-                ["GDP Growth (%)", "Foreign Investment (M SAR)", "Export Diversity Index"]
+                ["GDP Growth (%)", "Foreign Investment (M SAR)", "Export Diversity Index"],
             )
-        
+
         with ec3:
             # Latest economic metrics
             latest_econ = data.economic_indicators.iloc[-1]
             complexity = latest_econ["Economic Complexity Index"]
-            gdp_total = latest_econ["GDP Total (M SAR)"]
-            
+            latest_econ["GDP Total (M SAR)"]
+
             mini_metric_card(
                 title="Economic Complexity",
                 value=f"{complexity:.2f}",
-                delta=float((complexity - data.economic_indicators.iloc[-2]["Economic Complexity Index"]) * 100),
+                delta=float(
+                    (complexity - data.economic_indicators.iloc[-2]["Economic Complexity Index"])
+                    * 100
+                ),
                 ring=float(np.clip((complexity + 2) * 25, 0, 100)),
             )
 
     # === ENVIRONMENTAL INDICATORS SECTION ===
-    show_environment = not search_query or any(term in search_query for term in ["environment", "renewable", "co2", "energy", "water", "air"])
+    show_environment = not search_query or any(
+        term in search_query
+        for term in ["environment", "renewable", "co2", "energy", "water", "air"]
+    )
     if show_environment:
         st.markdown("### 🌿 Environmental Sustainability")
-        
+
         env1, env2 = st.columns([0.6, 0.4], gap="large")
-        
+
         with env1:
             environmental_trends_card(data.environmental_indicators, "Environmental Trends")
-        
+
         with env2:
             indicators_summary_card(
                 data.environmental_indicators,
-                "Environmental Indicators", 
-                ["CO₂ Intensity Index", "Energy Intensity (MJ/SAR)", "Air Quality Index", "Forest Coverage (%)"]
+                "Environmental Indicators",
+                [
+                    "CO₂ Intensity Index",
+                    "Energy Intensity (MJ/SAR)",
+                    "Air Quality Index",
+                    "Forest Coverage (%)",
+                ],
             )
 
     # === SOCIAL & LABOR SECTION ===
-    show_social = not search_query or any(term in search_query for term in ["social", "digital", "innovation", "jobs", "unemployment", "skills"])
+    show_social = not search_query or any(
+        term in search_query
+        for term in ["social", "digital", "innovation", "jobs", "unemployment", "skills"]
+    )
     if show_social:
         st.markdown("### 👥 Social & Labor Development")
-        
+
         soc1, soc2, soc3 = st.columns([0.3, 0.35, 0.35], gap="large")
-        
+
         with soc1:
             indicators_summary_card(
                 data.social_indicators,
                 "Social Progress",
-                ["Social Progress Score", "Digital Readiness Index", "Innovation Index"]
+                ["Social Progress Score", "Digital Readiness Index", "Innovation Index"],
             )
-        
+
         with soc2:
             indicators_summary_card(
                 data.labor_indicators,
                 "Labor & Skills",
-                ["Green Jobs (K)", "Unemployment Rate (%)", "Skills Gap Index"]
+                ["Green Jobs (K)", "Unemployment Rate (%)", "Skills Gap Index"],
             )
-        
+
         with soc3:
             # Green jobs highlight
             latest_labor = data.labor_indicators.iloc[-1]
             green_jobs = latest_labor["Green Jobs (K)"]
             unemployment = latest_labor["Unemployment Rate (%)"]
-            
+
             mini_metric_card(
                 title="Green Jobs Growth",
                 value=f"{green_jobs:.0f}K",
-                delta=float((green_jobs - data.labor_indicators.iloc[-2]["Green Jobs (K)"]) / max(data.labor_indicators.iloc[-2]["Green Jobs (K)"], 1) * 100),
+                delta=float(
+                    (green_jobs - data.labor_indicators.iloc[-2]["Green Jobs (K)"])
+                    / max(data.labor_indicators.iloc[-2]["Green Jobs (K)"], 1)
+                    * 100
+                ),
                 ring=float(np.clip(100 - unemployment * 8, 20, 90)),
             )
 
     # === REGIONAL & ENERGY MIX ===
-    show_region_energy = not search_query or any(term in search_query for term in ["region", "energy", "mix", "gas", "oil"])
+    show_region_energy = not search_query or any(
+        term in search_query for term in ["region", "energy", "mix", "gas", "oil"]
+    )
     if show_region_energy:
         st.markdown("### 🗺️ Regional & Energy Overview")
-        
+
         reg1, reg2 = st.columns([0.6, 0.4], gap="large")
-        
+
         with reg1:
             region_bar_card(data.region_snapshot, title="Regional Performance")
-        
+
         with reg2:
             donut_chart_card(data.energy_mix, title="Energy Mix")
 
     # === COMPOSITE INDICATORS SECTION ===
-    show_composite = not search_query or any(term in search_query for term in ["composite", "derived", "capita", "quality"])
+    show_composite = not search_query or any(
+        term in search_query for term in ["composite", "derived", "capita", "quality"]
+    )
     if show_composite:
         st.markdown("### 🎯 Composite & Derived Indicators")
-        
+
         comp1, comp2 = st.columns([0.5, 0.5], gap="large")
-        
+
         with comp1:
             indicators_summary_card(
                 data.composite_indicators,
                 "Derived Indicators",
-                ["CO₂ per GDP (tons/M SAR)", "CO₂ per Capita (tons/capita)", "Data Quality Score"]
+                ["CO₂ per GDP (tons/M SAR)", "CO₂ per Capita (tons/capita)", "Data Quality Score"],
             )
-        
+
         with comp2:
             # Data quality metric
             data_quality = data.composite_indicators.iloc[-1]["Data Quality Score"]
             mini_metric_card(
                 title="Data Quality",
                 value=f"{data_quality:.0f}%",
-                delta=float(data_quality - data.composite_indicators.iloc[-2]["Data Quality Score"]),
+                delta=float(
+                    data_quality - data.composite_indicators.iloc[-2]["Data Quality Score"]
+                ),
                 ring=float(data_quality),
             )
 
 
 def render_kpis_page(data: DemoData) -> None:
     """Render the comprehensive KPIs detail page with all indicators."""
-    
+
     st.markdown("### 📈 Key Performance Indicators")
     st.markdown("Complete overview of all sustainability and development indicators")
-    
+
     # === TOP LEVEL METRICS ===
     col1, col2, col3, col4, col5 = st.columns(5)
-    
+
     # Get latest values
     latest_econ = data.economic_indicators.iloc[-1]
     latest_env = data.environmental_indicators.iloc[-1]
     latest_social = data.social_indicators.iloc[-1]
     latest_labor = data.labor_indicators.iloc[-1]
     latest_composite = data.composite_indicators.iloc[-1]
-    
+
     with col1:
         gdp_growth = latest_econ["GDP Growth (%)"]
-        st.metric("GDP Growth", f"{gdp_growth:.1f}%", 
-                 f"{gdp_growth - data.economic_indicators.iloc[-2]['GDP Growth (%)']:.1f}%")
-    
+        st.metric(
+            "GDP Growth",
+            f"{gdp_growth:.1f}%",
+            f"{gdp_growth - data.economic_indicators.iloc[-2]['GDP Growth (%)']:.1f}%",
+        )
+
     with col2:
         renewable = latest_env["Renewable Share (%)"]
-        st.metric("Renewable Share", f"{renewable:.1f}%",
-                 f"{renewable - data.environmental_indicators.iloc[-2]['Renewable Share (%)']:.1f}%")
-    
+        st.metric(
+            "Renewable Share",
+            f"{renewable:.1f}%",
+            f"{renewable - data.environmental_indicators.iloc[-2]['Renewable Share (%)']:.1f}%",
+        )
+
     with col3:
         co2_index = latest_env["CO₂ Intensity Index"]
-        st.metric("CO₂ Index", f"{co2_index:.1f}",
-                 f"{co2_index - data.environmental_indicators.iloc[-2]['CO₂ Intensity Index']:.1f}",
-                 delta_color="inverse")
-    
+        st.metric(
+            "CO₂ Index",
+            f"{co2_index:.1f}",
+            f"{co2_index - data.environmental_indicators.iloc[-2]['CO₂ Intensity Index']:.1f}",
+            delta_color="inverse",
+        )
+
     with col4:
         sustainability = latest_composite["Sustainability Index"]
-        st.metric("Sustainability Index", f"{sustainability:.1f}",
-                 f"{sustainability - data.composite_indicators.iloc[-2]['Sustainability Index']:.1f}")
-    
+        st.metric(
+            "Sustainability Index",
+            f"{sustainability:.1f}",
+            f"{sustainability - data.composite_indicators.iloc[-2]['Sustainability Index']:.1f}",
+        )
+
     with col5:
         green_jobs = latest_labor["Green Jobs (K)"]
-        st.metric("Green Jobs", f"{green_jobs:.0f}K",
-                 f"{green_jobs - data.labor_indicators.iloc[-2]['Green Jobs (K)']:.0f}K")
+        st.metric(
+            "Green Jobs",
+            f"{green_jobs:.0f}K",
+            f"{green_jobs - data.labor_indicators.iloc[-2]['Green Jobs (K)']:.0f}K",
+        )
 
     st.markdown("---")
 
     # === INDICATORS BY CATEGORY ===
-    
+
     # Economic Indicators
     with st.expander("📊 Economic Indicators", expanded=True):
         st.dataframe(data.economic_indicators, width="stretch", hide_index=True)
-    
-    # Environmental Indicators  
+
+    # Environmental Indicators
     with st.expander("🌿 Environmental Indicators", expanded=True):
         st.dataframe(data.environmental_indicators, width="stretch", hide_index=True)
-    
+
     # Social & Digital Indicators
     with st.expander("👥 Social & Digital Indicators", expanded=True):
         st.dataframe(data.social_indicators, width="stretch", hide_index=True)
-        
+
     # Labor & Skills Indicators
     with st.expander("💼 Labor & Skills Indicators", expanded=True):
         st.dataframe(data.labor_indicators, width="stretch", hide_index=True)
-    
+
     # Composite & Derived Indicators
     with st.expander("🎯 Composite & Derived Indicators", expanded=True):
         st.dataframe(data.composite_indicators, width="stretch", hide_index=True)
 
     # === INDICATOR STATUS SUMMARY ===
     st.markdown("### 📊 Indicator Performance Summary")
-    
+
     # Create performance summary
     performance_data = []
-    
+
     # Economic indicators status
     econ_indicators = ["GDP Growth (%)", "Export Diversity Index", "Economic Complexity Index"]
     for indicator in econ_indicators:
-        value = latest_econ[indicator] 
+        value = latest_econ[indicator]
         if "Growth" in indicator:
-            status = "🟢 Good" if value > 3.0 else "🟡 Fair" if value > 1.0 else "🔴 Needs Improvement"
+            status = (
+                "🟢 Good" if value > 3.0 else "🟡 Fair" if value > 1.0 else "🔴 Needs Improvement"
+            )
         elif "Diversity" in indicator:
-            status = "🟢 Good" if value > 60 else "🟡 Fair" if value > 40 else "🔴 Needs Improvement"
+            status = (
+                "🟢 Good" if value > 60 else "🟡 Fair" if value > 40 else "🔴 Needs Improvement"
+            )
         else:
-            status = "🟢 Good" if value > 0.5 else "🟡 Fair" if value > 0 else "🔴 Needs Improvement"
-        
-        performance_data.append({"Category": "Economic", "Indicator": indicator, "Value": f"{value:.2f}", "Status": status})
-    
+            status = (
+                "🟢 Good" if value > 0.5 else "🟡 Fair" if value > 0 else "🔴 Needs Improvement"
+            )
+
+        performance_data.append(
+            {
+                "Category": "Economic",
+                "Indicator": indicator,
+                "Value": f"{value:.2f}",
+                "Status": status,
+            }
+        )
+
     # Environmental indicators status
-    env_indicators = ["Renewable Share (%)", "CO₂ Intensity Index", "Water Efficiency Index", "Waste Recycling Rate (%)"]
+    env_indicators = [
+        "Renewable Share (%)",
+        "CO₂ Intensity Index",
+        "Water Efficiency Index",
+        "Waste Recycling Rate (%)",
+    ]
     for indicator in env_indicators:
         value = latest_env[indicator]
         if "Renewable" in indicator:
-            status = "🟢 Good" if value > 30 else "🟡 Fair" if value > 15 else "🔴 Needs Improvement"
+            status = (
+                "🟢 Good" if value > 30 else "🟡 Fair" if value > 15 else "🔴 Needs Improvement"
+            )
         elif "CO₂" in indicator:
-            status = "🟢 Good" if value < 85 else "🟡 Fair" if value < 100 else "🔴 Needs Improvement"
+            status = (
+                "🟢 Good" if value < 85 else "🟡 Fair" if value < 100 else "🔴 Needs Improvement"
+            )
         else:
-            status = "🟢 Good" if value > 70 else "🟡 Fair" if value > 50 else "🔴 Needs Improvement"
-            
-        performance_data.append({"Category": "Environmental", "Indicator": indicator, "Value": f"{value:.2f}", "Status": status})
-    
+            status = (
+                "🟢 Good" if value > 70 else "🟡 Fair" if value > 50 else "🔴 Needs Improvement"
+            )
+
+        performance_data.append(
+            {
+                "Category": "Environmental",
+                "Indicator": indicator,
+                "Value": f"{value:.2f}",
+                "Status": status,
+            }
+        )
+
     # Social indicators status
     social_indicators = ["Social Progress Score", "Digital Readiness Index", "Innovation Index"]
     for indicator in social_indicators:
         value = latest_social[indicator]
         if indicator == "Innovation Index":
-            status = "🟢 Good" if value > 50 else "🟡 Fair" if value > 30 else "🔴 Needs Improvement"
+            status = (
+                "🟢 Good" if value > 50 else "🟡 Fair" if value > 30 else "🔴 Needs Improvement"
+            )
         else:
-            status = "🟢 Good" if value > 70 else "🟡 Fair" if value > 50 else "🔴 Needs Improvement"
-            
-        performance_data.append({"Category": "Social & Digital", "Indicator": indicator, "Value": f"{value:.2f}", "Status": status})
-    
+            status = (
+                "🟢 Good" if value > 70 else "🟡 Fair" if value > 50 else "🔴 Needs Improvement"
+            )
+
+        performance_data.append(
+            {
+                "Category": "Social & Digital",
+                "Indicator": indicator,
+                "Value": f"{value:.2f}",
+                "Status": status,
+            }
+        )
+
     performance_df = pd.DataFrame(performance_data)
     st.dataframe(performance_df, width="stretch", hide_index=True)
 
@@ -1291,27 +1445,31 @@ def render_kpis_page(data: DemoData) -> None:
 def render_trends_page(data: DemoData) -> None:
     """Render the Trends analysis page."""
     st.markdown("### 📉 Trend Analysis")
-    
+
     # Trend selection
-    trend_type = st.selectbox("Select Indicator", ["GDP Growth (%)", "Renewable Share (%)", "CO₂ Intensity Index"])
-    
+    trend_type = st.selectbox(
+        "Select Indicator", ["GDP Growth (%)", "Renewable Share (%)", "CO₂ Intensity Index"]
+    )
+
     fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=data.yearly["Year"],
-        y=data.yearly[trend_type],
-        mode="lines+markers",
-        line=dict(color="#a855f7", width=3),
-        marker=dict(size=8),
-        fill="tozeroy",
-        fillcolor="rgba(168, 85, 247, 0.2)",
-    ))
+    fig.add_trace(
+        go.Scatter(
+            x=data.yearly["Year"],
+            y=data.yearly[trend_type],
+            mode="lines+markers",
+            line={"color": "#a855f7", "width": 3},
+            marker={"size": 8},
+            fill="tozeroy",
+            fillcolor="rgba(168, 85, 247, 0.2)",
+        )
+    )
     fig.update_layout(
         title=f"{trend_type} Over Time",
         xaxis_title="Year",
         yaxis_title=trend_type,
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="white"),
+        font={"color": "white"},
     )
     st.plotly_chart(fig, width="stretch")
 
@@ -1320,46 +1478,54 @@ def render_forecasting_page(data: DemoData) -> None:
     """Render the KPI Forecasting page."""
     st.markdown("### 🔮 KPI Forecasting")
     st.markdown("ML-powered predictions for key performance indicators")
-    
+
     # Simple forecast visualization
-    forecast_data = pd.DataFrame({
-        "Quarter": ["Q1 2025", "Q2 2025", "Q3 2025", "Q4 2025"],
-        "Predicted": [75.2, 77.8, 79.1, 81.5],
-        "Lower Bound": [72.1, 74.5, 75.8, 77.9],
-        "Upper Bound": [78.3, 81.1, 82.4, 85.1],
-    })
-    
+    forecast_data = pd.DataFrame(
+        {
+            "Quarter": ["Q1 2025", "Q2 2025", "Q3 2025", "Q4 2025"],
+            "Predicted": [75.2, 77.8, 79.1, 81.5],
+            "Lower Bound": [72.1, 74.5, 75.8, 77.9],
+            "Upper Bound": [78.3, 81.1, 82.4, 85.1],
+        }
+    )
+
     fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=forecast_data["Quarter"],
-        y=forecast_data["Predicted"],
-        mode="lines+markers",
-        name="Forecast",
-        line=dict(color="#a855f7", width=3),
-        marker=dict(size=10),
-    ))
-    fig.add_trace(go.Scatter(
-        x=forecast_data["Quarter"],
-        y=forecast_data["Upper Bound"],
-        mode="lines",
-        name="Upper Bound",
-        line=dict(color="rgba(168,85,247,0.3)", dash="dash"),
-    ))
-    fig.add_trace(go.Scatter(
-        x=forecast_data["Quarter"],
-        y=forecast_data["Lower Bound"],
-        mode="lines",
-        name="Lower Bound",
-        line=dict(color="rgba(168,85,247,0.3)", dash="dash"),
-        fill="tonexty",
-        fillcolor="rgba(168,85,247,0.1)",
-    ))
+    fig.add_trace(
+        go.Scatter(
+            x=forecast_data["Quarter"],
+            y=forecast_data["Predicted"],
+            mode="lines+markers",
+            name="Forecast",
+            line={"color": "#a855f7", "width": 3},
+            marker={"size": 10},
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=forecast_data["Quarter"],
+            y=forecast_data["Upper Bound"],
+            mode="lines",
+            name="Upper Bound",
+            line={"color": "rgba(168,85,247,0.3)", "dash": "dash"},
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=forecast_data["Quarter"],
+            y=forecast_data["Lower Bound"],
+            mode="lines",
+            name="Lower Bound",
+            line={"color": "rgba(168,85,247,0.3)", "dash": "dash"},
+            fill="tonexty",
+            fillcolor="rgba(168,85,247,0.1)",
+        )
+    )
     fig.update_layout(
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="white"),
+        font={"color": "white"},
         height=350,
-        margin=dict(l=20, r=20, t=20, b=40),
+        margin={"l": 20, "r": 20, "t": 20, "b": 40},
     )
     st.plotly_chart(fig, width="stretch")
 
@@ -1368,7 +1534,7 @@ def render_early_warning_page(data: DemoData) -> None:
     """Render the Early Warning System page."""
     st.markdown("### ⚠️ Early Warning System")
     st.markdown("Anomaly detection for critical KPI deviations")
-    
+
     # Sample warning alerts
     st.warning("⚡ Renewable Share dropped 2.3% below expected threshold")
     st.info("📊 GDP Growth showing unusual volatility in Eastern Region")
@@ -1379,8 +1545,9 @@ def render_ai_recommendations_page(data: DemoData) -> None:
     """Render the AI Recommendations page."""
     st.markdown("### 🤖 AI Recommendations")
     st.markdown("Smart insights powered by machine learning")
-    
-    st.markdown("""
+
+    st.markdown(
+        """
         <div style="background: rgba(168,85,247,0.15); padding: 16px; border-radius: 12px; border-left: 4px solid #a855f7; margin-bottom: 12px;">
             <strong style="color: #a855f7;">💡 Recommendation 1:</strong>
             <p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.85);">
@@ -1393,23 +1560,27 @@ def render_ai_recommendations_page(data: DemoData) -> None:
                 Focus on green job creation in Riyadh to accelerate sustainability index growth.
             </p>
         </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 def render_regional_map_page(data: DemoData) -> None:
     """Render the Regional Map page."""
     st.markdown("### 🗺️ Regional Map")
     st.markdown("Geographic performance visualization across Saudi Arabia regions")
-    
+
     # Regional performance data
-    region_performance = pd.DataFrame({
-        "Region": data.regions,
-        "Economic Activity": [78.5, 72.3, 85.1],
-        "Renewable Momentum": [32.4, 28.7, 35.2],
-        "Score": [85.2, 78.5, 82.1],
-        "Status": ["🟢 Excellent", "🟡 Good", "🟢 Excellent"],
-    })
-    
+    region_performance = pd.DataFrame(
+        {
+            "Region": data.regions,
+            "Economic Activity": [78.5, 72.3, 85.1],
+            "Renewable Momentum": [32.4, 28.7, 35.2],
+            "Score": [85.2, 78.5, 82.1],
+            "Status": ["🟢 Excellent", "🟡 Good", "🟢 Excellent"],
+        }
+    )
+
     # Summary cards
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -1418,54 +1589,58 @@ def render_regional_map_page(data: DemoData) -> None:
         st.metric("Average Score", "81.9", "+2.3%")
     with col3:
         st.metric("Regions Analyzed", "3", None)
-    
+
     st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
-    
+
     # Interactive Map Visualization
     st.markdown("#### 🗺️ Saudi Arabia Regional Performance Map")
-    
+
     # Create a scatter geo map
-    map_data = pd.DataFrame({
-        "Region": ["Riyadh", "Western Region", "Eastern Region"],
-        "lat": [24.7136, 21.4858, 26.4207],
-        "lon": [46.6753, 39.1925, 50.0888],
-        "Score": [85.2, 78.5, 82.1],
-        "Economic Activity": [78.5, 72.3, 85.1],
-        "Size": [40, 35, 38],
-    })
-    
+    map_data = pd.DataFrame(
+        {
+            "Region": ["Riyadh", "Western Region", "Eastern Region"],
+            "lat": [24.7136, 21.4858, 26.4207],
+            "lon": [46.6753, 39.1925, 50.0888],
+            "Score": [85.2, 78.5, 82.1],
+            "Economic Activity": [78.5, 72.3, 85.1],
+            "Size": [40, 35, 38],
+        }
+    )
+
     fig_map = go.Figure()
-    
+
     # Add scatter points for regions
-    fig_map.add_trace(go.Scattergeo(
-        lon=map_data["lon"],
-        lat=map_data["lat"],
-        text=map_data["Region"],
-        mode="markers+text",
-        marker=dict(
-            size=map_data["Size"],
-            color=map_data["Score"],
-            colorscale=[[0, "#ec4899"], [0.5, "#a855f7"], [1, "#22d3ee"]],
-            colorbar=dict(
-                title=dict(text="Score", font=dict(color="white")),
-                thickness=15,
-                len=0.7,
-                bgcolor="rgba(0,0,0,0.5)",
-                tickfont=dict(color="white"),
-            ),
-            line=dict(width=2, color="rgba(255,255,255,0.5)"),
-            showscale=True,
-        ),
-        textfont=dict(size=12, color="white", family="Arial Black"),
-        textposition="top center",
-        hovertemplate="<b>%{text}</b><br>" +
-                     "Score: %{marker.color:.1f}<br>" +
-                     "<extra></extra>",
-    ))
-    
+    fig_map.add_trace(
+        go.Scattergeo(
+            lon=map_data["lon"],
+            lat=map_data["lat"],
+            text=map_data["Region"],
+            mode="markers+text",
+            marker={
+                "size": map_data["Size"],
+                "color": map_data["Score"],
+                "colorscale": [[0, "#ec4899"], [0.5, "#a855f7"], [1, "#22d3ee"]],
+                "colorbar": {
+                    "title": {"text": "Score", "font": {"color": "white"}},
+                    "thickness": 15,
+                    "len": 0.7,
+                    "bgcolor": "rgba(0,0,0,0.5)",
+                    "tickfont": {"color": "white"},
+                },
+                "line": {"width": 2, "color": "rgba(255,255,255,0.5)"},
+                "showscale": True,
+            },
+            textfont={"size": 12, "color": "white", "family": "Arial Black"},
+            textposition="top center",
+            hovertemplate="<b>%{text}</b><br>"
+            + "Score: %{marker.color:.1f}<br>"
+            + "<extra></extra>",
+        )
+    )
+
     fig_map.update_geos(
         scope="asia",
-        center=dict(lat=24, lon=45),
+        center={"lat": 24, "lon": 45},
         projection_scale=4,
         showcountries=True,
         countrycolor="rgba(255,255,255,0.2)",
@@ -1476,54 +1651,58 @@ def render_regional_map_page(data: DemoData) -> None:
         showlakes=False,
         bgcolor="rgba(0,0,0,0)",
     )
-    
+
     fig_map.update_layout(
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        geo=dict(bgcolor="rgba(0,0,0,0)"),
-        font=dict(color="white"),
+        geo={"bgcolor": "rgba(0,0,0,0)"},
+        font={"color": "white"},
         height=400,
-        margin=dict(l=0, r=0, t=0, b=0),
+        margin={"l": 0, "r": 0, "t": 0, "b": 0},
     )
-    
+
     st.plotly_chart(fig_map, width="stretch")
-    
+
     st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
-    
+
     # Bar chart for regional comparison
     st.markdown("#### 📊 Regional Comparison")
     fig = go.Figure()
-    fig.add_trace(go.Bar(
-        x=region_performance["Region"],
-        y=region_performance["Economic Activity"],
-        name="Economic Activity",
-        marker_color="#a855f7",
-    ))
-    fig.add_trace(go.Bar(
-        x=region_performance["Region"],
-        y=region_performance["Renewable Momentum"],
-        name="Renewable Momentum",
-        marker_color="#22d3ee",
-    ))
+    fig.add_trace(
+        go.Bar(
+            x=region_performance["Region"],
+            y=region_performance["Economic Activity"],
+            name="Economic Activity",
+            marker_color="#a855f7",
+        )
+    )
+    fig.add_trace(
+        go.Bar(
+            x=region_performance["Region"],
+            y=region_performance["Renewable Momentum"],
+            name="Renewable Momentum",
+            marker_color="#22d3ee",
+        )
+    )
     fig.update_layout(
         barmode="group",
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="white"),
+        font={"color": "white"},
         height=300,
-        margin=dict(l=20, r=20, t=20, b=40),
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="center",
-            x=0.5,
-        ),
+        margin={"l": 20, "r": 20, "t": 20, "b": 40},
+        legend={
+            "orientation": "h",
+            "yanchor": "bottom",
+            "y": 1.02,
+            "xanchor": "center",
+            "x": 0.5,
+        },
     )
     fig.update_xaxes(showgrid=False)
     fig.update_yaxes(showgrid=True, gridcolor="rgba(255,255,255,0.1)")
     st.plotly_chart(fig, width="stretch")
-    
+
     # Data table
     st.markdown("#### 📋 Regional Performance Details")
     st.dataframe(region_performance, width="stretch", hide_index=True)
@@ -1532,10 +1711,10 @@ def render_regional_map_page(data: DemoData) -> None:
 def render_regions_page(data: DemoData) -> None:
     """Render the Regions comparison page."""
     st.markdown("### 🗺️ Regional Comparison")
-    
+
     # Region selection
     selected_region = st.selectbox("Select Region", data.regions)
-    
+
     # Show regional data
     col1, col2 = st.columns(2)
     with col1:
@@ -1543,7 +1722,7 @@ def render_regions_page(data: DemoData) -> None:
         if len(region_data) > 0:
             st.metric("Economic Activity", f"{region_data.iloc[0]['Economic Activity']:.1f}")
             st.metric("Renewable Momentum", f"{region_data.iloc[0]['Renewable Momentum']:.1f}")
-    
+
     with col2:
         region_bar_card(data.region_snapshot, title="All Regions Comparison")
 
@@ -1551,20 +1730,20 @@ def render_regions_page(data: DemoData) -> None:
 def render_data_page(data: DemoData) -> None:
     """Render the Data management page."""
     st.markdown("### 📁 Data Management")
-    
+
     # Data export options
     tab1, tab2, tab3 = st.tabs(["Yearly Data", "Regional Data", "Energy Mix"])
-    
+
     with tab1:
         st.dataframe(data.yearly, width="stretch", hide_index=True)
         csv = data.yearly.to_csv(index=False)
         st.download_button("Download CSV", csv, "yearly_kpis.csv", "text/csv")
-    
+
     with tab2:
         st.dataframe(data.region_snapshot, width="stretch", hide_index=True)
         csv = data.region_snapshot.to_csv(index=False)
         st.download_button("Download CSV", csv, "regional_data.csv", "text/csv")
-    
+
     with tab3:
         st.dataframe(data.energy_mix, width="stretch", hide_index=True)
         csv = data.energy_mix.to_csv(index=False)
@@ -1574,20 +1753,22 @@ def render_data_page(data: DemoData) -> None:
 def render_settings_page() -> None:
     """Render the Settings page."""
     st.markdown("### ⚙️ Settings & Preferences")
-    
+
     col1, col2 = st.columns(2)
-    
+
     with col1:
         st.markdown("#### Display Settings")
         st.toggle("Dark Mode", value=True, disabled=True)
         st.toggle("Show Tooltips", value=True)
         st.selectbox("Language", ["English", "العربية"], index=0)
-    
+
     with col2:
         st.markdown("#### Data Settings")
-        st.selectbox("Default Region", ["All Regions", "Riyadh", "Western Region", "Eastern Region"])
+        st.selectbox(
+            "Default Region", ["All Regions", "Riyadh", "Western Region", "Eastern Region"]
+        )
         st.selectbox("Date Range", ["Last 7 Years", "Last 5 Years", "Last 3 Years", "Last Year"])
-    
+
     st.markdown("---")
     st.markdown("#### About")
     st.info("Sustainable Economic Development Analytics Hub v1.0\nMinistry of Economy and Planning")

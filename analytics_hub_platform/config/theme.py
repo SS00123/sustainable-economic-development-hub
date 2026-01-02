@@ -9,7 +9,6 @@ colors, typography, spacing, and component styles.
 
 from dataclasses import dataclass, field
 from functools import lru_cache
-from typing import Dict, Optional
 
 
 # ---------------------------------------------------------------------
@@ -25,28 +24,28 @@ class ColorPalette:
     """
 
     # Primary brand colors
-    primary: str = "#12436D"      # Deep blue - main brand color
-    secondary: str = "#1B7F8C"    # Teal/blue - secondary accents
+    primary: str = "#12436D"  # Deep blue - main brand color
+    secondary: str = "#1B7F8C"  # Teal/blue - secondary accents
 
     # Status colors
-    success: str = "#1C7C54"      # Green - good/on-track status
-    warning: str = "#D97706"      # Amber - warning/attention
-    error: str = "#B91C1C"        # Red - critical/alert
+    success: str = "#1C7C54"  # Green - good/on-track status
+    warning: str = "#D97706"  # Amber - warning/attention
+    error: str = "#B91C1C"  # Red - critical/alert
 
     # Background colors
-    background: str = "#F4F7FB"   # Overall app background
-    surface: str = "#FFFFFF"      # Cards, panels, modals
+    background: str = "#F4F7FB"  # Overall app background
+    surface: str = "#FFFFFF"  # Cards, panels, modals
     surface_alt: str = "#F9FAFB"  # Alternate surface (subtle differentiation)
 
     # Border and divider colors
-    border: str = "#E2E8F0"       # Light grey borders
-    divider: str = "#D1D5DB"      # Dividers between sections
+    border: str = "#E2E8F0"  # Light grey borders
+    divider: str = "#D1D5DB"  # Dividers between sections
 
     # Text colors
-    text_primary: str = "#111827"   # Main text
+    text_primary: str = "#111827"  # Main text
     text_secondary: str = "#374151"  # Secondary text
-    text_muted: str = "#6B7280"      # Labels, subtitles, hints
-    text_inverse: str = "#FFFFFF"    # Text on dark backgrounds
+    text_muted: str = "#6B7280"  # Labels, subtitles, hints
+    text_inverse: str = "#FFFFFF"  # Text on dark backgrounds
 
     # Chart colors (ordered for multi-series charts)
     chart_palette: tuple = (
@@ -63,16 +62,16 @@ class ColorPalette:
     )
 
     # Status indicator colors (for KPI cards)
-    status_green: str = "#10B981"      # On track
-    status_green_bg: str = "#D1FAE5"   # Green background
-    status_amber: str = "#F59E0B"      # At risk
-    status_amber_bg: str = "#FEF3C7"   # Amber background
-    status_red: str = "#EF4444"        # Critical
-    status_red_bg: str = "#FEE2E2"     # Red background
+    status_green: str = "#10B981"  # On track
+    status_green_bg: str = "#D1FAE5"  # Green background
+    status_amber: str = "#F59E0B"  # At risk
+    status_amber_bg: str = "#FEF3C7"  # Amber background
+    status_red: str = "#EF4444"  # Critical
+    status_red_bg: str = "#FEE2E2"  # Red background
 
     # Sustainability-specific colors
-    eco_green: str = "#15803D"         # Environmental positive
-    eco_green_light: str = "#BBF7D0"   # Light environmental
+    eco_green: str = "#15803D"  # Environmental positive
+    eco_green_light: str = "#BBF7D0"  # Light environmental
 
     def get_status_color(self, status: str) -> str:
         """Return color for a status value."""
@@ -106,7 +105,7 @@ class Typography:
     # Font family stack
     font_family: str = (
         '"Segoe UI", "Roboto", "Source Sans 3", system-ui, '
-        '-apple-system, BlinkMacSystemFont, sans-serif'
+        "-apple-system, BlinkMacSystemFont, sans-serif"
     )
     font_family_arabic: str = '"Segoe UI", "Tahoma", "Arial", sans-serif'
     font_family_mono: str = '"Consolas", "Monaco", "Courier New", monospace'
@@ -199,25 +198,13 @@ class Shadows:
 
     none: str = "none"
     sm: str = "0 1px 2px 0 rgba(0, 0, 0, 0.05)"
-    md: str = (
-        "0 4px 6px -1px rgba(0, 0, 0, 0.1), "
-        "0 2px 4px -1px rgba(0, 0, 0, 0.06)"
-    )
-    lg: str = (
-        "0 10px 15px -3px rgba(0, 0, 0, 0.1), "
-        "0 4px 6px -2px rgba(0, 0, 0, 0.05)"
-    )
-    xl: str = (
-        "0 20px 25px -5px rgba(0, 0, 0, 0.1), "
-        "0 10px 10px -5px rgba(0, 0, 0, 0.04)"
-    )
+    md: str = "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)"
+    lg: str = "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)"
+    xl: str = "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
 
     # Component-specific
     card: str = "0 1px 3px 0 rgba(15, 23, 42, 0.12)"
-    dropdown: str = (
-        "0 10px 15px -3px rgba(0, 0, 0, 0.1), "
-        "0 4px 6px -2px rgba(0, 0, 0, 0.05)"
-    )
+    dropdown: str = "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)"
 
 
 # ---------------------------------------------------------------------
@@ -228,7 +215,7 @@ class ComponentStyles:
     """Pre-defined component style configurations."""
 
     # KPI Card styles
-    kpi_card: Dict = field(
+    kpi_card: dict = field(
         default_factory=lambda: {
             "background": "#FFFFFF",
             "border": "1px solid #E2E8F0",
@@ -240,7 +227,7 @@ class ComponentStyles:
     )
 
     # Section header styles
-    section_header: Dict = field(
+    section_header: dict = field(
         default_factory=lambda: {
             "font_size": "20px",
             "font_weight": "600",
@@ -252,7 +239,7 @@ class ComponentStyles:
     )
 
     # Status badge/pill styles
-    status_badge: Dict = field(
+    status_badge: dict = field(
         default_factory=lambda: {
             "padding": "4px 12px",
             "border_radius": "16px",
@@ -263,7 +250,7 @@ class ComponentStyles:
     )
 
     # Data table styles
-    data_table: Dict = field(
+    data_table: dict = field(
         default_factory=lambda: {
             "header_bg": "#F4F7FB",
             "header_color": "#111827",
@@ -274,7 +261,7 @@ class ComponentStyles:
     )
 
     # Alert/notification box styles
-    alert_box: Dict = field(
+    alert_box: dict = field(
         default_factory=lambda: {
             "padding": "16px",
             "border_radius": "8px",
@@ -283,7 +270,7 @@ class ComponentStyles:
     )
 
     # Button styles
-    primary_button: Dict = field(
+    primary_button: dict = field(
         default_factory=lambda: {
             "background": "#12436D",
             "color": "#FFFFFF",
@@ -294,7 +281,7 @@ class ComponentStyles:
         }
     )
 
-    secondary_button: Dict = field(
+    secondary_button: dict = field(
         default_factory=lambda: {
             "background": "#FFFFFF",
             "color": "#12436D",
@@ -326,12 +313,12 @@ class Theme:
         """Generate CSS for KPI cards."""
         c = self.components.kpi_card
         return f"""
-            background: {c['background']};
-            border: {c['border']};
-            border-radius: {c['border_radius']};
-            padding: {c['padding']};
-            box-shadow: {c['shadow']};
-            min-height: {c['min_height']};
+            background: {c["background"]};
+            border: {c["border"]};
+            border-radius: {c["border_radius"]};
+            padding: {c["padding"]};
+            box-shadow: {c["shadow"]};
+            min-height: {c["min_height"]};
         """
 
     def get_streamlit_custom_css(self) -> str:
@@ -409,8 +396,8 @@ class Theme:
 
             /* BUTTONS -------------------------------------------- */
             .main .stButton > button {{
-                background-color: {self.components.primary_button['background']};
-                color: {self.components.primary_button['color']};
+                background-color: {self.components.primary_button["background"]};
+                color: {self.components.primary_button["color"]};
                 border-radius: {self.border_radius.button}px;
                 font-weight: {self.typography.weight_semibold};
                 transition: all 0.2s ease;
@@ -418,16 +405,16 @@ class Theme:
             }}
 
             .main .stButton > button:hover {{
-                background-color: {self.components.primary_button['hover_background']};
+                background-color: {self.components.primary_button["hover_background"]};
                 box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             }}
 
             /* Secondary buttons (wrap button with class="secondary-button") */
             .main .secondary-button > button {{
-                background-color: {self.components.secondary_button['background']};
-                color: {self.components.secondary_button['color']};
+                background-color: {self.components.secondary_button["background"]};
+                color: {self.components.secondary_button["color"]};
                 border-radius: {self.border_radius.button}px;
-                border: {self.components.secondary_button['border']};
+                border: {self.components.secondary_button["border"]};
                 font-weight: {self.typography.weight_semibold};
             }}
 
@@ -519,7 +506,7 @@ class Theme:
 # ---------------------------------------------------------------------
 #  Global theme accessor
 # ---------------------------------------------------------------------
-_theme_instance: Optional[Theme] = None
+_theme_instance: Theme | None = None
 
 
 @lru_cache(maxsize=1)

@@ -1,10 +1,9 @@
 """Synthetic data generator for tests and demos."""
 
-from typing import List
 import numpy as np
 import pandas as pd
 
-REGIONS: List[str] = [
+REGIONS: list[str] = [
     "Riyadh",
     "Makkah",
     "Madinah",

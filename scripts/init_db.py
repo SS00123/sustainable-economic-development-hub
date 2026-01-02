@@ -24,7 +24,7 @@ from analytics_hub_platform.infrastructure.settings import get_settings
 def main():
     """Initialize the database."""
     settings = get_settings()
-    
+
     print("=" * 60)
     print("Sustainable Economic Development Analytics Hub")
     print("Database Initialization")
@@ -33,7 +33,7 @@ def main():
     print(f"Environment: {settings.environment}")
     print(f"Database: {settings.db_path or 'Default (analytics_hub.db)'}")
     print()
-    
+
     try:
         initialize_database()
         print()

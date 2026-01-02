@@ -283,14 +283,14 @@ def get_dark_css() -> str:
         flex-direction: column;
         backdrop-filter: blur(20px);
       }}
-      
+
       .sidebar-header {{
         padding: 24px 20px 20px;
         background: linear-gradient(145deg, rgba(168, 85, 247, 0.95), rgba(236, 72, 153, 0.8));
         position: relative;
         overflow: hidden;
       }}
-      
+
       .sidebar-header::before {{
         content: "";
         position: absolute;
@@ -301,7 +301,7 @@ def get_dark_css() -> str:
         background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
         border-radius: 50%;
       }}
-      
+
       .sidebar-header::after {{
         content: "";
         position: absolute;
@@ -312,18 +312,18 @@ def get_dark_css() -> str:
         background: radial-gradient(circle, rgba(34, 211, 238, 0.3) 0%, transparent 70%);
         border-radius: 50%;
       }}
-      
+
       .sidebar-logo {{
         position: relative;
         z-index: 2;
         margin-bottom: 8px;
       }}
-      
+
       .logo-icon {{
         font-size: 32px;
         filter: drop-shadow(0 0 12px rgba(255,255,255,0.4));
       }}
-      
+
       .sidebar-brand {{
         font-weight: 800;
         font-size: 16px;
@@ -332,7 +332,7 @@ def get_dark_css() -> str:
         position: relative;
         z-index: 2;
       }}
-      
+
       .sidebar-subtitle {{
         font-size: 11px;
         color: rgba(255,255,255,0.75);
@@ -340,7 +340,7 @@ def get_dark_css() -> str:
         position: relative;
         z-index: 2;
       }}
-      
+
       .sidebar-user {{
         display: flex;
         align-items: center;
@@ -349,7 +349,7 @@ def get_dark_css() -> str:
         background: rgba(255,255,255,0.03);
         border-bottom: 1px solid rgba(255,255,255,0.06);
       }}
-      
+
       .user-avatar {{
         width: 44px;
         height: 44px;
@@ -364,7 +364,7 @@ def get_dark_css() -> str:
         position: relative;
         box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
       }}
-      
+
       .avatar-ring {{
         position: absolute;
         inset: -3px;
@@ -372,28 +372,28 @@ def get_dark_css() -> str:
         border: 2px solid rgba(168, 85, 247, 0.3);
         animation: pulse-ring 2s ease-out infinite;
       }}
-      
+
       @keyframes pulse-ring {{
         0% {{ transform: scale(1); opacity: 1; }}
         100% {{ transform: scale(1.15); opacity: 0; }}
       }}
-      
+
       .user-info {{
         flex: 1;
       }}
-      
+
       .user-title {{
         font-size: 13px;
         font-weight: 600;
         color: rgba(255,255,255,0.95);
       }}
-      
+
       .user-role {{
         font-size: 11px;
         color: rgba(255,255,255,0.5);
         margin-top: 2px;
       }}
-      
+
       .user-status {{
         width: 10px;
         height: 10px;
@@ -401,12 +401,12 @@ def get_dark_css() -> str:
         background: {c.green};
         box-shadow: 0 0 10px {c.green};
       }}
-      
+
       .sidebar-nav {{
         flex: 1;
         padding: 16px 12px;
       }}
-      
+
       .nav-label {{
         font-size: 10px;
         font-weight: 700;
@@ -415,7 +415,7 @@ def get_dark_css() -> str:
         padding: 0 12px;
         margin-bottom: 12px;
       }}
-      
+
       .nav-link {{
         display: flex;
         align-items: center;
@@ -432,7 +432,7 @@ def get_dark_css() -> str:
         position: relative;
         overflow: hidden;
       }}
-      
+
       .nav-link::before {{
         content: "";
         position: absolute;
@@ -443,30 +443,30 @@ def get_dark_css() -> str:
         background: linear-gradient(90deg, rgba(168, 85, 247, 0.3), transparent);
         transition: width 180ms ease;
       }}
-      
+
       .nav-link:hover {{
         background: rgba(168, 85, 247, 0.12);
         border-color: rgba(168, 85, 247, 0.25);
         color: rgba(255,255,255,0.95);
         transform: translateX(4px);
       }}
-      
+
       .nav-link:hover::before {{
         width: 100%;
       }}
-      
+
       .nav-link.active {{
         background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(34, 211, 238, 0.1));
         border-color: rgba(168, 85, 247, 0.35);
         color: rgba(255,255,255,0.98);
         box-shadow: 0 4px 20px rgba(168, 85, 247, 0.2);
       }}
-      
+
       .nav-link.active .nav-dot {{
         background: {c.cyan};
         box-shadow: 0 0 15px {c.cyan};
       }}
-      
+
       .nav-dot {{
         width: 8px;
         height: 8px;
@@ -475,26 +475,26 @@ def get_dark_css() -> str:
         box-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
         flex-shrink: 0;
       }}
-      
+
       .nav-icon {{
         font-size: 16px;
         width: 20px;
         text-align: center;
       }}
-      
+
       .nav-text {{
         flex: 1;
         position: relative;
         z-index: 1;
       }}
-      
+
       .sidebar-footer {{
         padding: 12px;
         border-top: 1px solid rgba(255,255,255,0.06);
         display: flex;
         gap: 8px;
       }}
-      
+
       .footer-item {{
         flex: 1;
         display: flex;
@@ -509,12 +509,12 @@ def get_dark_css() -> str:
         cursor: pointer;
         transition: all 150ms ease;
       }}
-      
+
       .footer-item:hover {{
         background: rgba(255,255,255,0.08);
         color: rgba(255,255,255,0.85);
       }}
-      
+
       /* Section anchors for navigation */
       [id^="section-"] {{
         scroll-margin-top: 20px;
@@ -687,18 +687,18 @@ def get_dark_css() -> str:
       .stTabs {{
         background: transparent;
       }}
-      
+
       .stTabs [data-baseweb="tab-list"] {{
         background: linear-gradient(135deg, rgba(27, 31, 54, 0.95), rgba(15, 17, 34, 0.95));
         border: 1px solid rgba(168, 85, 247, 0.2);
         border-radius: 16px;
         padding: 6px 8px;
         gap: 6px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
                     inset 0 1px 0 rgba(255, 255, 255, 0.05);
         justify-content: flex-start;
       }}
-      
+
       .stTabs [data-baseweb="tab"] {{
         background: transparent;
         color: rgba(255, 255, 255, 0.6);
@@ -712,13 +712,13 @@ def get_dark_css() -> str:
         position: relative;
         min-height: 44px;
       }}
-      
+
       .stTabs [data-baseweb="tab"]:hover {{
         background: rgba(168, 85, 247, 0.12);
         color: rgba(255, 255, 255, 0.9);
         border-color: rgba(168, 85, 247, 0.2);
       }}
-      
+
       .stTabs [aria-selected="true"] {{
         background: linear-gradient(135deg, rgba(168, 85, 247, 0.35), rgba(34, 211, 238, 0.2)) !important;
         color: rgba(255, 255, 255, 0.98) !important;
@@ -726,7 +726,7 @@ def get_dark_css() -> str:
         box-shadow: 0 4px 20px rgba(168, 85, 247, 0.25),
                     inset 0 1px 0 rgba(255, 255, 255, 0.1);
       }}
-      
+
       .stTabs [aria-selected="true"]::before {{
         content: "";
         position: absolute;
@@ -738,11 +738,11 @@ def get_dark_css() -> str:
         background: linear-gradient(90deg, #a855f7, #22d3ee);
         border-radius: 2px;
       }}
-      
+
       .stTabs [data-baseweb="tab-highlight"] {{
         display: none !important;
       }}
-      
+
       .stTabs [data-baseweb="tab-border"] {{
         display: none !important;
       }}
@@ -772,27 +772,27 @@ def get_dark_css() -> str:
         transform: translateY(-1px);
         box-shadow: 0 0 30px rgba(168, 85, 247, 0.50);
       }}
-      
+
       /* ===== ACCESSIBILITY ENHANCEMENTS (WCAG 2.1 AA) ===== */
-      
+
       /* Focus Indicators */
       *:focus {{
         outline: 3px solid #2563eb !important;
         outline-offset: 2px !important;
       }}
-      
+
       *:focus:not(:focus-visible) {{
         outline: none !important;
       }}
-      
+
       *:focus-visible {{
         outline: 3px solid #2563eb !important;
         outline-offset: 2px !important;
         box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.25) !important;
       }}
-      
+
       /* Minimum touch/click target size */
-      button, 
+      button,
       [role="button"],
       input[type="checkbox"],
       input[type="radio"],
@@ -801,7 +801,7 @@ def get_dark_css() -> str:
         min-height: 44px !important;
         min-width: 44px !important;
       }}
-      
+
       /* Skip to main content link */
       .skip-link {{
         position: absolute;
@@ -815,11 +815,11 @@ def get_dark_css() -> str:
         text-decoration: none;
         border-radius: 0 0 8px 0;
       }}
-      
+
       .skip-link:focus {{
         top: 0;
       }}
-      
+
       /* Screen reader only content */
       .sr-only {{
         position: absolute !important;
@@ -832,7 +832,7 @@ def get_dark_css() -> str:
         white-space: nowrap !important;
         border: 0 !important;
       }}
-      
+
       /* Reduced motion support */
       @media (prefers-reduced-motion: reduce) {{
         *, *::before, *::after {{
@@ -840,35 +840,35 @@ def get_dark_css() -> str:
           animation-iteration-count: 1 !important;
           transition-duration: 0.01ms !important;
         }}
-        
+
         .dark-card:hover {{
           transform: none !important;
         }}
       }}
-      
+
       /* High contrast mode support */
       @media (prefers-contrast: high) {{
         .dark-card {{
           border-width: 2px !important;
           border-color: rgba(255, 255, 255, 0.5) !important;
         }}
-        
+
         .stButton > button {{
           border: 2px solid white !important;
         }}
       }}
-      
+
       /* Ensure links have underline (not just color) */
       a {{
         text-decoration: underline;
         text-underline-offset: 3px;
       }}
-      
+
       /* Error states with non-color indicators */
       .error-message::before {{
         content: "⚠️ ";
       }}
-      
+
       .success-message::before {{
         content: "✓ ";
       }}

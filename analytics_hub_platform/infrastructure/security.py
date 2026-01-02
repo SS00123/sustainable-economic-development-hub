@@ -13,15 +13,13 @@ Extension Points:
 - RBAC: Extend permission checks for fine-grained access control
 """
 
-from typing import Optional, Dict, Any, List
+import logging
 from datetime import datetime, timedelta
 from enum import Enum
 from functools import wraps
-import logging
 
-from analytics_hub_platform.infrastructure.settings import get_settings
 from analytics_hub_platform.domain.models import User, UserRole
-
+from analytics_hub_platform.infrastructure.settings import get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -30,15 +28,16 @@ logger = logging.getLogger(__name__)
 # RBAC MANAGER
 # ============================================
 
+
 class RBACManager:
     """
     Role-Based Access Control Manager.
-    
+
     Provides centralized permission checking for the application.
     For PoC, uses simple role-based rules. In production, this would
     integrate with an identity provider.
     """
-    
+
     # Permission mappings by role
     ROLE_PERMISSIONS = {
         UserRole.MINISTER: [
@@ -83,25 +82,25 @@ class RBACManager:
             "view_executive_dashboard",
         ],
     }
-    
+
     def __init__(self):
         """Initialize RBAC manager."""
         self._settings = get_settings()
-    
+
     def has_permission(self, user: User, permission: str) -> bool:
         """Check if user has a specific permission."""
         if user is None:
             return False
-        
+
         role_permissions = self.ROLE_PERMISSIONS.get(user.role, [])
         return permission in role_permissions
-    
-    def get_permissions(self, user: User) -> List[str]:
+
+    def get_permissions(self, user: User) -> list[str]:
         """Get all permissions for a user."""
         if user is None:
             return []
         return self.ROLE_PERMISSIONS.get(user.role, [])
-    
+
     def check_view_access(self, user: User, view_name: str) -> bool:
         """Check if user can access a specific view."""
         permission = f"view_{view_name}_dashboard"
@@ -114,9 +113,10 @@ class RBACManager:
 # RATE LIMITING
 # ============================================
 
+
 class RateLimitExceeded(Exception):
     """Exception raised when rate limit is exceeded."""
-    
+
     def __init__(self, limit: int, window_seconds: int, retry_after: int):
         self.limit = limit
         self.window_seconds = window_seconds
@@ -130,76 +130,73 @@ class RateLimitExceeded(Exception):
 class RateLimiter:
     """
     Token bucket rate limiter.
-    
+
     Tracks request counts per key within a sliding window.
     Designed to be simple for local PoC; production should use Redis.
     """
-    
+
     def __init__(self, max_requests: int = 10, window_seconds: int = 60):
         """
         Initialize rate limiter.
-        
+
         Args:
             max_requests: Maximum requests allowed per window
             window_seconds: Window size in seconds
         """
         self._max_requests = max_requests
         self._window_seconds = window_seconds
-        self._requests: Dict[str, List[datetime]] = {}
-    
+        self._requests: dict[str, list[datetime]] = {}
+
     def _cleanup_old_requests(self, key: str) -> None:
         """Remove requests older than the window."""
         if key not in self._requests:
             return
-        
+
         cutoff = datetime.now() - timedelta(seconds=self._window_seconds)
-        self._requests[key] = [
-            ts for ts in self._requests[key]
-            if ts > cutoff
-        ]
-    
+        self._requests[key] = [ts for ts in self._requests[key] if ts > cutoff]
+
     def check(self, key: str) -> bool:
         """
         Check if request is allowed (does not consume quota).
-        
+
         Args:
             key: Rate limit key (e.g., user_id, IP address)
-            
+
         Returns:
             True if request would be allowed
         """
         self._cleanup_old_requests(key)
         current_count = len(self._requests.get(key, []))
         return current_count < self._max_requests
-    
+
     def acquire(self, key: str) -> bool:
         """
         Try to acquire a request slot.
-        
+
         Args:
             key: Rate limit key
-            
+
         Returns:
             True if acquired, False if rate limited
         """
         self._cleanup_old_requests(key)
-        
+
         if key not in self._requests:
             self._requests[key] = []
-        
+
         if len(self._requests[key]) >= self._max_requests:
             return False
-        
+
         self._requests[key].append(datetime.now())
         return True
-    
+
     def acquire_or_raise(self, key: str) -> None:
         """
         Acquire a request slot or raise exception.
-        
+
         Args:
             key: Rate limit key
-            
+
         Raises:
             RateLimitExceeded: If rate limit exceeded
         """
@@ -210,21 +207,21 @@ class RateLimiter:
                 (oldest + timedelta(seconds=self._window_seconds) - datetime.now()).total_seconds()
             )
             retry_after = max(1, retry_after)
-            
+
             logger.warning(f"Rate limit exceeded for key: {key}")
             raise RateLimitExceeded(
                 limit=self._max_requests,
                 window_seconds=self._window_seconds,
                 retry_after=retry_after,
             )
-    
+
     def get_remaining(self, key: str) -> int:
         """
         Get remaining requests for a key.
-        
+
         Args:
             key: Rate limit key
-            
+
         Returns:
             Number of remaining requests in current window
         """
@@ -234,24 +231,24 @@ class RateLimiter:
 
 
 # Global rate limiters
-_export_limiter: Optional[RateLimiter] = None
-_api_limiter: Optional[RateLimiter] = None
+_export_limiter: RateLimiter | None = None
+_api_limiter: RateLimiter | None = None
 
 
 def get_rate_limiter(limiter_type: str = "export") -> RateLimiter:
     """
     Get a rate limiter instance.
-    
+
     Args:
         limiter_type: "export" or "api"
-        
+
     Returns:
         RateLimiter instance
     """
     global _export_limiter, _api_limiter
-    
+
     settings = get_settings()
-    
+
     if limiter_type == "export":
         if _export_limiter is None:
             _export_limiter = RateLimiter(
@@ -271,31 +268,33 @@ def get_rate_limiter(limiter_type: str = "export") -> RateLimiter:
 def rate_limited(limiter_type: str = "api", key_func=None):
     """
     Decorator for rate-limited functions.
-    
+
     Args:
         limiter_type: "export" or "api"
         key_func: Optional function to extract rate limit key from args
-        
+
     Example:
         @rate_limited(limiter_type="export", key_func=lambda user_id, **kw: user_id)
         def export_pdf(user_id: str, ...):
             ...
     """
+
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
             limiter = get_rate_limiter(limiter_type)
-            
+
             # Determine rate limit key
             if key_func:
                 key = key_func(*args, **kwargs)
             else:
                 key = "global"
-            
+
             limiter.acquire_or_raise(key)
             return func(*args, **kwargs)
-        
+
         return wrapper
+
     return decorator
 
 
@@ -303,23 +302,25 @@ def rate_limited(limiter_type: str = "api", key_func=None):
 # SSO INTEGRATION STUBS
 # ============================================
 
+
 class SSOProvider(str, Enum):
     """Supported SSO providers (for future implementation)."""
+
     AZURE_AD = "azure_ad"
     OKTA = "okta"
     KEYCLOAK = "keycloak"
 
 
 def authenticate_user(
-    token: Optional[str] = None,
-    username: Optional[str] = None,
-    password: Optional[str] = None,
-) -> Optional[User]:
+    token: str | None = None,
+    username: str | None = None,
+    password: str | None = None,
+) -> User | None:
     """
     Authenticate a user.
-    
+
     Extension Point: Implement actual SSO authentication here.
-    
+
     For PoC, this returns a mock user based on the provided username.
     In production, this would:
     1. Validate JWT token from SSO provider
@@ -327,24 +328,24 @@ def authenticate_user(
     3. Map SSO groups to platform roles
     4. Create or update user in local database
     5. Return User model
-    
+
     Args:
         token: JWT or OAuth token from SSO provider
         username: Username for basic auth (PoC only)
         password: Password for basic auth (PoC only)
-        
+
     Returns:
         User model if authenticated, None otherwise
     """
     settings = get_settings()
-    
+
     # In production: Validate token with SSO provider
     # Example for Azure AD:
     # if settings.sso_enabled and settings.sso_provider == "azure_ad":
     #     claims = validate_azure_ad_token(token, settings.sso_tenant_id, settings.sso_client_id)
     #     user = map_claims_to_user(claims)
     #     return user
-    
+
     # PoC: Return mock user based on username
     mock_users = {
         "minister": User(
@@ -376,10 +377,10 @@ def authenticate_user(
             role=UserRole.ADMIN,
         ),
     }
-    
+
     if username and username.lower() in mock_users:
         return mock_users[username.lower()]
-    
+
     # Default to viewer
     return User(
         id="user-default",
@@ -390,15 +391,15 @@ def authenticate_user(
     )
 
 
-def get_user_from_token(token: str) -> Optional[User]:
+def get_user_from_token(token: str) -> User | None:
     """
     Extract user from JWT token.
-    
+
     Extension Point: Implement JWT validation here.
-    
+
     Args:
         token: JWT token string
-        
+
     Returns:
         User model if token valid, None otherwise
     """
@@ -407,7 +408,7 @@ def get_user_from_token(token: str) -> Optional[User]:
     # 2. Check expiration
     # 3. Extract claims
     # 4. Return User model
-    
+
     # PoC: Always return None (not implemented)
     logger.debug("JWT token validation not implemented in PoC")
     return None
@@ -419,12 +420,35 @@ def get_user_from_token(token: str) -> Optional[User]:
 
 # Permission definitions
 PERMISSIONS = {
-    "view_executive_dashboard": [UserRole.MINISTER, UserRole.EXECUTIVE, UserRole.DIRECTOR, UserRole.ANALYST, UserRole.VIEWER],
-    "view_director_dashboard": [UserRole.MINISTER, UserRole.EXECUTIVE, UserRole.DIRECTOR, UserRole.ANALYST],
+    "view_executive_dashboard": [
+        UserRole.MINISTER,
+        UserRole.EXECUTIVE,
+        UserRole.DIRECTOR,
+        UserRole.ANALYST,
+        UserRole.VIEWER,
+    ],
+    "view_director_dashboard": [
+        UserRole.MINISTER,
+        UserRole.EXECUTIVE,
+        UserRole.DIRECTOR,
+        UserRole.ANALYST,
+    ],
     "view_analyst_dashboard": [UserRole.DIRECTOR, UserRole.ANALYST, UserRole.ADMIN],
     "view_admin_console": [UserRole.ADMIN],
-    "export_pdf": [UserRole.MINISTER, UserRole.EXECUTIVE, UserRole.DIRECTOR, UserRole.ANALYST, UserRole.ADMIN],
-    "export_ppt": [UserRole.MINISTER, UserRole.EXECUTIVE, UserRole.DIRECTOR, UserRole.ANALYST, UserRole.ADMIN],
+    "export_pdf": [
+        UserRole.MINISTER,
+        UserRole.EXECUTIVE,
+        UserRole.DIRECTOR,
+        UserRole.ANALYST,
+        UserRole.ADMIN,
+    ],
+    "export_ppt": [
+        UserRole.MINISTER,
+        UserRole.EXECUTIVE,
+        UserRole.DIRECTOR,
+        UserRole.ANALYST,
+        UserRole.ADMIN,
+    ],
     "export_excel": [UserRole.DIRECTOR, UserRole.ANALYST, UserRole.ADMIN],
     "edit_kpi_config": [UserRole.ADMIN],
     "manage_users": [UserRole.ADMIN],
@@ -437,17 +461,17 @@ PERMISSIONS = {
 def has_permission(user: User, permission: str) -> bool:
     """
     Check if user has a specific permission.
-    
+
     Args:
         user: User model
         permission: Permission name
-        
+
     Returns:
         True if user has permission
     """
     if not user.is_active:
         return False
-    
+
     allowed_roles = PERMISSIONS.get(permission, [])
     return user.role in allowed_roles
 
@@ -455,15 +479,16 @@ def has_permission(user: User, permission: str) -> bool:
 def require_permission(permission: str):
     """
     Decorator to require a permission for a function.
-    
+
     Args:
         permission: Required permission name
-        
+
     Example:
         @require_permission("export_pdf")
         def generate_report(user: User, ...):
             ...
     """
+
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -471,30 +496,29 @@ def require_permission(permission: str):
             user = kwargs.get("user")
             if user is None:
                 raise PermissionError("User not provided")
-            
+
             if not has_permission(user, permission):
-                raise PermissionError(
-                    f"User {user.email} does not have permission: {permission}"
-                )
-            
+                raise PermissionError(f"User {user.email} does not have permission: {permission}")
+
             return func(*args, **kwargs)
-        
+
         return wrapper
+
     return decorator
 
 
-def get_allowed_views(user: User) -> List[str]:
+def get_allowed_views(user: User) -> list[str]:
     """
     Get list of views the user can access.
-    
+
     Args:
         user: User model
-        
+
     Returns:
         List of view names
     """
     views = []
-    
+
     if has_permission(user, "view_executive_dashboard"):
         views.append("executive")
     if has_permission(user, "view_director_dashboard"):
@@ -503,5 +527,5 @@ def get_allowed_views(user: User) -> List[str]:
         views.append("analyst")
     if has_permission(user, "view_admin_console"):
         views.append("admin")
-    
+
     return views

@@ -8,15 +8,15 @@ Matches the provided UI reference with purple/cyan/pink accents.
 """
 
 from __future__ import annotations
+
 from datetime import date, datetime
-from typing import Optional, Any, Union
 
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from analytics_hub_platform.ui.dark_theme import get_dark_theme, get_dark_css
+from analytics_hub_platform.ui.dark_theme import get_dark_css, get_dark_theme
 
 
 def inject_dark_theme() -> None:
@@ -33,7 +33,7 @@ def render_sidebar(active: str = "Dashboard") -> None:
     """
     Render the left sidebar with gradient header, avatar, and page navigation.
     Uses Streamlit's native page_link for working navigation.
-    
+
     Args:
         active: The currently active page name
     """
@@ -48,7 +48,8 @@ def render_sidebar(active: str = "Dashboard") -> None:
     ]
 
     # Inject sidebar styling
-    st.markdown("""
+    st.markdown(
+        """
     <style>
       /* Sidebar container styling */
       .sidebar-header-card {
@@ -84,7 +85,7 @@ def render_sidebar(active: str = "Dashboard") -> None:
         color: rgba(255,255,255,0.75);
         margin-top: 2px;
       }
-      
+
       /* User card */
       .user-card {
         background: rgba(30, 35, 64, 0.9);
@@ -127,7 +128,7 @@ def render_sidebar(active: str = "Dashboard") -> None:
         background: #10b981;
         box-shadow: 0 0 8px #10b981;
       }
-      
+
       /* Navigation styling */
       .nav-section-label {
         font-size: 10px;
@@ -137,7 +138,7 @@ def render_sidebar(active: str = "Dashboard") -> None:
         padding: 8px 4px;
         margin-bottom: 8px;
       }
-      
+
       /* Style Streamlit page links */
       [data-testid="stPageLink"] {
         background: transparent !important;
@@ -158,7 +159,7 @@ def render_sidebar(active: str = "Dashboard") -> None:
       [data-testid="stPageLink"]:hover p {
         color: rgba(255,255,255,0.95) !important;
       }
-      
+
       /* Active page styling */
       .nav-active-indicator {
         background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(34, 211, 238, 0.15)) !important;
@@ -172,19 +173,25 @@ def render_sidebar(active: str = "Dashboard") -> None:
         font-weight: 600 !important;
       }
     </style>
-    """, unsafe_allow_html=True)
-    
+    """,
+        unsafe_allow_html=True,
+    )
+
     # Header card
-    st.markdown("""
+    st.markdown(
+        """
     <div class="sidebar-header-card">
         <div class="logo-icon">🌱</div>
         <div class="sidebar-brand">Sustainable Analytics</div>
         <div class="sidebar-subtitle">Ministry Dashboard</div>
     </div>
-    """, unsafe_allow_html=True)
-    
+    """,
+        unsafe_allow_html=True,
+    )
+
     # User card
-    st.markdown("""
+    st.markdown(
+        """
     <div class="user-card">
         <div class="user-avatar">ME</div>
         <div class="user-info">
@@ -193,16 +200,19 @@ def render_sidebar(active: str = "Dashboard") -> None:
         </div>
         <div class="user-status"></div>
     </div>
-    """, unsafe_allow_html=True)
-    
+    """,
+        unsafe_allow_html=True,
+    )
+
     # Navigation section
     st.markdown('<div class="nav-section-label">MAIN MENU</div>', unsafe_allow_html=True)
-    
+
     # Render navigation links using Streamlit's page_link
     for name, icon, page_path in items:
         if name == active:
             # Show active page with special styling (non-clickable)
-            st.markdown(f"""
+            st.markdown(
+                f"""
             <div class="nav-active-indicator">
                 <p style="margin: 0; display: flex; align-items: center; gap: 10px;">
                     <span style="width: 8px; height: 8px; border-radius: 50%; background: #22d3ee; box-shadow: 0 0 12px #22d3ee;"></span>
@@ -210,7 +220,9 @@ def render_sidebar(active: str = "Dashboard") -> None:
                     <span>{name}</span>
                 </p>
             </div>
-            """, unsafe_allow_html=True)
+            """,
+                unsafe_allow_html=True,
+            )
         else:
             # Clickable link to other pages
             st.page_link(page_path, label=f"● {icon} {name}", use_container_width=True)
@@ -218,13 +230,13 @@ def render_sidebar(active: str = "Dashboard") -> None:
 
 def render_header(
     title: str = "Overview",
-    period_text: Optional[str] = None,
+    period_text: str | None = None,
     show_search: bool = True,
     show_icons: bool = True,
 ) -> None:
     """
     Render the top header bar with title, date range, search, and icons.
-    
+
     Args:
         title: Page title
         period_text: Optional custom period text
@@ -285,12 +297,12 @@ def render_header(
 
 def card_open(
     title: str,
-    subtitle: Optional[str] = None,
-    right_html: Optional[str] = None,
+    subtitle: str | None = None,
+    right_html: str | None = None,
 ) -> None:
     """
     Open a styled dark card wrapper.
-    
+
     Args:
         title: Card title
         subtitle: Optional subtitle text
@@ -320,15 +332,15 @@ def card_close() -> None:
 
 def render_kpi_card(
     title: str,
-    value: Union[str, float, int],
-    delta: Optional[float] = None,
+    value: str | float | int,
+    delta: float | None = None,
     unit: str = "",
     subtitle: str = "",
     height: int = 130,
 ) -> None:
     """
     Render a compact KPI metric card in dark theme.
-    
+
     Args:
         title: KPI label/name
         value: Current value
@@ -337,7 +349,7 @@ def render_kpi_card(
         subtitle: Additional context text
         height: Card height in pixels
     """
-    theme = get_dark_theme()
+    get_dark_theme()
 
     # Format value
     if isinstance(value, float):
@@ -381,7 +393,7 @@ def render_mini_metric(
 ) -> None:
     """
     Render a mini metric card with a ring indicator (like New Green Jobs, FDI).
-    
+
     Args:
         title: Metric title
         value: Display value (e.g., "62.5K")
@@ -389,7 +401,7 @@ def render_mini_metric(
         ring_percent: Progress ring percentage (0-100)
         subtitle: Subtitle text
     """
-    theme = get_dark_theme()
+    get_dark_theme()
     delta_class = "positive" if delta >= 0 else "negative"
     arrow = "▲" if delta >= 0 else "▼"
 
@@ -413,9 +425,7 @@ def render_mini_metric(
                     values=[ring, 100 - ring],
                     hole=0.78,
                     sort=False,
-                    marker=dict(
-                        colors=["rgba(168, 85, 247, 0.95)", "rgba(255,255,255,0.08)"]
-                    ),
+                    marker={"colors": ["rgba(168, 85, 247, 0.95)", "rgba(255,255,255,0.08)"]},
                     textinfo="none",
                     hoverinfo="skip",
                 )
@@ -423,18 +433,18 @@ def render_mini_metric(
         )
         fig.update_layout(
             height=100,
-            margin=dict(l=0, r=0, t=0, b=0),
+            margin={"l": 0, "r": 0, "t": 0, "b": 0},
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
             showlegend=False,
             annotations=[
-                dict(
-                    text=f"{ring:.0f}%",
-                    x=0.5,
-                    y=0.5,
-                    showarrow=False,
-                    font=dict(color="rgba(255,255,255,0.82)", size=12),
-                )
+                {
+                    "text": f"{ring:.0f}%",
+                    "x": 0.5,
+                    "y": 0.5,
+                    "showarrow": False,
+                    "font": {"color": "rgba(255,255,255,0.82)", "size": 12},
+                }
             ],
         )
         st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
@@ -450,50 +460,50 @@ def render_mini_metric(
 def apply_dark_chart_layout(fig: go.Figure, height: int = 300) -> go.Figure:
     """
     Apply dark theme styling to a Plotly figure.
-    
+
     Args:
         fig: Plotly figure to style
         height: Chart height in pixels
-        
+
     Returns:
         Styled Plotly figure
     """
-    theme = get_dark_theme()
+    get_dark_theme()
     fig.update_layout(
         height=height,
-        margin=dict(l=18, r=16, t=22, b=18),
+        margin={"l": 18, "r": 16, "t": 22, "b": 18},
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="rgba(255,255,255,0.82)", size=12),
-        legend=dict(
-            orientation="h",
-            yanchor="top",
-            y=1.12,
-            xanchor="center",
-            x=0.5,
-            bgcolor="rgba(17,22,40,0.85)",
-            bordercolor="rgba(255,255,255,0.08)",
-            borderwidth=1,
-            font=dict(color="rgba(255,255,255,0.78)", size=11),
-        ),
-        xaxis=dict(
-            showgrid=True,
-            gridcolor="rgba(255,255,255,0.05)",
-            zeroline=False,
-            tickfont=dict(color="rgba(255,255,255,0.60)", size=11),
-            title=dict(font=dict(color="rgba(255,255,255,0.70)", size=12)),
-            linecolor="rgba(255,255,255,0.10)",
-            mirror=False,
-        ),
-        yaxis=dict(
-            showgrid=True,
-            gridcolor="rgba(255,255,255,0.07)",
-            zeroline=False,
-            tickfont=dict(color="rgba(255,255,255,0.60)", size=11),
-            title=dict(font=dict(color="rgba(255,255,255,0.70)", size=12)),
-            linecolor="rgba(255,255,255,0.10)",
-            mirror=False,
-        ),
+        font={"color": "rgba(255,255,255,0.82)", "size": 12},
+        legend={
+            "orientation": "h",
+            "yanchor": "top",
+            "y": 1.12,
+            "xanchor": "center",
+            "x": 0.5,
+            "bgcolor": "rgba(17,22,40,0.85)",
+            "bordercolor": "rgba(255,255,255,0.08)",
+            "borderwidth": 1,
+            "font": {"color": "rgba(255,255,255,0.78)", "size": 11},
+        },
+        xaxis={
+            "showgrid": True,
+            "gridcolor": "rgba(255,255,255,0.05)",
+            "zeroline": False,
+            "tickfont": {"color": "rgba(255,255,255,0.60)", "size": 11},
+            "title": {"font": {"color": "rgba(255,255,255,0.70)", "size": 12}},
+            "linecolor": "rgba(255,255,255,0.10)",
+            "mirror": False,
+        },
+        yaxis={
+            "showgrid": True,
+            "gridcolor": "rgba(255,255,255,0.07)",
+            "zeroline": False,
+            "tickfont": {"color": "rgba(255,255,255,0.60)", "size": 11},
+            "title": {"font": {"color": "rgba(255,255,255,0.70)", "size": 12}},
+            "linecolor": "rgba(255,255,255,0.10)",
+            "mirror": False,
+        },
     )
     return fig
 
@@ -509,7 +519,7 @@ def render_line_chart_card(
 ) -> None:
     """
     Render a line chart inside a dark card with glowing effect.
-    
+
     Args:
         df: DataFrame with data
         x_col: Column name for x-axis
@@ -520,7 +530,9 @@ def render_line_chart_card(
         color: Line color
     """
     latest = float(df[y_col].iloc[-1]) if len(df) > 0 else 0
-    prev = float(df[y_col].iloc[-8]) if len(df) > 8 else float(df[y_col].iloc[0]) if len(df) > 0 else 0
+    prev = (
+        float(df[y_col].iloc[-8]) if len(df) > 8 else float(df[y_col].iloc[0]) if len(df) > 0 else 0
+    )
     delta = ((latest - prev) / max(prev, 1e-9)) * 100 if prev != 0 else 0
 
     delta_class = "positive" if delta >= 0 else "negative"
@@ -538,7 +550,13 @@ def render_line_chart_card(
                 x=df[x_col],
                 y=df[y_col],
                 mode="lines",
-                line=dict(color=color.replace(")", ", 0.22)").replace("rgb", "rgba").replace("#a855f7", "rgba(168,85,247,0.22)"), width=12, shape="spline"),
+                line={
+                    "color": color.replace(")", ", 0.22)")
+                    .replace("rgb", "rgba")
+                    .replace("#a855f7", "rgba(168,85,247,0.22)"),
+                    "width": 12,
+                    "shape": "spline",
+                },
                 hoverinfo="skip",
             )
         )
@@ -549,8 +567,8 @@ def render_line_chart_card(
             x=df[x_col],
             y=df[y_col],
             mode="lines+markers",
-            line=dict(color=color, width=3, shape="spline"),
-            marker=dict(size=6, color=color),
+            line={"color": color, "width": 3, "shape": "spline"},
+            marker={"size": 6, "color": color},
             hovertemplate="<b>%{x}</b><br>%{y:.1f}<extra></extra>",
         )
     )
@@ -566,7 +584,7 @@ def render_line_chart_card(
             arrowcolor="rgba(255,255,255,0.35)",
             bgcolor="#7c3aed",
             bordercolor="rgba(255,255,255,0.20)",
-            font=dict(color="white", size=11),
+            font={"color": "white", "size": 11},
             borderpad=6,
             ax=-30,
             ay=-35,
@@ -584,11 +602,11 @@ def render_horizontal_bar_card(
     value_cols: list[str],
     title: str,
     subtitle: str = "",
-    colors: Optional[list[str]] = None,
+    colors: list[str] | None = None,
 ) -> None:
     """
     Render horizontal stacked bars inside a dark card.
-    
+
     Args:
         df: DataFrame with data
         y_col: Column name for y-axis labels
@@ -610,10 +628,10 @@ def render_horizontal_bar_card(
                 y=df[y_col],
                 x=df[col],
                 orientation="h",
-                marker=dict(
-                    color=colors[i % len(colors)],
-                    line=dict(color="rgba(255,255,255,0.10)", width=1),
-                ),
+                marker={
+                    "color": colors[i % len(colors)],
+                    "line": {"color": "rgba(255,255,255,0.10)", "width": 1},
+                },
                 name=col.replace("_", " ").title(),
                 hovertemplate="%{y}<br><b>%{x:.0f}</b><extra></extra>",
             )
@@ -621,7 +639,9 @@ def render_horizontal_bar_card(
 
     fig.update_layout(barmode="overlay")
     fig.update_xaxes(showgrid=False, zeroline=False, range=[0, 100], showticklabels=False)
-    fig.update_yaxes(showgrid=False, zeroline=False, tickfont=dict(color="rgba(255,255,255,0.78)", size=12))
+    fig.update_yaxes(
+        showgrid=False, zeroline=False, tickfont={"color": "rgba(255,255,255,0.78)", "size": 12}
+    )
 
     apply_dark_chart_layout(fig, height=200)
     st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
@@ -635,12 +655,12 @@ def render_donut_chart_card(
     values_col: str,
     title: str,
     subtitle: str = "",
-    colors: Optional[list[str]] = None,
+    colors: list[str] | None = None,
     center_text: str = "",
 ) -> None:
     """
     Render a donut chart inside a dark card with legend below.
-    
+
     Args:
         df: DataFrame with data
         labels_col: Column name for labels
@@ -663,7 +683,7 @@ def render_donut_chart_card(
                 values=df[values_col],
                 hole=0.72,
                 sort=False,
-                marker=dict(colors=colors, line=dict(color="rgba(0,0,0,0)", width=0)),
+                marker={"colors": colors, "line": {"color": "rgba(0,0,0,0)", "width": 0}},
                 textinfo="none",
                 hovertemplate="%{label}<br><b>%{value}%</b><extra></extra>",
             )
@@ -673,13 +693,13 @@ def render_donut_chart_card(
     annotations = []
     if center_text:
         annotations.append(
-            dict(
-                text=center_text,
-                x=0.5,
-                y=0.5,
-                font=dict(size=12, color="rgba(255,255,255,0.78)"),
-                showarrow=False,
-            )
+            {
+                "text": center_text,
+                "x": 0.5,
+                "y": 0.5,
+                "font": {"size": 12, "color": "rgba(255,255,255,0.78)"},
+                "showarrow": False,
+            }
         )
 
     fig.update_layout(annotations=annotations)
@@ -713,12 +733,12 @@ def render_grouped_bar_card(
     y_cols: list[str],
     title: str,
     subtitle: str = "",
-    colors: Optional[list[str]] = None,
-    labels: Optional[dict[str, str]] = None,
+    colors: list[str] | None = None,
+    labels: dict[str, str] | None = None,
 ) -> None:
     """
     Render a grouped bar chart inside a dark card.
-    
+
     Args:
         df: DataFrame with data
         x_col: Column name for x-axis
@@ -750,17 +770,17 @@ def render_grouped_bar_card(
 
     fig.update_layout(
         barmode="group",
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="center",
-            x=0.5,
-            font=dict(color="rgba(255,255,255,0.70)", size=11),
-        ),
+        legend={
+            "orientation": "h",
+            "yanchor": "bottom",
+            "y": 1.02,
+            "xanchor": "center",
+            "x": 0.5,
+            "font": {"color": "rgba(255,255,255,0.70)", "size": 11},
+        },
         showlegend=True,
     )
-    fig.update_xaxes(tickfont=dict(color="rgba(255,255,255,0.55)", size=10))
+    fig.update_xaxes(tickfont={"color": "rgba(255,255,255,0.55)", "size": 10})
 
     apply_dark_chart_layout(fig, height=280)
     st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
@@ -776,7 +796,7 @@ def render_grouped_bar_card(
 def render_section_title(title: str, subtitle: str = "") -> None:
     """
     Render a section title with optional subtitle.
-    
+
     Args:
         title: Section title
         subtitle: Optional subtitle
@@ -789,7 +809,7 @@ def render_section_title(title: str, subtitle: str = "") -> None:
 def render_status_overview(green: int, amber: int, red: int) -> None:
     """
     Render a compact status overview with pills.
-    
+
     Args:
         green: Count of green status items
         amber: Count of amber status items
@@ -811,10 +831,10 @@ def render_advanced_analytics_sidebar(active: str = "forecast") -> str:
     """
     Render a modern vertical sidebar for advanced analytics navigation.
     Returns the selected section key.
-    
+
     Args:
         active: Currently active section key (forecast, warning, recommendations, map)
-        
+
     Returns:
         Selected section key
     """
@@ -846,7 +866,7 @@ def render_advanced_analytics_sidebar(active: str = "forecast") -> str:
             position: sticky;
             top: 60px;
           }
-          
+
           .analytics-sidebar-title {
             font-size: 11px;
             font-weight: 700;
@@ -857,7 +877,7 @@ def render_advanced_analytics_sidebar(active: str = "forecast") -> str:
             margin-bottom: 8px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
           }
-          
+
           .nav-item {
             display: flex;
             align-items: center;
@@ -870,63 +890,63 @@ def render_advanced_analytics_sidebar(active: str = "forecast") -> str:
             cursor: pointer;
             transition: all 220ms cubic-bezier(0.4, 0, 0.2, 1);
           }
-          
+
           .nav-item:hover {
             background: rgba(168, 85, 247, 0.12);
             border-color: rgba(168, 85, 247, 0.25);
             transform: translateX(4px);
           }
-          
+
           .nav-item.active {
             background: linear-gradient(135deg, rgba(168, 85, 247, 0.35), rgba(34, 211, 238, 0.20));
             border-color: rgba(168, 85, 247, 0.55);
             box-shadow: 0 4px 24px rgba(168, 85, 247, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.10);
           }
-          
+
           .nav-item .nav-icon {
             font-size: 18px;
             width: 28px;
             text-align: center;
           }
-          
+
           .nav-item .nav-content {
             flex: 1;
           }
-          
+
           .nav-item .nav-label {
             font-size: 13px;
             font-weight: 500;
             color: rgba(255, 255, 255, 0.78);
             letter-spacing: 0.2px;
           }
-          
+
           .nav-item.active .nav-label {
             color: rgba(255, 255, 255, 0.98);
             font-weight: 700;
           }
-          
+
           .nav-item .nav-desc {
             font-size: 11px;
             color: rgba(255, 255, 255, 0.45);
             margin-top: 2px;
           }
-          
+
           .nav-item.active .nav-desc {
             color: rgba(255, 255, 255, 0.65);
           }
-          
+
           .nav-indicator {
             width: 6px;
             height: 6px;
             border-radius: 50%;
             background: transparent;
           }
-          
+
           .nav-item.active .nav-indicator {
             background: #22d3ee;
             box-shadow: 0 0 12px #22d3ee;
           }
-          
+
           /* Style the sidebar navigation buttons */
           .analytics-sidebar-nav button[kind="secondary"] {
             background: transparent !important;
@@ -940,13 +960,13 @@ def render_advanced_analytics_sidebar(active: str = "forecast") -> str:
             font-weight: 500 !important;
             transition: all 220ms cubic-bezier(0.4, 0, 0.2, 1) !important;
           }
-          
+
           .analytics-sidebar-nav button[kind="secondary"]:hover {
             background: rgba(168, 85, 247, 0.12) !important;
             border-color: rgba(168, 85, 247, 0.25) !important;
             transform: translateX(4px);
           }
-          
+
           .analytics-sidebar-nav button[kind="primary"] {
             background: linear-gradient(135deg, rgba(168, 85, 247, 0.35), rgba(34, 211, 238, 0.20)) !important;
             border: 1px solid rgba(168, 85, 247, 0.55) !important;
@@ -959,7 +979,7 @@ def render_advanced_analytics_sidebar(active: str = "forecast") -> str:
             font-weight: 700 !important;
             box-shadow: 0 4px 24px rgba(168, 85, 247, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.10) !important;
           }
-          
+
           /* Alternative: target by data-testid for Streamlit buttons */
           .analytics-sidebar-nav [data-testid="stButton"] button {
             background: transparent !important;
@@ -974,12 +994,12 @@ def render_advanced_analytics_sidebar(active: str = "forecast") -> str:
             font-weight: 500 !important;
             transition: all 220ms cubic-bezier(0.4, 0, 0.2, 1) !important;
           }
-          
+
           .analytics-sidebar-nav [data-testid="stButton"] button:hover {
             background: rgba(168, 85, 247, 0.12) !important;
             border-color: rgba(168, 85, 247, 0.25) !important;
           }
-          
+
           .analytics-sidebar-nav [data-testid="stButton"] button[kind="primary"],
           .analytics-sidebar-nav [data-testid="stButton"]:has(button[data-active="true"]) button {
             background: linear-gradient(135deg, rgba(168, 85, 247, 0.35), rgba(34, 211, 238, 0.20)) !important;
@@ -995,11 +1015,13 @@ def render_advanced_analytics_sidebar(active: str = "forecast") -> str:
 
     # Render sidebar with buttons for navigation
     st.markdown('<div class="analytics-sidebar-nav">', unsafe_allow_html=True)
-    st.markdown('<div class="analytics-sidebar-title">Analytics Modules</div>', unsafe_allow_html=True)
-    
+    st.markdown(
+        '<div class="analytics-sidebar-title">Analytics Modules</div>', unsafe_allow_html=True
+    )
+
     selected = st.session_state.analytics_section
-    
-    for key, icon, label, desc in sections:
+
+    for key, icon, label, _desc in sections:
         is_active = key == selected
         if st.button(
             f"{icon}  {label}",
@@ -1010,10 +1032,10 @@ def render_advanced_analytics_sidebar(active: str = "forecast") -> str:
             st.session_state.analytics_section = key
             selected = key
             st.rerun()
-    
-    st.markdown('</div>', unsafe_allow_html=True)
-    
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
     # Show description for selected section
     st.caption(f"📍 {desc_map.get(selected, '')}")
-    
+
     return selected

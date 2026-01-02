@@ -7,15 +7,14 @@ Centralized constants and configuration values used across the platform.
 This module provides a single source of truth for commonly used values.
 """
 
-from typing import Dict, List, Tuple, Final
-from enum import Enum, auto
-
+from enum import Enum
+from typing import Final
 
 # ============================================
 # SAUDI ARABIA REGIONS
 # ============================================
 
-SAUDI_REGIONS: Final[List[str]] = [
+SAUDI_REGIONS: Final[list[str]] = [
     "Riyadh",
     "Makkah",
     "Madinah",
@@ -32,7 +31,7 @@ SAUDI_REGIONS: Final[List[str]] = [
 ]
 
 # Regional characteristics for data generation
-REGION_PROFILES: Final[Dict[str, Dict]] = {
+REGION_PROFILES: Final[dict[str, dict]] = {
     "Riyadh": {"gdp_base": 800000, "population": 8.7, "urban": True},
     "Makkah": {"gdp_base": 450000, "population": 9.0, "urban": True},
     "Madinah": {"gdp_base": 150000, "population": 2.2, "urban": True},
@@ -53,15 +52,17 @@ REGION_PROFILES: Final[Dict[str, Dict]] = {
 # TIME CONSTANTS
 # ============================================
 
+
 class Quarter(int, Enum):
     """Quarter enumeration."""
+
     Q1 = 1
     Q2 = 2
     Q3 = 3
     Q4 = 4
 
 
-QUARTERS: Final[Tuple[int, ...]] = (1, 2, 3, 4)
+QUARTERS: Final[tuple[int, ...]] = (1, 2, 3, 4)
 MIN_YEAR: Final[int] = 2019
 MAX_YEAR: Final[int] = 2030
 DEFAULT_YEAR: Final[int] = 2024
@@ -93,16 +94,18 @@ DATA_QUALITY_GREEN: Final[float] = 80.0
 DATA_QUALITY_AMBER: Final[float] = 60.0
 
 
-def get_kpi_status(value: float, green_threshold: float, amber_threshold: float, higher_is_better: bool = True) -> str:
+def get_kpi_status(
+    value: float, green_threshold: float, amber_threshold: float, higher_is_better: bool = True
+) -> str:
     """
     Determine KPI status based on thresholds.
-    
+
     Args:
         value: Current KPI value
         green_threshold: Threshold for green status
         amber_threshold: Threshold for amber status
         higher_is_better: If True, values above green are good
-    
+
     Returns:
         Status string: 'green', 'amber', or 'red'
     """
@@ -153,17 +156,17 @@ MAX_PAGE_SIZE: Final[int] = 100
 MIN_PAGE_SIZE: Final[int] = 1
 
 # Cache TTL defaults (seconds)
-CACHE_TTL_SHORT: Final[int] = 60       # 1 minute
-CACHE_TTL_MEDIUM: Final[int] = 300     # 5 minutes
-CACHE_TTL_LONG: Final[int] = 3600      # 1 hour
-CACHE_TTL_LLM: Final[int] = 3600       # 1 hour for LLM responses
+CACHE_TTL_SHORT: Final[int] = 60  # 1 minute
+CACHE_TTL_MEDIUM: Final[int] = 300  # 5 minutes
+CACHE_TTL_LONG: Final[int] = 3600  # 1 hour
+CACHE_TTL_LLM: Final[int] = 3600  # 1 hour for LLM responses
 
 
 # ============================================
 # EXPORT CONSTANTS
 # ============================================
 
-EXPORT_FORMATS: Final[Tuple[str, ...]] = ("pdf", "excel", "pptx", "csv")
+EXPORT_FORMATS: Final[tuple[str, ...]] = ("pdf", "excel", "pptx", "csv")
 MAX_EXPORT_ROWS: Final[int] = 10000
 DEFAULT_CHART_WIDTH: Final[int] = 800
 DEFAULT_CHART_HEIGHT: Final[int] = 400
@@ -174,7 +177,7 @@ DEFAULT_CHART_HEIGHT: Final[int] = 400
 # ============================================
 
 # Chart colors (Vision 2030 aligned palette)
-CHART_COLORS: Final[Dict[str, str]] = {
+CHART_COLORS: Final[dict[str, str]] = {
     "primary": "#1f77b4",
     "secondary": "#2ca02c",
     "accent": "#ff7f0e",
@@ -185,7 +188,7 @@ CHART_COLORS: Final[Dict[str, str]] = {
 }
 
 # Status colors
-STATUS_COLORS: Final[Dict[str, str]] = {
+STATUS_COLORS: Final[dict[str, str]] = {
     "green": "#2ca02c",
     "amber": "#ff7f0e",
     "red": "#d62728",
@@ -193,7 +196,7 @@ STATUS_COLORS: Final[Dict[str, str]] = {
 }
 
 # Map colors for regional visualization
-MAP_COLORS: Final[Dict[str, str]] = {
+MAP_COLORS: Final[dict[str, str]] = {
     "high": "#2ca02c",
     "medium": "#ffcc00",
     "low": "#d62728",
@@ -223,7 +226,8 @@ YEAR_MAX: Final[int] = 2100
 # HELPER FUNCTIONS
 # ============================================
 
-def get_valid_regions() -> List[str]:
+
+def get_valid_regions() -> list[str]:
     """Get list of valid Saudi regions."""
     return list(SAUDI_REGIONS)
 

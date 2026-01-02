@@ -7,26 +7,25 @@ This module provides reusable card components that use the theme
 as the single source of truth for styling.
 """
 
-from typing import Optional, Union
 import streamlit as st
+
 from analytics_hub_platform.config.theme import get_theme
-from analytics_hub_platform.utils.accessibility import calculate_contrast_ratio
 
 
 def render_kpi_card(
     label: str,
-    value: Union[str, float, int, None],
-    delta: Optional[float] = None,
+    value: str | float | int | None,
+    delta: float | None = None,
     delta_suffix: str = "%",
     status: str = "neutral",
     unit: str = "",
     higher_is_better: bool = True,
     show_trend: bool = True,
-    height: int = 110
+    height: int = 110,
 ) -> None:
     """
     Render a compact, modern KPI card with accessibility support.
-    
+
     Args:
         label: KPI label/name
         value: Current value (None displays as "N/A")
@@ -38,8 +37,8 @@ def render_kpi_card(
         show_trend: Whether to show trend arrow
         height: Card height in pixels
     """
-    theme = get_theme()
-    
+    get_theme()
+
     # Format value - handle None safely
     if value is None:
         display_value = "N/A"
@@ -57,7 +56,7 @@ def render_kpi_card(
             display_value = f"{float_val:,.1f}"
         except (ValueError, TypeError):
             display_value = str(value)
-    
+
     # Get status colors
     status_colors = {
         "green": ("#059669", "#ecfdf5", "#d1fae5"),
@@ -66,23 +65,25 @@ def render_kpi_card(
         "neutral": ("#64748b", "#f8fafc", "#f1f5f9"),
     }
     text_color, bg_color, border_color = status_colors.get(status, status_colors["neutral"])
-    
+
     # Delta formatting
     delta_html = ""
     if delta is not None and show_trend:
         delta_positive = delta > 0
-        is_good = (delta_positive and higher_is_better) or (not delta_positive and not higher_is_better)
-        
+        is_good = (delta_positive and higher_is_better) or (
+            not delta_positive and not higher_is_better
+        )
+
         arrow = "↑" if delta_positive else "↓"
         delta_color = "#059669" if is_good else "#dc2626"
         delta_value = f"+{delta:.1f}" if delta > 0 else f"{delta:.1f}"
-        
+
         delta_html = f"""
         <div style="
             display: inline-flex;
             align-items: center;
             gap: 3px;
-            background: {'#ecfdf5' if is_good else '#fef2f2'};
+            background: {"#ecfdf5" if is_good else "#fef2f2"};
             color: {delta_color};
             padding: 3px 8px;
             border-radius: 4px;
@@ -91,7 +92,7 @@ def render_kpi_card(
             margin-top: 6px;
         ">{arrow} {delta_value}{delta_suffix}</div>
         """
-    
+
     card_html = f"""
     <div style="
         background: white;
@@ -118,85 +119,111 @@ def render_kpi_card(
         {delta_html}
     </div>
     """
-    
+
     st.components.v1.html(card_html, height=height)
 
 
-def render_status_pill(
-    status: str,
-    label: Optional[str] = None,
-    size: str = "medium"
-) -> None:
+def render_status_pill(status: str, label: str | None = None, size: str = "medium") -> None:
     """
     Render a status pill/badge using theme colors.
-    
+
     Args:
         status: Status value ("green", "amber", "red", "success", "warning", "error")
         label: Optional custom label (defaults to status name)
         size: Pill size ("small", "medium", "large")
     """
     theme = get_theme()
-    
+
     # Status configuration
     status_config = {
-        "green": {"label": "On Track", "icon": "✓", "color": theme.colors.status_green, "bg": theme.colors.status_green_bg},
-        "amber": {"label": "At Risk", "icon": "⚠", "color": theme.colors.status_amber, "bg": theme.colors.status_amber_bg},
-        "red": {"label": "Critical", "icon": "✕", "color": theme.colors.status_red, "bg": theme.colors.status_red_bg},
-        "success": {"label": "Success", "icon": "✓", "color": theme.colors.success, "bg": theme.colors.status_green_bg},
-        "warning": {"label": "Warning", "icon": "⚠", "color": theme.colors.warning, "bg": theme.colors.status_amber_bg},
-        "error": {"label": "Error", "icon": "✕", "color": theme.colors.error, "bg": theme.colors.status_red_bg},
+        "green": {
+            "label": "On Track",
+            "icon": "✓",
+            "color": theme.colors.status_green,
+            "bg": theme.colors.status_green_bg,
+        },
+        "amber": {
+            "label": "At Risk",
+            "icon": "⚠",
+            "color": theme.colors.status_amber,
+            "bg": theme.colors.status_amber_bg,
+        },
+        "red": {
+            "label": "Critical",
+            "icon": "✕",
+            "color": theme.colors.status_red,
+            "bg": theme.colors.status_red_bg,
+        },
+        "success": {
+            "label": "Success",
+            "icon": "✓",
+            "color": theme.colors.success,
+            "bg": theme.colors.status_green_bg,
+        },
+        "warning": {
+            "label": "Warning",
+            "icon": "⚠",
+            "color": theme.colors.warning,
+            "bg": theme.colors.status_amber_bg,
+        },
+        "error": {
+            "label": "Error",
+            "icon": "✕",
+            "color": theme.colors.error,
+            "bg": theme.colors.status_red_bg,
+        },
     }
-    
-    config = status_config.get(status.lower(), {
-        "label": status.title(),
-        "icon": "●",
-        "color": theme.colors.text_muted,
-        "bg": theme.colors.surface_alt
-    })
-    
+
+    config = status_config.get(
+        status.lower(),
+        {
+            "label": status.title(),
+            "icon": "●",
+            "color": theme.colors.text_muted,
+            "bg": theme.colors.surface_alt,
+        },
+    )
+
     # Use custom label if provided
     display_label = label or config["label"]
-    
+
     # Size configuration
     size_config = {
         "small": {"padding": "4px 10px", "font_size": "12px"},
         "medium": {"padding": "6px 12px", "font_size": "13px"},
         "large": {"padding": "8px 16px", "font_size": "14px"},
     }
-    
+
     size_style = size_config.get(size, size_config["medium"])
-    
+
     pill_html = f"""
     <span style="
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        padding: {size_style['padding']};
+        padding: {size_style["padding"]};
         border-radius: 999px;
-        background-color: {config['bg']};
-        color: {config['color']};
+        background-color: {config["bg"]};
+        color: {config["color"]};
         font-weight: {theme.typography.weight_semibold};
-        font-size: {size_style['font_size']};
+        font-size: {size_style["font_size"]};
         font-family: {theme.typography.font_family};
-        border: 1px solid {config['color']};
+        border: 1px solid {config["color"]};
     ">
-        <span>{config['icon']}</span>
+        <span>{config["icon"]}</span>
         <span>{display_label}</span>
     </span>
     """
-    
+
     st.markdown(pill_html, unsafe_allow_html=True)
 
 
 def render_narrative_block(
-    title: str,
-    content: str,
-    icon: str = "💡",
-    theme_color: str = "primary"
+    title: str, content: str, icon: str = "💡", theme_color: str = "primary"
 ) -> None:
     """
     Render a narrative/insight block with consistent styling.
-    
+
     Args:
         title: Block title
         content: Narrative content
@@ -204,7 +231,7 @@ def render_narrative_block(
         theme_color: Theme color to use ("primary", "secondary", "success", "warning")
     """
     theme = get_theme()
-    
+
     # Color mapping
     color_map = {
         "primary": theme.colors.primary,
@@ -213,9 +240,9 @@ def render_narrative_block(
         "warning": theme.colors.warning,
         "error": theme.colors.error,
     }
-    
+
     accent_color = color_map.get(theme_color, theme.colors.primary)
-    
+
     narrative_html = f"""
     <div style="
         background: {theme.colors.surface};
@@ -249,20 +276,20 @@ def render_narrative_block(
         ">{content}</p>
     </div>
     """
-    
+
     st.markdown(narrative_html, unsafe_allow_html=True)
 
 
 def render_metric_comparison_card(
     title: str,
-    current_value: Union[float, int],
-    previous_value: Union[float, int],
+    current_value: float | int,
+    previous_value: float | int,
     unit: str = "",
-    higher_is_better: bool = True
+    higher_is_better: bool = True,
 ) -> None:
     """
     Render a card showing metric comparison between two periods.
-    
+
     Args:
         title: Metric title
         current_value: Current period value
@@ -271,21 +298,21 @@ def render_metric_comparison_card(
         higher_is_better: Whether higher values are better
     """
     theme = get_theme()
-    
+
     # Calculate change
     if previous_value != 0:
         change_pct = ((current_value - previous_value) / abs(previous_value)) * 100
     else:
         change_pct = 0
-    
+
     change_abs = current_value - previous_value
     is_positive = change_abs > 0
     is_good = (is_positive and higher_is_better) or (not is_positive and not higher_is_better)
-    
+
     # Colors
     change_color = theme.colors.status_green if is_good else theme.colors.status_red
     arrow = "↑" if is_positive else "↓"
-    
+
     card_html = f"""
     <div style="
         background: {theme.colors.surface};
@@ -302,7 +329,7 @@ def render_metric_comparison_card(
             margin: 0 0 12px 0;
             font-family: {theme.typography.font_family};
         ">{title}</h4>
-        
+
         <div style="
             display: flex;
             justify-content: space-between;
@@ -322,7 +349,7 @@ def render_metric_comparison_card(
                     font-family: {theme.typography.font_family};
                 ">Current</div>
             </div>
-            
+
             <div style="
                 text-align: center;
                 color: {change_color};
@@ -337,7 +364,7 @@ def render_metric_comparison_card(
                     font-family: {theme.typography.font_family};
                 ">{change_pct:+.1f}%</div>
             </div>
-            
+
             <div style="text-align: right;">
                 <div style="
                     color: {theme.colors.text_secondary};
@@ -354,5 +381,5 @@ def render_metric_comparison_card(
         </div>
     </div>
     """
-    
+
     st.markdown(card_html, unsafe_allow_html=True)

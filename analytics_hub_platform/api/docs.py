@@ -7,13 +7,13 @@ This module provides OpenAPI documentation configuration, examples,
 and tag definitions for the REST API.
 """
 
-from typing import Dict, Any, List
+from typing import Any
 
 # =============================================================================
 # API TAGS
 # =============================================================================
 
-API_TAGS: List[Dict[str, Any]] = [
+API_TAGS: list[dict[str, Any]] = [
     {
         "name": "Health",
         "description": "System health checks and monitoring endpoints. Use these to verify API availability and component status.",
@@ -295,7 +295,7 @@ For API support or to report issues:
 """
 
 
-def get_openapi_config() -> Dict[str, Any]:
+def get_openapi_config() -> dict[str, Any]:
     """Get OpenAPI configuration for FastAPI."""
     return {
         "title": "Sustainable Economic Development Analytics Hub API",

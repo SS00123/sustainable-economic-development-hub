@@ -3,25 +3,38 @@ Reusable UI Components
 Production-grade card, metric, and chart components for consistent styling
 """
 
-import streamlit as st
 import plotly.graph_objects as go
-from typing import Optional, Any, Dict, List
-from analytics_hub_platform.ui.ui_theme import COLORS, SPACING, TYPOGRAPHY, RADIUS, SHADOWS, get_gradient, get_status_color
+import streamlit as st
+
+from analytics_hub_platform.ui.ui_theme import (
+    COLORS,
+    RADIUS,
+    SHADOWS,
+    SPACING,
+    TYPOGRAPHY,
+    get_gradient,
+    get_status_color,
+)
 
 
 def section_header(title: str, subtitle: str = "", icon: str = "") -> None:
     """
     Render a section header with title and optional subtitle
-    
+
     Args:
         title: Section title
         subtitle: Optional subtitle/description
         icon: Optional emoji/icon
     """
     icon_html = f"{icon} " if icon else ""
-    subtitle_html = f'<p style="color: {COLORS.text_muted}; margin: 8px 0 0 0; font-size: {TYPOGRAPHY.body};">{subtitle}</p>' if subtitle else ""
-    
-    st.markdown(f"""
+    subtitle_html = (
+        f'<p style="color: {COLORS.text_muted}; margin: 8px 0 0 0; font-size: {TYPOGRAPHY.body};">{subtitle}</p>'
+        if subtitle
+        else ""
+    )
+
+    st.markdown(
+        f"""
         <div style="
             margin: {SPACING.lg} 0;
             padding-bottom: {SPACING.md};
@@ -39,23 +52,35 @@ def section_header(title: str, subtitle: str = "", icon: str = "") -> None:
             </h2>
             {subtitle_html}
         </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 def card_container(title: str = "", subtitle: str = ""):
     """
     Context manager for card containers
-    
+
     Args:
         title: Card title
         subtitle: Card subtitle
     """
+
     class CardContext:
         def __enter__(self):
-            title_html = f'<div style="font-size: {TYPOGRAPHY.heading4}; font-weight: 600; color: {COLORS.text_primary}; margin-bottom: {SPACING.xs};">{title}</div>' if title else ""
-            subtitle_html = f'<div style="font-size: {TYPOGRAPHY.caption}; color: {COLORS.text_muted}; margin-bottom: {SPACING.md};">{subtitle}</div>' if subtitle else ""
-            
-            st.markdown(f"""
+            title_html = (
+                f'<div style="font-size: {TYPOGRAPHY.heading4}; font-weight: 600; color: {COLORS.text_primary}; margin-bottom: {SPACING.xs};">{title}</div>'
+                if title
+                else ""
+            )
+            subtitle_html = (
+                f'<div style="font-size: {TYPOGRAPHY.caption}; color: {COLORS.text_muted}; margin-bottom: {SPACING.md};">{subtitle}</div>'
+                if subtitle
+                else ""
+            )
+
+            st.markdown(
+                f"""
                 <div style="
                     background: {COLORS.bg_card};
                     border: 1px solid {COLORS.border};
@@ -67,27 +92,29 @@ def card_container(title: str = "", subtitle: str = ""):
                 ">
                 {title_html}
                 {subtitle_html}
-            """, unsafe_allow_html=True)
+            """,
+                unsafe_allow_html=True,
+            )
             return self
-        
+
         def __exit__(self, *args):
             st.markdown("</div>", unsafe_allow_html=True)
-    
+
     return CardContext()
 
 
 def metric_card(
     label: str,
     value: str | float,
-    delta: Optional[float] = None,
+    delta: float | None = None,
     delta_label: str = "vs prev",
-    status: Optional[str] = None,
+    status: str | None = None,
     icon: str = "",
     unit: str = "",
 ) -> None:
     """
     Render a metric card with value, delta, and status
-    
+
     Args:
         label: Metric label
         value: Main metric value
@@ -100,54 +127,55 @@ def metric_card(
     # Format value
     if isinstance(value, float):
         if abs(value) >= 1000000:
-            value_str = f"{value/1000000:.1f}M"
+            value_str = f"{value / 1000000:.1f}M"
         elif abs(value) >= 1000:
-            value_str = f"{value/1000:.1f}K"
+            value_str = f"{value / 1000:.1f}K"
         else:
             value_str = f"{value:.1f}"
     else:
         value_str = str(value)
-    
+
     if unit:
         value_str = f"{value_str}{unit}"
-    
+
     # Delta HTML
     delta_html = ""
     if delta is not None:
         delta_color = COLORS.status_green if delta >= 0 else COLORS.status_red
         delta_icon = "▲" if delta >= 0 else "▼"
         delta_html = f'<div style="font-size: {TYPOGRAPHY.caption}; color: {delta_color}; margin-top: {SPACING.xs};">{delta_icon} {abs(delta):.1f}% {delta_label}</div>'
-    
+
     # Status pill - only show for actual status values (green/amber/red), not neutral
     status_html = ""
     if status and status.lower() in ("green", "amber", "red", "on_track", "at_risk", "off_track"):
         status_color = get_status_color(status)
         status_html = f'<div style="position: absolute; top: 12px; right: 12px; width: 8px; height: 8px; border-radius: 50%; background: {status_color}; box-shadow: 0 0 10px {status_color};"></div>'
-    
+
     icon_html = f'<span style="font-size: 20px; opacity: 0.8;">{icon}</span>' if icon else ""
-    
+
     # Build compact HTML
-    html = f'''<div style="background: {COLORS.bg_card}; border: 1px solid {COLORS.border}; border-radius: {RADIUS.md}; padding: 18px 16px; position: relative; transition: all 0.2s ease;">
+    html = f"""<div style="background: {COLORS.bg_card}; border: 1px solid {COLORS.border}; border-radius: {RADIUS.md}; padding: 18px 16px; position: relative; transition: all 0.2s ease;">
 {status_html}
 {icon_html}
 <div style="font-size: {TYPOGRAPHY.caption}; color: {COLORS.text_muted}; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: {SPACING.xs};">{label}</div>
 <div style="font-size: 26px; font-weight: 700; color: {COLORS.text_primary}; line-height: 1.2;">{value_str}</div>
 {delta_html}
-</div>'''
-    
+</div>"""
+
     st.markdown(html, unsafe_allow_html=True)
 
 
 def status_pills(green: int = 0, amber: int = 0, red: int = 0) -> None:
     """
     Render status pill indicators
-    
+
     Args:
         green: Count of green status items
         amber: Count of amber status items
         red: Count of red status items
     """
-    st.markdown(f"""
+    st.markdown(
+        f"""
         <div style="display: flex; gap: {SPACING.md}; flex-wrap: wrap;">
             <div style="
                 background: {COLORS.bg_card};
@@ -210,55 +238,57 @@ def status_pills(green: int = 0, amber: int = 0, red: int = 0) -> None:
                 </span>
             </div>
         </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 def apply_chart_theme(fig: go.Figure, height: int = 400) -> go.Figure:
     """
     Apply consistent dark theme styling to Plotly charts
-    
+
     Args:
         fig: Plotly figure
         height: Chart height in pixels
-    
+
     Returns:
         Styled figure
     """
     fig.update_layout(
         height=height,
-        margin=dict(l=18, r=16, t=22, b=18),
+        margin={"l": 18, "r": 16, "t": 22, "b": 18},
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color=COLORS.text_muted, size=12),
-        legend=dict(
-            orientation="h",
-            yanchor="top",
-            y=1.12,
-            xanchor="center",
-            x=0.5,
-            bgcolor=COLORS.bg_card,
-            bordercolor=COLORS.border_light,
-            borderwidth=1,
-            font=dict(color=COLORS.text_muted, size=11),
-        ),
-        xaxis=dict(
-            showgrid=True,
-            gridcolor="rgba(255,255,255,0.05)",
-            zeroline=False,
-            tickfont=dict(color=COLORS.text_muted, size=11),
-            title=dict(font=dict(color=COLORS.text_muted, size=12)),
-            linecolor="rgba(255,255,255,0.10)",
-            mirror=False,
-        ),
-        yaxis=dict(
-            showgrid=True,
-            gridcolor="rgba(255,255,255,0.07)",
-            zeroline=False,
-            tickfont=dict(color=COLORS.text_muted, size=11),
-            title=dict(font=dict(color=COLORS.text_muted, size=12)),
-            linecolor="rgba(255,255,255,0.10)",
-            mirror=False,
-        ),
+        font={"color": COLORS.text_muted, "size": 12},
+        legend={
+            "orientation": "h",
+            "yanchor": "top",
+            "y": 1.12,
+            "xanchor": "center",
+            "x": 0.5,
+            "bgcolor": COLORS.bg_card,
+            "bordercolor": COLORS.border_light,
+            "borderwidth": 1,
+            "font": {"color": COLORS.text_muted, "size": 11},
+        },
+        xaxis={
+            "showgrid": True,
+            "gridcolor": "rgba(255,255,255,0.05)",
+            "zeroline": False,
+            "tickfont": {"color": COLORS.text_muted, "size": 11},
+            "title": {"font": {"color": COLORS.text_muted, "size": 12}},
+            "linecolor": "rgba(255,255,255,0.10)",
+            "mirror": False,
+        },
+        yaxis={
+            "showgrid": True,
+            "gridcolor": "rgba(255,255,255,0.07)",
+            "zeroline": False,
+            "tickfont": {"color": COLORS.text_muted, "size": 11},
+            "title": {"font": {"color": COLORS.text_muted, "size": 12}},
+            "linecolor": "rgba(255,255,255,0.10)",
+            "mirror": False,
+        },
     )
     return fig
 
@@ -266,14 +296,15 @@ def apply_chart_theme(fig: go.Figure, height: int = 400) -> go.Figure:
 def mini_stat(label: str, value: str, icon: str = "") -> None:
     """
     Render a compact inline stat
-    
+
     Args:
         label: Stat label
         value: Stat value
         icon: Optional icon
     """
-    icon_html = f'{icon} ' if icon else ""
-    st.markdown(f"""
+    icon_html = f"{icon} " if icon else ""
+    st.markdown(
+        f"""
         <div style="
             background: {COLORS.bg_card};
             border-radius: {RADIUS.md};
@@ -287,13 +318,15 @@ def mini_stat(label: str, value: str, icon: str = "") -> None:
                 {value}
             </div>
         </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 def info_banner(message: str, type: str = "info") -> None:
     """
     Render an informational banner
-    
+
     Args:
         message: Banner message
         type: Banner type (info/success/warning/error)
@@ -304,10 +337,11 @@ def info_banner(message: str, type: str = "info") -> None:
         "warning": (COLORS.status_amber, "⚠️"),
         "error": (COLORS.status_red, "✕"),
     }
-    
+
     color, icon = colors_map.get(type, colors_map["info"])
-    
-    st.markdown(f"""
+
+    st.markdown(
+        f"""
         <div style="
             background: {get_gradient(color, color, 135)}15;
             border-left: 4px solid {color};
@@ -319,7 +353,9 @@ def info_banner(message: str, type: str = "info") -> None:
         ">
             <strong>{icon}</strong> {message}
         </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 def spacer(size: str = "md") -> None:

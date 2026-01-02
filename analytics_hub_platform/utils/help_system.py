@@ -6,22 +6,22 @@ Ministry of Economy and Planning
 Provides contextual help content, tooltips, and documentation.
 """
 
-from typing import Optional, Dict
 from dataclasses import dataclass
 
 
 @dataclass
 class HelpContent:
     """Help content structure."""
+
     title: str
     description: str
-    examples: Optional[list] = None
-    related_topics: Optional[list] = None
-    video_url: Optional[str] = None
+    examples: list | None = None
+    related_topics: list | None = None
+    video_url: str | None = None
 
 
 # Help content database
-HELP_CONTENT: Dict[str, Dict[str, HelpContent]] = {
+HELP_CONTENT: dict[str, dict[str, HelpContent]] = {
     "en": {
         "sustainability_index": HelpContent(
             title="Sustainability Index",
@@ -168,16 +168,14 @@ HELP_CONTENT: Dict[str, Dict[str, HelpContent]] = {
         ),
         "executive_view": HelpContent(
             title="لوحة القيادة التنفيذية",
-            description=(
-                "عرض استراتيجي عالي المستوى مصمم لصناع القرار على مستوى الوزراء."
-            ),
+            description=("عرض استراتيجي عالي المستوى مصمم لصناع القرار على مستوى الوزراء."),
         ),
     },
 }
 
 
 # Tooltips database (shorter, inline help)
-TOOLTIPS: Dict[str, Dict[str, str]] = {
+TOOLTIPS: dict[str, dict[str, str]] = {
     "en": {
         "sustainability_index": "Composite score (0-100) measuring overall sustainability",
         "co2_per_gdp": "Carbon emissions per unit of economic output (kg CO₂/SAR)",
@@ -212,14 +210,14 @@ TOOLTIPS: Dict[str, Dict[str, str]] = {
 }
 
 
-def get_help_content(topic: str, language: str = "en") -> Optional[HelpContent]:
+def get_help_content(topic: str, language: str = "en") -> HelpContent | None:
     """
     Get help content for a topic.
-    
+
     Args:
         topic: Help topic key
         language: Language code (en/ar)
-    
+
     Returns:
         HelpContent object or None if not found
     """
@@ -230,11 +228,11 @@ def get_help_content(topic: str, language: str = "en") -> Optional[HelpContent]:
 def get_tooltip(key: str, language: str = "en") -> str:
     """
     Get tooltip text for a UI element.
-    
+
     Args:
         key: Tooltip key
         language: Language code (en/ar)
-    
+
     Returns:
         Tooltip text or empty string if not found
     """
@@ -242,13 +240,13 @@ def get_tooltip(key: str, language: str = "en") -> str:
     return lang_tooltips.get(key, "")
 
 
-def get_all_help_topics(language: str = "en") -> Dict[str, str]:
+def get_all_help_topics(language: str = "en") -> dict[str, str]:
     """
     Get all available help topics.
-    
+
     Args:
         language: Language code
-    
+
     Returns:
         Dictionary of topic keys to titles
     """
@@ -259,43 +257,43 @@ def get_all_help_topics(language: str = "en") -> Dict[str, str]:
 def format_help_markdown(content: HelpContent) -> str:
     """
     Format HelpContent as markdown.
-    
+
     Args:
         content: HelpContent object
-    
+
     Returns:
         Formatted markdown string
     """
     lines = [f"## {content.title}", "", content.description, ""]
-    
+
     if content.examples:
         lines.append("### Examples")
         for example in content.examples:
             lines.append(f"- {example}")
         lines.append("")
-    
+
     if content.related_topics:
         lines.append("### Related Topics")
         lines.append(", ".join(content.related_topics))
         lines.append("")
-    
+
     return "\n".join(lines)
 
 
 def search_help(query: str, language: str = "en") -> list:
     """
     Search help content by query.
-    
+
     Args:
         query: Search query
         language: Language code
-    
+
     Returns:
         List of matching topic keys
     """
     query_lower = query.lower()
     lang_content = HELP_CONTENT.get(language, HELP_CONTENT.get("en", {}))
-    
+
     matches = []
     for key, content in lang_content.items():
         if (
@@ -304,5 +302,5 @@ def search_help(query: str, language: str = "en") -> list:
             or query_lower in content.description.lower()
         ):
             matches.append(key)
-    
+
     return matches

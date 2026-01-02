@@ -21,10 +21,14 @@ st.set_page_config(
 
 # Import application modules
 from analytics_hub_platform.infrastructure.db_init import initialize_database
-from analytics_hub_platform.ui.dark_theme import get_dark_css
-from analytics_hub_platform.ui.ui_theme import COLORS
-from analytics_hub_platform.ui.ui_components import section_header, spacer, info_banner, card_container
 from analytics_hub_platform.ui.dark_components import render_sidebar
+from analytics_hub_platform.ui.dark_theme import get_dark_css
+from analytics_hub_platform.ui.ui_components import (
+    card_container,
+    section_header,
+    spacer,
+)
+from analytics_hub_platform.ui.ui_theme import COLORS
 
 
 # Initialize session state
@@ -61,7 +65,8 @@ with side_col:
 
 with main_col:
     # Header
-    st.markdown(f"""
+    st.markdown(
+        f"""
         <div style="
             background: linear-gradient(135deg, {COLORS.purple} 0%, {COLORS.cyan} 100%);
             padding: 24px 28px;
@@ -75,16 +80,18 @@ with main_col:
                 Configure language, theme, and target preferences
             </p>
         </div>
-    """, unsafe_allow_html=True)
-    
+    """,
+        unsafe_allow_html=True,
+    )
+
     spacer("md")
-    
+
     # Language & Display Settings
     section_header("Language & Display", "Customize language and display preferences", "🌐")
-    
+
     with card_container():
         col1, col2 = st.columns(2)
-        
+
         with col1:
             language = st.selectbox(
                 "Display Language",
@@ -92,13 +99,13 @@ with main_col:
                 index=["en", "ar"].index(st.session_state.language),
                 format_func=lambda x: "English" if x == "en" else "العربية",
                 key="settings_language",
-                help="Select the display language for the dashboard"
+                help="Select the display language for the dashboard",
             )
-            
+
             if language != st.session_state.language:
                 st.session_state.language = language
                 st.success("✅ Language updated")
-        
+
         with col2:
             theme = st.selectbox(
                 "Theme",
@@ -106,26 +113,30 @@ with main_col:
                 index=["dark", "light"].index(st.session_state.theme),
                 format_func=lambda x: "🌙 Dark Theme" if x == "dark" else "☀️ Light Theme",
                 key="settings_theme",
-                help="Select visual theme (currently only dark theme is fully supported)"
+                help="Select visual theme (currently only dark theme is fully supported)",
             )
-            
+
             if theme != st.session_state.theme:
                 st.session_state.theme = theme
                 if theme == "light":
-                    st.warning("⚠️ Light theme support coming soon. Dark theme will continue to be used.")
-    
+                    st.warning(
+                        "⚠️ Light theme support coming soon. Dark theme will continue to be used."
+                    )
+
     spacer("lg")
-    
+
     # Target Configuration
     section_header("Performance Targets", "Set target thresholds for KPIs", "🎯")
-    
+
     with card_container():
-        st.markdown("Configure target values for key performance indicators. These targets are used for status calculations.")
-        
+        st.markdown(
+            "Configure target values for key performance indicators. These targets are used for status calculations."
+        )
+
         spacer("sm")
-        
+
         col1, col2 = st.columns(2)
-        
+
         with col1:
             sustainability_target = st.number_input(
                 "Sustainability Index Target",
@@ -134,13 +145,13 @@ with main_col:
                 value=st.session_state.sustainability_target,
                 step=5,
                 help="Target value for overall sustainability index (0-100)",
-                key="settings_sustainability_target"
+                key="settings_sustainability_target",
             )
-            
+
             if sustainability_target != st.session_state.sustainability_target:
                 st.session_state.sustainability_target = sustainability_target
                 st.success(f"✅ Sustainability target updated to {sustainability_target}")
-        
+
         with col2:
             gdp_target = st.number_input(
                 "GDP Growth Target (%)",
@@ -149,61 +160,61 @@ with main_col:
                 value=st.session_state.gdp_target,
                 step=0.5,
                 help="Target annual GDP growth percentage",
-                key="settings_gdp_target"
+                key="settings_gdp_target",
             )
-            
+
             if gdp_target != st.session_state.gdp_target:
                 st.session_state.gdp_target = gdp_target
                 st.success(f"✅ GDP growth target updated to {gdp_target}%")
-    
+
     spacer("lg")
-    
+
     # Default Period Settings
     section_header("Default Period", "Set default time period for dashboard views", "📅")
-    
+
     with card_container():
         col1, col2 = st.columns(2)
-        
+
         with col1:
             default_year = st.selectbox(
                 "Default Year",
                 [2024, 2023, 2022, 2021],
                 index=[2024, 2023, 2022, 2021].index(st.session_state.year),
-                key="settings_year"
+                key="settings_year",
             )
-            
+
             if default_year != st.session_state.year:
                 st.session_state.year = default_year
                 st.success(f"✅ Default year updated to {default_year}")
-        
+
         with col2:
             default_quarter = st.selectbox(
                 "Default Quarter",
                 [1, 2, 3, 4],
                 index=st.session_state.quarter - 1,
-                key="settings_quarter"
+                key="settings_quarter",
             )
-            
+
             if default_quarter != st.session_state.quarter:
                 st.session_state.quarter = default_quarter
                 st.success(f"✅ Default quarter updated to Q{default_quarter}")
-    
+
     spacer("lg")
-    
+
     # About Section
     section_header("About", "System information and version details", "ℹ️")
-    
+
     with card_container():
-        st.markdown(f"""
-        **Sustainable Economic Development Analytics Hub**  
+        st.markdown("""
+        **Sustainable Economic Development Analytics Hub**
         Ministry of Economy and Planning
-        
-        **Version:** 2.0.0 – Dark Theme  
-        **Last Updated:** December 2025  
+
+        **Version:** 2.0.0 – Dark Theme
+        **Last Updated:** December 2025
         **Framework:** Streamlit + FastAPI + Plotly
-        
+
         ---
-        
+
         **Features:**
         - Executive dashboard with minister view
         - Comprehensive KPI tracking
@@ -212,22 +223,22 @@ with main_col:
         - AI strategic recommendations
         - Regional performance mapping
         - Data quality monitoring
-        
+
         ---
-        
-        **Support:**  
-        📧 sultan_mutep@hotmail.com  
+
+        **Support:**
+        📧 sultan_mutep@hotmail.com
         📞 0553112800
         """)
-    
+
     spacer("lg")
-    
+
     # Reset Settings
     section_header("Reset", "Reset all settings to default values", "🔄")
-    
+
     with card_container():
         st.warning("⚠️ This will reset all preferences to their default values")
-        
+
         if st.button("Reset All Settings", type="secondary"):
             st.session_state.language = "en"
             st.session_state.theme = "dark"

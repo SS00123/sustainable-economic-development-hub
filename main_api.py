@@ -8,27 +8,25 @@ Run with: uvicorn main_api:app --reload
 """
 
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
 
+from analytics_hub_platform.api.docs import API_TAGS, get_openapi_config
 from analytics_hub_platform.api.routers import create_api_router
-from analytics_hub_platform.infrastructure.settings import get_settings
-from analytics_hub_platform.infrastructure.db_init import initialize_database, check_database_health
+from analytics_hub_platform.infrastructure.caching import get_cache
+from analytics_hub_platform.infrastructure.db_init import check_database_health, initialize_database
 from analytics_hub_platform.infrastructure.middleware import add_observability_middleware
 from analytics_hub_platform.infrastructure.observability import (
+    HealthCheckResult,
+    get_context_logger,
     get_health_checker,
     get_metrics,
-    get_context_logger,
-    HealthCheckResult,
     setup_structured_logging,
 )
-from analytics_hub_platform.infrastructure.caching import get_cache
-from analytics_hub_platform.config.branding import BRANDING
-from analytics_hub_platform.api.docs import API_TAGS, get_openapi_config
-
+from analytics_hub_platform.infrastructure.settings import get_settings
 
 # Initialize structured logging
 settings = get_settings()
@@ -41,6 +39,7 @@ logger = get_context_logger(__name__)
 # =============================================================================
 # HEALTH CHECK FUNCTIONS
 # =============================================================================
+
 
 def check_database() -> HealthCheckResult:
     """Health check for database connectivity."""
@@ -65,11 +64,11 @@ def check_cache() -> HealthCheckResult:
     try:
         cache = get_cache()
         stats = cache.get_stats()
-        
+
         # Test cache operation
         cache.set("_health_check", "ok", ttl=10)
         test_value = cache.get("_health_check")
-        
+
         return HealthCheckResult(
             name="cache",
             healthy=test_value == "ok",
@@ -95,26 +94,27 @@ def register_health_checks():
 # APPLICATION LIFESPAN
 # =============================================================================
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
     Application lifespan handler.
-    
+
     Runs on startup and shutdown.
     """
     # Startup
     settings = get_settings()
     initialize_database()
     register_health_checks()
-    
+
     logger.info(
         "Application started",
         environment=settings.environment,
         debug=settings.debug,
     )
-    
+
     yield
-    
+
     # Shutdown
     logger.info("Application shutting down")
 
@@ -153,18 +153,18 @@ app.add_middleware(
 async def global_exception_handler(request, exc):
     """Handle uncaught exceptions."""
     from analytics_hub_platform.infrastructure.observability import increment_counter
-    
+
     increment_counter(
         "http_unhandled_exceptions_total",
         labels={"exception_type": type(exc).__name__},
     )
-    
+
     logger.exception(
         "Unhandled exception",
         exception_type=type(exc).__name__,
         path=str(request.url.path),
     )
-    
+
     return JSONResponse(
         status_code=500,
         content={
@@ -178,16 +178,17 @@ async def global_exception_handler(request, exc):
 # OBSERVABILITY ENDPOINTS
 # =============================================================================
 
+
 @app.get("/health", tags=["Observability"])
 async def health_check():
     """
     Comprehensive health check endpoint.
-    
+
     Returns status of all service dependencies.
     """
     checker = get_health_checker()
     summary = checker.get_summary()
-    
+
     status_code = 200 if summary["status"] == "healthy" else 503
     return JSONResponse(content=summary, status_code=status_code)
 
@@ -196,28 +197,28 @@ async def health_check():
 async def liveness_check():
     """
     Kubernetes liveness probe.
-    
+
     Returns 200 if the application is running.
     """
-    return {"status": "alive", "timestamp": datetime.now(timezone.utc).isoformat()}
+    return {"status": "alive", "timestamp": datetime.now(UTC).isoformat()}
 
 
 @app.get("/health/ready", tags=["Observability"])
 async def readiness_check():
     """
     Kubernetes readiness probe.
-    
+
     Returns 200 if the application is ready to serve traffic.
     """
     checker = get_health_checker()
     is_ready = checker.is_healthy()
-    
+
     if is_ready:
-        return {"status": "ready", "timestamp": datetime.now(timezone.utc).isoformat()}
+        return {"status": "ready", "timestamp": datetime.now(UTC).isoformat()}
     else:
         return JSONResponse(
             status_code=503,
-            content={"status": "not_ready", "timestamp": datetime.now(timezone.utc).isoformat()},
+            content={"status": "not_ready", "timestamp": datetime.now(UTC).isoformat()},
         )
 
 
@@ -225,7 +226,7 @@ async def readiness_check():
 async def metrics_endpoint():
     """
     Prometheus-compatible metrics endpoint.
-    
+
     Returns metrics in Prometheus text format.
     """
     metrics = get_metrics()
@@ -256,7 +257,7 @@ async def root():
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     uvicorn.run(
         "main_api:app",
         host="0.0.0.0",

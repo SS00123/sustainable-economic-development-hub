@@ -11,7 +11,7 @@ __author__ = "Eng. Sultan Albuqami"
 __email__ = "sultan_mutep@hotmail.com"
 
 from analytics_hub_platform.config import get_config
-from analytics_hub_platform.infrastructure import get_settings, get_repository
+from analytics_hub_platform.infrastructure import get_repository, get_settings
 
 __all__ = [
     "__version__",

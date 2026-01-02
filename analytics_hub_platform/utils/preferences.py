@@ -6,23 +6,23 @@ Ministry of Economy and Planning
 User preference management for personalization.
 """
 
-from typing import Optional, Dict, Any, List
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, timezone
 import json
-from pathlib import Path
+from dataclasses import asdict, dataclass, field
+from datetime import UTC, datetime
+from typing import Any
 
 import streamlit as st
 
 
 def _utc_now_iso() -> str:
     """Return current UTC datetime as ISO string."""
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 @dataclass
 class DashboardLayout:
     """Dashboard layout preferences."""
+
     sidebar_collapsed: bool = False
     chart_height: int = 400
     table_rows_per_page: int = 25
@@ -34,6 +34,7 @@ class DashboardLayout:
 @dataclass
 class ChartPreferences:
     """Chart visualization preferences."""
+
     default_chart_type: str = "line"  # line, bar, area
     show_data_labels: bool = True
     show_grid: bool = True
@@ -44,6 +45,7 @@ class ChartPreferences:
 @dataclass
 class ExportPreferences:
     """Export preferences."""
+
     default_format: str = "xlsx"  # xlsx, pdf, pptx
     include_charts: bool = True
     include_metadata: bool = True
@@ -53,6 +55,7 @@ class ExportPreferences:
 @dataclass
 class NotificationPreferences:
     """Notification preferences."""
+
     show_alerts: bool = True
     alert_threshold_warnings: bool = True
     data_refresh_notifications: bool = True
@@ -61,64 +64,66 @@ class NotificationPreferences:
 @dataclass
 class UserPreferences:
     """Complete user preferences."""
-    
+
     # Identity
-    user_id: Optional[str] = None
-    tenant_id: Optional[str] = None
-    
+    user_id: str | None = None
+    tenant_id: str | None = None
+
     # Language & Locale
     language: str = "en"
     timezone: str = "Asia/Riyadh"
     date_format: str = "%Y-%m-%d"
     number_format: str = "en_US"
-    
+
     # Default filters
-    default_year: Optional[int] = None
-    default_quarter: Optional[int] = None
-    default_region: Optional[str] = None
-    
+    default_year: int | None = None
+    default_quarter: int | None = None
+    default_region: str | None = None
+
     # Layout
     layout: DashboardLayout = field(default_factory=DashboardLayout)
-    
+
     # Charts
     charts: ChartPreferences = field(default_factory=ChartPreferences)
-    
+
     # Exports
     exports: ExportPreferences = field(default_factory=ExportPreferences)
-    
+
     # Notifications
     notifications: NotificationPreferences = field(default_factory=NotificationPreferences)
-    
+
     # Favorites
-    favorite_kpis: List[str] = field(default_factory=list)
-    favorite_regions: List[str] = field(default_factory=list)
-    
+    favorite_kpis: list[str] = field(default_factory=list)
+    favorite_regions: list[str] = field(default_factory=list)
+
     # Recent
-    recent_views: List[str] = field(default_factory=list)
-    
+    recent_views: list[str] = field(default_factory=list)
+
     # Metadata
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
-    
-    def to_dict(self) -> Dict[str, Any]:
+    created_at: str | None = None
+    updated_at: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         data = asdict(self)
         data["updated_at"] = _utc_now_iso()
         return data
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "UserPreferences":
+    def from_dict(cls, data: dict[str, Any]) -> "UserPreferences":
         """Create from dictionary."""
         layout_data = data.pop("layout", {})
         charts_data = data.pop("charts", {})
         exports_data = data.pop("exports", {})
         notifications_data = data.pop("notifications", {})
-        
+
         return cls(
             layout=DashboardLayout(**layout_data) if layout_data else DashboardLayout(),
             charts=ChartPreferences(**charts_data) if charts_data else ChartPreferences(),
             exports=ExportPreferences(**exports_data) if exports_data else ExportPreferences(),
-            notifications=NotificationPreferences(**notifications_data) if notifications_data else NotificationPreferences(),
+            notifications=NotificationPreferences(**notifications_data)
+            if notifications_data
+            else NotificationPreferences(),
             **{k: v for k, v in data.items() if k in cls.__dataclass_fields__},
         )
 
@@ -130,59 +135,57 @@ PREFERENCES_KEY = "user_preferences"
 def get_user_preferences() -> UserPreferences:
     """
     Get current user preferences.
-    
+
     Returns:
         UserPreferences object
     """
     if PREFERENCES_KEY not in st.session_state:
-        st.session_state[PREFERENCES_KEY] = UserPreferences(
-            created_at=_utc_now_iso()
-        )
-    
+        st.session_state[PREFERENCES_KEY] = UserPreferences(created_at=_utc_now_iso())
+
     prefs = st.session_state[PREFERENCES_KEY]
-    
+
     # Ensure it's a UserPreferences object
     if isinstance(prefs, dict):
         prefs = UserPreferences.from_dict(prefs)
         st.session_state[PREFERENCES_KEY] = prefs
-    
+
     return prefs
 
 
 def save_user_preferences(preferences: UserPreferences) -> bool:
     """
     Save user preferences.
-    
+
     Args:
         preferences: UserPreferences object to save
-    
+
     Returns:
         True if successful
     """
     preferences.updated_at = _utc_now_iso()
     st.session_state[PREFERENCES_KEY] = preferences
-    
+
     # In production, this would persist to database
     # For now, just update session state
-    
+
     return True
 
 
 def update_preference(key: str, value: Any) -> bool:
     """
     Update a single preference value.
-    
+
     Args:
         key: Preference key (dot notation for nested)
         value: New value
-    
+
     Returns:
         True if successful
     """
     prefs = get_user_preferences()
-    
+
     parts = key.split(".")
-    
+
     if len(parts) == 1:
         if hasattr(prefs, key):
             setattr(prefs, key, value)
@@ -200,17 +203,17 @@ def update_preference(key: str, value: Any) -> bool:
             return False
     else:
         return False
-    
+
     return save_user_preferences(prefs)
 
 
 def add_to_favorites(kpi_id: str) -> bool:
     """
     Add a KPI to favorites.
-    
+
     Args:
         kpi_id: KPI identifier
-    
+
     Returns:
         True if added
     """
@@ -224,10 +227,10 @@ def add_to_favorites(kpi_id: str) -> bool:
 def remove_from_favorites(kpi_id: str) -> bool:
     """
     Remove a KPI from favorites.
-    
+
     Args:
         kpi_id: KPI identifier
-    
+
     Returns:
         True if removed
     """
@@ -241,30 +244,30 @@ def remove_from_favorites(kpi_id: str) -> bool:
 def add_recent_view(view_name: str, max_recent: int = 10) -> None:
     """
     Add a view to recent views list.
-    
+
     Args:
         view_name: Name of the view
         max_recent: Maximum recent items to keep
     """
     prefs = get_user_preferences()
-    
+
     # Remove if already exists
     if view_name in prefs.recent_views:
         prefs.recent_views.remove(view_name)
-    
+
     # Add to front
     prefs.recent_views.insert(0, view_name)
-    
+
     # Trim list
     prefs.recent_views = prefs.recent_views[:max_recent]
-    
+
     save_user_preferences(prefs)
 
 
 def reset_preferences() -> UserPreferences:
     """
     Reset preferences to defaults.
-    
+
     Returns:
         New default UserPreferences
     """
@@ -276,7 +279,7 @@ def reset_preferences() -> UserPreferences:
 def export_preferences() -> str:
     """
     Export preferences as JSON.
-    
+
     Returns:
         JSON string
     """
@@ -287,10 +290,10 @@ def export_preferences() -> str:
 def import_preferences(json_str: str) -> bool:
     """
     Import preferences from JSON.
-    
+
     Args:
         json_str: JSON string
-    
+
     Returns:
         True if successful
     """
@@ -302,10 +305,10 @@ def import_preferences(json_str: str) -> bool:
         return False
 
 
-def get_preference_schema() -> Dict[str, Any]:
+def get_preference_schema() -> dict[str, Any]:
     """
     Get preference schema for UI generation.
-    
+
     Returns:
         Schema dictionary
     """

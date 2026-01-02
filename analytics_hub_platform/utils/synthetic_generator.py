@@ -3,13 +3,12 @@
 Provides reproducible KPI series with trend and seasonality.
 """
 
-from typing import List, Optional
 import numpy as np
 import pandas as pd
 
 from analytics_hub_platform.infrastructure.settings import get_settings
 
-REGIONS: List[str] = [
+REGIONS: list[str] = [
     "Riyadh",
     "Makkah",
     "Madinah",
@@ -33,7 +32,7 @@ class SyntheticDataGenerator:
         self,
         start_year: int = 2018,
         end_year: int = 2024,
-        random_state: Optional[int] = None,
+        random_state: int | None = None,
     ) -> None:
         self.start_year = start_year
         self.end_year = end_year

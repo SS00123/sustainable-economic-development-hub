@@ -11,7 +11,6 @@ STRINGS_EN = {
     "app_title": "Sustainable Economic Development Analytics Hub",
     "app_subtitle": "Ministry of Economy and Planning",
     "app_description": "Data-driven insights for sustainable development policy",
-    
     # Navigation
     "nav_home": "Home",
     "nav_executive": "Executive Dashboard",
@@ -22,7 +21,6 @@ STRINGS_EN = {
     "nav_admin": "Administration",
     "nav_help": "Help",
     "nav_settings": "Settings",
-    
     # Page Titles
     "executive_title": "Executive Dashboard",
     "executive_subtitle": "Strategic Overview for Decision Makers",
@@ -36,7 +34,6 @@ STRINGS_EN = {
     "data_quality_subtitle": "Monitoring Data Completeness and Accuracy",
     "admin_title": "Administration Console",
     "admin_subtitle": "System Configuration and Management",
-    
     # Filters
     "filter_year": "Year",
     "filter_quarter": "Quarter",
@@ -45,13 +42,11 @@ STRINGS_EN = {
     "filter_all": "All",
     "filter_apply": "Apply Filters",
     "filter_reset": "Reset",
-    
     # Quarters
     "q1": "Q1",
     "q2": "Q2",
     "q3": "Q3",
     "q4": "Q4",
-    
     # KPI Labels
     "kpi_sustainability_index": "Sustainability Index",
     "kpi_co2_per_gdp": "CO₂ per GDP",
@@ -65,25 +60,21 @@ STRINGS_EN = {
     "kpi_gdp_growth": "GDP Growth",
     "kpi_employment_rate": "Employment Rate",
     "kpi_data_quality": "Data Quality Score",
-    
     # Status
     "status_green": "On Track",
     "status_amber": "Needs Attention",
     "status_red": "Action Required",
     "status_neutral": "No Status",
-    
     # Trends
     "trend_up": "Increasing",
     "trend_down": "Decreasing",
     "trend_stable": "Stable",
     "trend_vs_previous": "vs previous period",
-    
     # Charts
     "chart_title_trend": "Trend Over Time",
     "chart_title_comparison": "Regional Comparison",
     "chart_title_distribution": "Distribution",
     "chart_no_data": "No data available",
-    
     # Tables
     "table_year": "Year",
     "table_quarter": "Quarter",
@@ -94,7 +85,6 @@ STRINGS_EN = {
     "table_showing": "Showing",
     "table_of": "of",
     "table_records": "records",
-    
     # Export
     "export_title": "Export Data",
     "export_pdf": "Export to PDF",
@@ -103,7 +93,6 @@ STRINGS_EN = {
     "export_csv": "Export to CSV",
     "export_success": "Export completed successfully",
     "export_error": "Export failed",
-    
     # Actions
     "action_refresh": "Refresh",
     "action_download": "Download",
@@ -115,7 +104,6 @@ STRINGS_EN = {
     "action_view_details": "View Details",
     "action_expand": "Expand",
     "action_collapse": "Collapse",
-    
     # Messages
     "msg_loading": "Loading...",
     "msg_no_data": "No data available",
@@ -123,7 +111,6 @@ STRINGS_EN = {
     "msg_success": "Operation successful",
     "msg_warning": "Warning",
     "msg_info": "Information",
-    
     # Data Quality
     "dq_completeness": "Completeness",
     "dq_accuracy": "Accuracy",
@@ -132,7 +119,6 @@ STRINGS_EN = {
     "dq_missing_values": "Missing Values",
     "dq_outliers": "Outliers Detected",
     "dq_last_update": "Last Updated",
-    
     # Admin
     "admin_users": "Users",
     "admin_roles": "Roles",
@@ -140,18 +126,15 @@ STRINGS_EN = {
     "admin_kpis": "KPI Management",
     "admin_settings": "System Settings",
     "admin_logs": "Activity Logs",
-    
     # Help
     "help_title": "Help & Documentation",
     "help_getting_started": "Getting Started",
     "help_faq": "FAQ",
     "help_contact": "Contact Support",
-    
     # Footer
     "footer_copyright": "© 2024 Ministry of Economy and Planning",
     "footer_prepared_by": "Prepared by",
     "footer_version": "Version",
-    
     # Regions
     "region_riyadh": "Riyadh",
     "region_eastern": "Eastern Province",
@@ -166,7 +149,6 @@ STRINGS_EN = {
     "region_najran": "Najran",
     "region_bahah": "Al-Bahah",
     "region_jawf": "Al-Jawf",
-    
     # Accessibility
     "a11y_skip_to_content": "Skip to main content",
     "a11y_menu_toggle": "Toggle navigation menu",

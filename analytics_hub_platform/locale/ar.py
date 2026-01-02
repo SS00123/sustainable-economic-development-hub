@@ -11,7 +11,6 @@ STRINGS_AR = {
     "app_title": "مركز تحليلات التنمية الاقتصادية المستدامة",
     "app_subtitle": "وزارة الاقتصاد والتخطيط",
     "app_description": "رؤى مبنية على البيانات لسياسات التنمية المستدامة",
-    
     # Navigation
     "nav_home": "الرئيسية",
     "nav_executive": "لوحة القيادة التنفيذية",
@@ -22,7 +21,6 @@ STRINGS_AR = {
     "nav_admin": "الإدارة",
     "nav_help": "المساعدة",
     "nav_settings": "الإعدادات",
-    
     # Page Titles
     "executive_title": "لوحة القيادة التنفيذية",
     "executive_subtitle": "نظرة عامة استراتيجية لصناع القرار",
@@ -36,7 +34,6 @@ STRINGS_AR = {
     "data_quality_subtitle": "مراقبة اكتمال ودقة البيانات",
     "admin_title": "وحدة الإدارة",
     "admin_subtitle": "إعدادات النظام والإدارة",
-    
     # Filters
     "filter_year": "السنة",
     "filter_quarter": "الربع",
@@ -45,13 +42,11 @@ STRINGS_AR = {
     "filter_all": "الكل",
     "filter_apply": "تطبيق الفلاتر",
     "filter_reset": "إعادة تعيين",
-    
     # Quarters
     "q1": "الربع الأول",
     "q2": "الربع الثاني",
     "q3": "الربع الثالث",
     "q4": "الربع الرابع",
-    
     # KPI Labels
     "kpi_sustainability_index": "مؤشر الاستدامة",
     "kpi_co2_per_gdp": "ثاني أكسيد الكربون لكل ناتج محلي",
@@ -65,25 +60,21 @@ STRINGS_AR = {
     "kpi_gdp_growth": "نمو الناتج المحلي",
     "kpi_employment_rate": "معدل التوظيف",
     "kpi_data_quality": "درجة جودة البيانات",
-    
     # Status
     "status_green": "على المسار الصحيح",
     "status_amber": "يحتاج انتباه",
     "status_red": "يتطلب إجراء",
     "status_neutral": "بدون حالة",
-    
     # Trends
     "trend_up": "تصاعدي",
     "trend_down": "تنازلي",
     "trend_stable": "مستقر",
     "trend_vs_previous": "مقارنة بالفترة السابقة",
-    
     # Charts
     "chart_title_trend": "الاتجاه عبر الزمن",
     "chart_title_comparison": "مقارنة المناطق",
     "chart_title_distribution": "التوزيع",
     "chart_no_data": "لا توجد بيانات متاحة",
-    
     # Tables
     "table_year": "السنة",
     "table_quarter": "الربع",
@@ -94,7 +85,6 @@ STRINGS_AR = {
     "table_showing": "عرض",
     "table_of": "من",
     "table_records": "سجلات",
-    
     # Export
     "export_title": "تصدير البيانات",
     "export_pdf": "تصدير إلى PDF",
@@ -103,7 +93,6 @@ STRINGS_AR = {
     "export_csv": "تصدير إلى CSV",
     "export_success": "تم التصدير بنجاح",
     "export_error": "فشل التصدير",
-    
     # Actions
     "action_refresh": "تحديث",
     "action_download": "تحميل",
@@ -115,7 +104,6 @@ STRINGS_AR = {
     "action_view_details": "عرض التفاصيل",
     "action_expand": "توسيع",
     "action_collapse": "طي",
-    
     # Messages
     "msg_loading": "جاري التحميل...",
     "msg_no_data": "لا توجد بيانات متاحة",
@@ -123,7 +111,6 @@ STRINGS_AR = {
     "msg_success": "تمت العملية بنجاح",
     "msg_warning": "تحذير",
     "msg_info": "معلومات",
-    
     # Data Quality
     "dq_completeness": "الاكتمال",
     "dq_accuracy": "الدقة",
@@ -132,7 +119,6 @@ STRINGS_AR = {
     "dq_missing_values": "القيم المفقودة",
     "dq_outliers": "القيم الشاذة المكتشفة",
     "dq_last_update": "آخر تحديث",
-    
     # Admin
     "admin_users": "المستخدمون",
     "admin_roles": "الأدوار",
@@ -140,18 +126,15 @@ STRINGS_AR = {
     "admin_kpis": "إدارة مؤشرات الأداء",
     "admin_settings": "إعدادات النظام",
     "admin_logs": "سجلات النشاط",
-    
     # Help
     "help_title": "المساعدة والتوثيق",
     "help_getting_started": "البدء",
     "help_faq": "الأسئلة الشائعة",
     "help_contact": "الاتصال بالدعم",
-    
     # Footer
     "footer_copyright": "© 2024 وزارة الاقتصاد والتخطيط",
     "footer_prepared_by": "إعداد",
     "footer_version": "الإصدار",
-    
     # Regions
     "region_riyadh": "الرياض",
     "region_eastern": "المنطقة الشرقية",
@@ -166,7 +149,6 @@ STRINGS_AR = {
     "region_najran": "نجران",
     "region_bahah": "الباحة",
     "region_jawf": "الجوف",
-    
     # Accessibility
     "a11y_skip_to_content": "تخطي إلى المحتوى الرئيسي",
     "a11y_menu_toggle": "تبديل قائمة التنقل",

@@ -10,12 +10,12 @@ Displays:
 - Environmental & Sustainability Metrics
 """
 
-import streamlit as st
+from pathlib import Path
+
 import pandas as pd
 import plotly.graph_objects as go
+import streamlit as st
 import yaml
-from pathlib import Path
-from typing import Dict
 
 # Page configuration
 st.set_page_config(
@@ -26,16 +26,24 @@ st.set_page_config(
 )
 
 # Import application modules
-from analytics_hub_platform.infrastructure.db_init import initialize_database
-from analytics_hub_platform.infrastructure.settings import get_settings
-from analytics_hub_platform.infrastructure.repository import get_repository
-from analytics_hub_platform.domain.models import FilterParams
-from analytics_hub_platform.domain.services import get_executive_snapshot, get_sustainability_summary
 from analytics_hub_platform.domain.indicators import calculate_change
-from analytics_hub_platform.ui.dark_theme import get_dark_css, get_dark_theme
-from analytics_hub_platform.ui.ui_theme import COLORS, SPACING
-from analytics_hub_platform.ui.ui_components import section_header, metric_card, spacer, card_container
+from analytics_hub_platform.domain.models import FilterParams
+from analytics_hub_platform.domain.services import (
+    get_executive_snapshot,
+    get_sustainability_summary,
+)
+from analytics_hub_platform.infrastructure.db_init import initialize_database
+from analytics_hub_platform.infrastructure.repository import get_repository
+from analytics_hub_platform.infrastructure.settings import get_settings
 from analytics_hub_platform.ui.dark_components import render_sidebar
+from analytics_hub_platform.ui.dark_theme import get_dark_css, get_dark_theme
+from analytics_hub_platform.ui.ui_components import (
+    card_container,
+    metric_card,
+    section_header,
+    spacer,
+)
+from analytics_hub_platform.ui.ui_theme import COLORS
 
 
 # Initialize session state
@@ -56,51 +64,63 @@ def initialize_session_state() -> None:
 def get_catalog() -> dict:
     """Load KPI catalog from YAML"""
     if "_kpi_catalog_cache" not in st.session_state:
-        catalog_path = Path(__file__).parent.parent / "analytics_hub_platform" / "config" / "kpi_catalog.yaml"
+        catalog_path = (
+            Path(__file__).parent.parent / "analytics_hub_platform" / "config" / "kpi_catalog.yaml"
+        )
         if catalog_path.exists():
-            with open(catalog_path, "r", encoding="utf-8") as f:
+            with open(catalog_path, encoding="utf-8") as f:
                 st.session_state["_kpi_catalog_cache"] = yaml.safe_load(f)
         else:
             st.session_state["_kpi_catalog_cache"] = {"kpis": [], "categories": []}
     return st.session_state.get("_kpi_catalog_cache", {"kpis": [], "categories": []})
 
 
-def enrich_metrics(df: pd.DataFrame, base_metrics: dict, filters: FilterParams, catalog: dict) -> dict:
+def enrich_metrics(
+    df: pd.DataFrame, base_metrics: dict, filters: FilterParams, catalog: dict
+) -> dict:
     """Enrich metrics with catalog data and compute missing values"""
     metrics = {**base_metrics}
-    
+
     name_map = {}
     for kpi in catalog.get("kpis", []):
         kpi_id = kpi.get("id")
         if kpi_id:
             name_map[kpi_id] = kpi.get("display_name_en", kpi_id)
-    
+
     # Ensure all catalog KPIs exist in metrics
     for kpi in catalog.get("kpis", []):
         kpi_id = kpi.get("id")
         if not kpi_id or kpi_id in metrics:
             continue
-        
+
         # Compute metric from dataframe
         current = df[(df["year"] == filters.year) & (df["quarter"] == filters.quarter)]
         if filters.region and filters.region != "all":
             current = current[current["region"] == filters.region]
-        
+
         prev_year = filters.year
         prev_quarter = filters.quarter - 1
         if prev_quarter == 0:
             prev_quarter = 4
             prev_year -= 1
-        
+
         previous = df[(df["year"] == prev_year) & (df["quarter"] == prev_quarter)]
         if filters.region and filters.region != "all":
             previous = previous[previous["region"] == filters.region]
-        
-        current_val = float(current[kpi_id].mean()) if kpi_id in current and len(current) > 0 and not current[kpi_id].isna().all() else None
-        previous_val = float(previous[kpi_id].mean()) if kpi_id in previous and len(previous) > 0 and not previous[kpi_id].isna().all() else None
-        
+
+        current_val = (
+            float(current[kpi_id].mean())
+            if kpi_id in current and len(current) > 0 and not current[kpi_id].isna().all()
+            else None
+        )
+        previous_val = (
+            float(previous[kpi_id].mean())
+            if kpi_id in previous and len(previous) > 0 and not previous[kpi_id].isna().all()
+            else None
+        )
+
         abs_change, pct_change = calculate_change(current_val, previous_val)
-        
+
         metrics[kpi_id] = {
             "value": current_val if current_val is not None else 0,
             "previous_value": previous_val,
@@ -110,7 +130,7 @@ def enrich_metrics(df: pd.DataFrame, base_metrics: dict, filters: FilterParams, 
             "display_name": name_map.get(kpi_id, kpi_id.replace("_", " ").title()),
             "higher_is_better": True,
         }
-    
+
     return metrics
 
 
@@ -132,7 +152,8 @@ with side_col:
 
 with main_col:
     # Header
-    st.markdown(f"""
+    st.markdown(
+        f"""
         <div style="
             background: linear-gradient(135deg, {COLORS.purple} 0%, {COLORS.cyan} 100%);
             padding: 24px 28px;
@@ -146,42 +167,72 @@ with main_col:
                 Comprehensive breakdown of all tracked metrics
             </p>
         </div>
-    """, unsafe_allow_html=True)
-    
+    """,
+        unsafe_allow_html=True,
+    )
+
     # Filters
     col_f1, col_f2, col_f3, col_f4 = st.columns([1, 1, 1.5, 1])
     with col_f1:
-        year = st.selectbox("Year", [2024, 2023, 2022, 2021], 
-            index=[2024, 2023, 2022, 2021].index(st.session_state.year), key="kpi_filter_year")
+        year = st.selectbox(
+            "Year",
+            [2024, 2023, 2022, 2021],
+            index=[2024, 2023, 2022, 2021].index(st.session_state.year),
+            key="kpi_filter_year",
+        )
     with col_f2:
-        quarter = st.selectbox("Quarter", [1, 2, 3, 4], 
-            index=st.session_state.quarter - 1, key="kpi_filter_quarter")
+        quarter = st.selectbox(
+            "Quarter", [1, 2, 3, 4], index=st.session_state.quarter - 1, key="kpi_filter_quarter"
+        )
     with col_f3:
-        regions = ["all", "Riyadh", "Makkah", "Eastern Province", "Madinah", "Qassim", 
-                  "Asir", "Tabuk", "Hail", "Northern Borders", "Jazan", "Najran", "Al Bahah", "Al Jawf"]
-        region = st.selectbox("Region", regions, 
-            index=regions.index(st.session_state.region), key="kpi_filter_region")
+        regions = [
+            "all",
+            "Riyadh",
+            "Makkah",
+            "Eastern Province",
+            "Madinah",
+            "Qassim",
+            "Asir",
+            "Tabuk",
+            "Hail",
+            "Northern Borders",
+            "Jazan",
+            "Najran",
+            "Al Bahah",
+            "Al Jawf",
+        ]
+        region = st.selectbox(
+            "Region", regions, index=regions.index(st.session_state.region), key="kpi_filter_region"
+        )
     with col_f4:
-        language = st.selectbox("Language", ["en", "ar"], 
-            index=["en", "ar"].index(st.session_state.language), key="kpi_filter_language")
-    
+        language = st.selectbox(
+            "Language",
+            ["en", "ar"],
+            index=["en", "ar"].index(st.session_state.language),
+            key="kpi_filter_language",
+        )
+
     # Update session state
-    if (year != st.session_state.year or quarter != st.session_state.quarter or 
-        region != st.session_state.region or language != st.session_state.language):
+    if (
+        year != st.session_state.year
+        or quarter != st.session_state.quarter
+        or region != st.session_state.region
+        or language != st.session_state.language
+    ):
         st.session_state.year = year
         st.session_state.quarter = quarter
         st.session_state.region = region
         st.session_state.language = language
         st.rerun()
-    
+
     spacer("md")
-    
+
     # Load data
     try:
         settings = get_settings()
         repo = get_repository()
         df = repo.get_all_indicators(settings.default_tenant_id)
-        
+
         region_param = region if region != "all" else None
         filter_params = FilterParams(
             tenant_id=settings.default_tenant_id,
@@ -189,135 +240,173 @@ with main_col:
             quarter=quarter,
             region=region_param,
         )
-        
+
         snapshot = get_executive_snapshot(df, filter_params, language)
         sustainability = get_sustainability_summary(df, filter_params, language)
-        
+
         catalog = get_catalog()
         metrics = enrich_metrics(df, snapshot.get("metrics", {}), filter_params, catalog)
-        
+
         # Large Sustainability Gauge
-        section_header("Sustainability Index", "Overall composite score for sustainable development", "🌱")
-        
+        section_header(
+            "Sustainability Index", "Overall composite score for sustainable development", "🌱"
+        )
+
         index_value = sustainability.get("index", 0) or 0
         status = sustainability.get("status", "unknown")
-        
-        fig = go.Figure(go.Indicator(
-            mode="gauge+number+delta",
-            value=index_value,
-            number={'suffix': "/100", 'font': {'size': 48, 'color': '#fff'}},
-            delta={'reference': 70, 'increasing': {'color': COLORS.status_green}},
-            domain={'x': [0, 1], 'y': [0, 1]},
-            gauge={
-                'axis': {'range': [0, 100], 'tickwidth': 2, 'tickcolor': '#374151', 
-                        'dtick': 10, 'tickfont': {'size': 12, 'color': COLORS.text_muted}},
-                'bar': {'color': COLORS.purple, 'thickness': 0.75},
-                'bgcolor': COLORS.bg_card,
-                'borderwidth': 0,
-                'steps': [
-                    {'range': [0, 50], 'color': 'rgba(239, 68, 68, 0.3)'},
-                    {'range': [50, 70], 'color': 'rgba(245, 158, 11, 0.3)'},
-                    {'range': [70, 100], 'color': 'rgba(34, 197, 94, 0.3)'},
-                ],
-                'threshold': {
-                    'line': {'color': COLORS.status_green, 'width': 4},
-                    'thickness': 0.85,
-                    'value': 70
-                }
-            },
-        ))
-        
+
+        fig = go.Figure(
+            go.Indicator(
+                mode="gauge+number+delta",
+                value=index_value,
+                number={"suffix": "/100", "font": {"size": 48, "color": "#fff"}},
+                delta={"reference": 70, "increasing": {"color": COLORS.status_green}},
+                domain={"x": [0, 1], "y": [0, 1]},
+                gauge={
+                    "axis": {
+                        "range": [0, 100],
+                        "tickwidth": 2,
+                        "tickcolor": "#374151",
+                        "dtick": 10,
+                        "tickfont": {"size": 12, "color": COLORS.text_muted},
+                    },
+                    "bar": {"color": COLORS.purple, "thickness": 0.75},
+                    "bgcolor": COLORS.bg_card,
+                    "borderwidth": 0,
+                    "steps": [
+                        {"range": [0, 50], "color": "rgba(239, 68, 68, 0.3)"},
+                        {"range": [50, 70], "color": "rgba(245, 158, 11, 0.3)"},
+                        {"range": [70, 100], "color": "rgba(34, 197, 94, 0.3)"},
+                    ],
+                    "threshold": {
+                        "line": {"color": COLORS.status_green, "width": 4},
+                        "thickness": 0.85,
+                        "value": 70,
+                    },
+                },
+            )
+        )
+
         fig.update_layout(
             height=350,
-            margin=dict(l=40, r=40, t=40, b=40),
-            paper_bgcolor='rgba(0,0,0,0)',
+            margin={"l": 40, "r": 40, "t": 40, "b": 40},
+            paper_bgcolor="rgba(0,0,0,0)",
         )
-        
+
         with card_container():
-            st.plotly_chart(fig, width='stretch')
-            
-            status_color = COLORS.status_green if status == 'green' else COLORS.status_amber if status == 'amber' else COLORS.status_red
-            status_text = 'On Track' if status == 'green' else 'At Risk' if status == 'amber' else 'Critical'
-            st.markdown(f"""
+            st.plotly_chart(fig, width="stretch")
+
+            status_color = (
+                COLORS.status_green
+                if status == "green"
+                else COLORS.status_amber
+                if status == "amber"
+                else COLORS.status_red
+            )
+            status_text = (
+                "On Track" if status == "green" else "At Risk" if status == "amber" else "Critical"
+            )
+            st.markdown(
+                f"""
                 <div style="text-align: center; margin-top: 16px;">
-                    <span style="background: {status_color}30; color: {status_color}; padding: 8px 20px; 
+                    <span style="background: {status_color}30; color: {status_color}; padding: 8px 20px;
                                 border-radius: 8px; font-size: 15px; font-weight: 600;">
                         {status_text} • Target: 70/100
                     </span>
                 </div>
-            """, unsafe_allow_html=True)
-        
+            """,
+                unsafe_allow_html=True,
+            )
+
         spacer("lg")
-        
+
         # Helper function for smart KPI value formatting
         def format_kpi_value(kpi_id: str, val: float) -> str:
             """Format KPI value with appropriate unit and scale."""
             if val is None:
                 return "N/A"
-            
+
             # Percentage KPIs - always show %
             percentage_kpis = [
-                "gdp_growth", "unemployment_rate", "renewable_share", 
-                "waste_recycling_rate", "water_efficiency", "forest_coverage"
+                "gdp_growth",
+                "unemployment_rate",
+                "renewable_share",
+                "waste_recycling_rate",
+                "water_efficiency",
+                "forest_coverage",
             ]
             if kpi_id in percentage_kpis or "rate" in kpi_id or "share" in kpi_id:
                 return f"{val:.1f}%"
-            
+
             # Currency/monetary KPIs (in millions SAR) - show B or M
             monetary_kpis = ["gdp_total", "foreign_investment", "fdi"]
             if kpi_id in monetary_kpis:
                 if abs(val) >= 1_000_000:
-                    return f"{val/1_000_000:.1f}T SAR"  # Trillions
+                    return f"{val / 1_000_000:.1f}T SAR"  # Trillions
                 elif abs(val) >= 1_000:
-                    return f"{val/1_000:.1f}B SAR"  # Billions
+                    return f"{val / 1_000:.1f}B SAR"  # Billions
                 else:
                     return f"{val:.1f}M SAR"  # Millions
-            
+
             # Population (in millions)
             if kpi_id == "population":
                 if abs(val) >= 1:
                     return f"{val:.1f}M"
                 else:
-                    return f"{val*1000:.0f}K"
-            
+                    return f"{val * 1000:.0f}K"
+
             # Jobs count (in thousands)
             if kpi_id == "green_jobs":
                 if abs(val) >= 1000:
-                    return f"{val/1000:.1f}M"
+                    return f"{val / 1000:.1f}M"
                 else:
                     return f"{val:.1f}K"
-            
+
             # CO2 emissions (Mt)
             if kpi_id == "co2_total":
                 return f"{val:.1f} Mt"
-            
+
             # Energy intensity (MJ/$)
             if kpi_id == "energy_intensity":
                 return f"{val:.1f} MJ/$"
-            
+
             # Index values (0-100 scale typically)
             index_kpis = [
-                "sustainability_index", "economic_complexity", "export_diversity_index",
-                "skills_gap_index", "social_progress_score", "digital_readiness",
-                "innovation_index", "co2_index", "air_quality_index"
+                "sustainability_index",
+                "economic_complexity",
+                "export_diversity_index",
+                "skills_gap_index",
+                "social_progress_score",
+                "digital_readiness",
+                "innovation_index",
+                "co2_index",
+                "air_quality_index",
             ]
             if kpi_id in index_kpis or "index" in kpi_id or "score" in kpi_id:
                 return f"{val:.1f}"
-            
+
             # Default: smart formatting based on magnitude
             if abs(val) >= 1_000_000_000:
-                return f"{val/1_000_000_000:.1f}B"
+                return f"{val / 1_000_000_000:.1f}B"
             elif abs(val) >= 1_000_000:
-                return f"{val/1_000_000:.1f}M"
+                return f"{val / 1_000_000:.1f}M"
             elif abs(val) >= 1_000:
-                return f"{val/1_000:.1f}K"
+                return f"{val / 1_000:.1f}K"
             else:
                 return f"{val:.1f}"
-        
+
         # KPI Grids by Category
-        section_header("Economic Performance", "GDP, investment, and economic diversification metrics", "💼")
-        
-        economic_kpis = ["gdp_growth", "gdp_total", "foreign_investment", "export_diversity_index", "economic_complexity"]
+        section_header(
+            "Economic Performance", "GDP, investment, and economic diversification metrics", "💼"
+        )
+
+        economic_kpis = [
+            "gdp_growth",
+            "gdp_total",
+            "foreign_investment",
+            "export_diversity_index",
+            "economic_complexity",
+        ]
         cols = st.columns(5)
         for i, kpi_id in enumerate(economic_kpis):
             if kpi_id not in metrics:
@@ -330,11 +419,11 @@ with main_col:
                 label = kpi.get("display_name", kpi_id.replace("_", " ").title())
                 display_val = format_kpi_value(kpi_id, val)
                 metric_card(label, display_val, delta=change, status=status)
-        
+
         spacer("lg")
-        
+
         section_header("Labor & Skills", "Employment, workforce, and skills development", "👥")
-        
+
         labor_kpis = ["unemployment_rate", "green_jobs", "skills_gap_index", "population"]
         cols = st.columns(4)
         for i, kpi_id in enumerate(labor_kpis):
@@ -348,11 +437,13 @@ with main_col:
                 label = kpi.get("display_name", kpi_id.replace("_", " ").title())
                 display_val = format_kpi_value(kpi_id, val)
                 metric_card(label, display_val, delta=change, status=status)
-        
+
         spacer("lg")
-        
-        section_header("Social & Digital", "Social progress, digital readiness, and innovation", "🌐")
-        
+
+        section_header(
+            "Social & Digital", "Social progress, digital readiness, and innovation", "🌐"
+        )
+
         digital_kpis = ["social_progress_score", "digital_readiness", "innovation_index"]
         cols = st.columns(3)
         for i, kpi_id in enumerate(digital_kpis):
@@ -366,13 +457,23 @@ with main_col:
                 label = kpi.get("display_name", kpi_id.replace("_", " ").title())
                 display_val = format_kpi_value(kpi_id, val)
                 metric_card(label, display_val, delta=change, status=status)
-        
+
         spacer("lg")
-        
-        section_header("Environmental & Sustainability", "Climate, energy, and environmental metrics", "🌿")
-        
-        env_kpis = ["co2_index", "co2_total", "renewable_share", "energy_intensity",
-                   "water_efficiency", "waste_recycling_rate", "forest_coverage", "air_quality_index"]
+
+        section_header(
+            "Environmental & Sustainability", "Climate, energy, and environmental metrics", "🌿"
+        )
+
+        env_kpis = [
+            "co2_index",
+            "co2_total",
+            "renewable_share",
+            "energy_intensity",
+            "water_efficiency",
+            "waste_recycling_rate",
+            "forest_coverage",
+            "air_quality_index",
+        ]
         cols = st.columns(4)
         for i, kpi_id in enumerate(env_kpis):
             if kpi_id not in metrics:
@@ -385,8 +486,9 @@ with main_col:
                 label = kpi.get("display_name", kpi_id.replace("_", " ").title())
                 display_val = format_kpi_value(kpi_id, val)
                 metric_card(label, display_val, delta=change, status=status)
-        
+
     except Exception as e:
         st.error(f"Error loading KPI data: {str(e)}")
         import traceback
+
         st.code(traceback.format_exc())

@@ -27,11 +27,11 @@ st.set_page_config(
         "Report a bug": "mailto:sultan_mutep@hotmail.com",
         "About": """
         # Sustainable Economic Development Analytics Hub
-        
+
         **Ministry of Economy and Planning**
-        
+
         Data-driven insights for sustainable development policy.
-        
+
         Version 2.0.0 – Multi-Page Architecture
         """,
     },
@@ -70,24 +70,23 @@ def main() -> None:
     # Welcome page
     st.markdown("""
     # 📊 Sustainable Economic Development Analytics Hub
-    
+
     **Ministry of Economy and Planning**
-    
+
     Welcome to the Analytics Hub. Please use the sidebar navigation to access different sections:
-    
+
     - **📊 Dashboard** - Executive overview for ministerial briefing
     - **📈 KPIs** - Detailed key performance indicators
     - **📊 Trends** - Historical analysis and time-series
     - **📋 Data** - Data quality and raw data view
     - **🧠 Advanced Analytics** - ML forecasting and AI insights
     - **⚙️ Settings** - Configuration and preferences
-    
+
     ---
-    
+
     💡 **Tip:** Use the sidebar menu (▶️) to navigate between pages.
     """)
 
 
 if __name__ == "__main__":
     main()
-

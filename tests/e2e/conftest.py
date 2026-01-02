@@ -6,12 +6,13 @@ Ministry of Economy and Planning
 Configuration and fixtures for end-to-end testing of the Streamlit application.
 """
 
-import pytest
+import socket
 import subprocess
 import time
-import socket
-from typing import Generator
+from collections.abc import Generator
 from contextlib import contextmanager
+
+import pytest
 
 
 def is_port_in_use(port: int) -> bool:
@@ -24,10 +25,10 @@ def is_port_in_use(port: int) -> bool:
 def streamlit_server(port: int = 8502) -> Generator[str, None, None]:
     """
     Start a Streamlit server for testing.
-    
+
     Args:
         port: Port to run the server on
-        
+
     Yields:
         Server URL
     """
@@ -36,23 +37,28 @@ def streamlit_server(port: int = 8502) -> Generator[str, None, None]:
         # Assume server is already running
         yield f"http://localhost:{port}"
         return
-    
+
     # Start Streamlit server
     process = subprocess.Popen(
         [
-            "streamlit", "run", "streamlit_app.py",
-            "--server.port", str(port),
-            "--server.headless", "true",
-            "--server.address", "localhost",
+            "streamlit",
+            "run",
+            "streamlit_app.py",
+            "--server.port",
+            str(port),
+            "--server.headless",
+            "true",
+            "--server.address",
+            "localhost",
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
-    
+
     # Wait for server to start
     max_wait = 30
     start_time = time.time()
-    
+
     while time.time() - start_time < max_wait:
         if is_port_in_use(port):
             break
@@ -60,7 +66,7 @@ def streamlit_server(port: int = 8502) -> Generator[str, None, None]:
     else:
         process.kill()
         raise RuntimeError(f"Streamlit server did not start within {max_wait} seconds")
-    
+
     try:
         yield f"http://localhost:{port}"
     finally:

@@ -1,14 +1,13 @@
 """Anomaly detection wrapper providing the interface expected by tests."""
 
-from dataclasses import asdict
-from typing import List, Optional
-import numpy as np
 import pandas as pd
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 
 from analytics_hub_platform.domain.ml_services import (
     AnomalyDetector as CoreAnomalyDetector,
+)
+from analytics_hub_platform.domain.ml_services import (
     AnomalyResult,
     AnomalySeverity,
 )
@@ -39,7 +38,7 @@ class AnomalyDetector:
         kpi_id: str,
         region_id: str,
         higher_is_better: bool = True,
-    ) -> List[AnomalyResult]:
+    ) -> list[AnomalyResult]:
         return self._core.detect_anomalies(df, kpi_id, region_id, higher_is_better)
 
     def detect_isolation_forest_anomalies(
@@ -48,7 +47,7 @@ class AnomalyDetector:
         kpi_id: str,
         region_id: str,
         contamination: float = 0.1,
-    ) -> List[AnomalyResult]:
+    ) -> list[AnomalyResult]:
         """Lightweight IsolationForest-based detector for tests."""
         if df.empty:
             return []
@@ -66,7 +65,7 @@ class AnomalyDetector:
         )
         preds = iso.fit_predict(X)
 
-        anomalies: List[AnomalyResult] = []
+        anomalies: list[AnomalyResult] = []
         mean_val = float(data["value"].mean())
         std_val = float(data["value"].std() or 1.0)
 
@@ -78,11 +77,7 @@ class AnomalyDetector:
             actual = float(row["value"])
             z_score = (actual - mean_val) / std_val if std_val else 0.0
             direction = "high" if actual >= mean_val else "low"
-            severity = (
-                AnomalySeverity.CRITICAL
-                if abs(z_score) >= 3.5
-                else AnomalySeverity.WARNING
-            )
+            severity = AnomalySeverity.CRITICAL if abs(z_score) >= 3.5 else AnomalySeverity.WARNING
 
             anomalies.append(
                 AnomalyResult(

@@ -5,13 +5,14 @@ Sustainable Economic Development Analytics Hub
 Shared fixtures and configuration for tests.
 """
 
-import pytest
-import pandas as pd
-import numpy as np
-from datetime import datetime, timezone
-from pathlib import Path
-import tempfile
 import os
+import tempfile
+from datetime import UTC, datetime
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import pytest
 
 # Ensure test environment
 os.environ["ANALYTICS_HUB_ENV"] = "test"
@@ -35,34 +36,36 @@ def sample_indicator_data():
     regions = ["Riyadh", "Eastern Province", "Makkah", "Madinah", "Qassim"]
     years = [2023, 2024]
     quarters = [1, 2, 3, 4]
-    
+
     data = []
     for year in years:
         for quarter in quarters:
             for region in regions:
-                data.append({
-                    "tenant_id": "test_tenant",
-                    "year": year,
-                    "quarter": quarter,
-                    "region": region,
-                    "sustainability_index": np.random.uniform(50, 80),
-                    "co2_per_gdp": np.random.uniform(0.3, 0.6),
-                    "co2_per_capita": np.random.uniform(15, 20),
-                    "renewable_energy_pct": np.random.uniform(5, 20),
-                    "green_investment_pct": np.random.uniform(2, 10),
-                    "energy_intensity": np.random.uniform(4, 6),
-                    "water_efficiency": np.random.uniform(60, 80),
-                    "recycling_rate": np.random.uniform(10, 30),
-                    "waste_diversion_rate": np.random.uniform(20, 40),
-                    "green_building_pct": np.random.uniform(5, 15),
-                    "public_transit_pct": np.random.uniform(10, 25),
-                    "green_jobs_pct": np.random.uniform(2, 8),
-                    "gdp_growth": np.random.uniform(2, 5),
-                    "employment_rate": np.random.uniform(88, 95),
-                    "data_quality_score": np.random.uniform(70, 95),
-                    "created_at": datetime.now(timezone.utc).isoformat(),
-                })
-    
+                data.append(
+                    {
+                        "tenant_id": "test_tenant",
+                        "year": year,
+                        "quarter": quarter,
+                        "region": region,
+                        "sustainability_index": np.random.uniform(50, 80),
+                        "co2_per_gdp": np.random.uniform(0.3, 0.6),
+                        "co2_per_capita": np.random.uniform(15, 20),
+                        "renewable_energy_pct": np.random.uniform(5, 20),
+                        "green_investment_pct": np.random.uniform(2, 10),
+                        "energy_intensity": np.random.uniform(4, 6),
+                        "water_efficiency": np.random.uniform(60, 80),
+                        "recycling_rate": np.random.uniform(10, 30),
+                        "waste_diversion_rate": np.random.uniform(20, 40),
+                        "green_building_pct": np.random.uniform(5, 15),
+                        "public_transit_pct": np.random.uniform(10, 25),
+                        "green_jobs_pct": np.random.uniform(2, 8),
+                        "gdp_growth": np.random.uniform(2, 5),
+                        "employment_rate": np.random.uniform(88, 95),
+                        "data_quality_score": np.random.uniform(70, 95),
+                        "created_at": datetime.now(UTC).isoformat(),
+                    }
+                )
+
     return pd.DataFrame(data)
 
 
@@ -95,7 +98,7 @@ def sample_kpi_thresholds():
 def sample_filter_params():
     """Sample filter parameters for testing."""
     from analytics_hub_platform.domain.models import FilterParams
-    
+
     return FilterParams(
         tenant_id="test_tenant",
         year=2024,
@@ -108,7 +111,7 @@ def sample_filter_params():
 def mock_settings():
     """Mock settings for testing."""
     from analytics_hub_platform.infrastructure.settings import Settings
-    
+
     return Settings(
         environment="test",
         debug=True,
@@ -121,11 +124,11 @@ def mock_settings():
 def mock_repository(sample_indicator_data):
     """Mock repository with sample data."""
     from unittest.mock import MagicMock
-    
+
     repo = MagicMock()
     repo.get_all_indicators.return_value = sample_indicator_data
     repo.get_latest_snapshot.return_value = sample_indicator_data.iloc[-5:]
-    
+
     return repo
 
 

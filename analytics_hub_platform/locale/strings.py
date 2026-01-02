@@ -6,14 +6,11 @@ Ministry of Economy and Planning
 String dictionaries for English and Arabic localization.
 """
 
-from typing import Dict, Optional
-
-from analytics_hub_platform.locale.en import STRINGS_EN
 from analytics_hub_platform.locale.ar import STRINGS_AR
-
+from analytics_hub_platform.locale.en import STRINGS_EN
 
 # All available locales
-LOCALES: Dict[str, Dict[str, str]] = {
+LOCALES: dict[str, dict[str, str]] = {
     "en": STRINGS_EN,
     "ar": STRINGS_AR,
 }
@@ -22,28 +19,28 @@ LOCALES: Dict[str, Dict[str, str]] = {
 DEFAULT_LOCALE = "en"
 
 
-def get_strings(language: str = "en") -> Dict[str, str]:
+def get_strings(language: str = "en") -> dict[str, str]:
     """
     Get all strings for a language.
-    
+
     Args:
         language: Language code (en/ar)
-    
+
     Returns:
         Dictionary of string key to translated value
     """
     return LOCALES.get(language, LOCALES[DEFAULT_LOCALE])
 
 
-def get_string(key: str, language: str = "en", default: Optional[str] = None) -> str:
+def get_string(key: str, language: str = "en", default: str | None = None) -> str:
     """
     Get a single string by key.
-    
+
     Args:
         key: String key
         language: Language code
         default: Default value if key not found
-    
+
     Returns:
         Translated string
     """
@@ -51,10 +48,10 @@ def get_string(key: str, language: str = "en", default: Optional[str] = None) ->
     return strings.get(key, default or key)
 
 
-def get_available_languages() -> Dict[str, str]:
+def get_available_languages() -> dict[str, str]:
     """
     Get available languages.
-    
+
     Returns:
         Dictionary of language codes to display names
     """
@@ -67,10 +64,10 @@ def get_available_languages() -> Dict[str, str]:
 def is_rtl(language: str) -> bool:
     """
     Check if language is right-to-left.
-    
+
     Args:
         language: Language code
-    
+
     Returns:
         True if RTL language
     """
@@ -81,12 +78,12 @@ def is_rtl(language: str) -> bool:
 def format_number(value: float, language: str = "en", decimals: int = 2) -> str:
     """
     Format number according to locale.
-    
+
     Args:
         value: Number to format
         language: Language code
         decimals: Decimal places
-    
+
     Returns:
         Formatted number string
     """
@@ -105,34 +102,44 @@ def format_number(value: float, language: str = "en", decimals: int = 2) -> str:
             else:
                 result += char
         return result
-    
+
     return f"{value:,.{decimals}f}"
 
 
 def format_date(date_str: str, language: str = "en") -> str:
     """
     Format date according to locale.
-    
+
     Args:
         date_str: ISO date string
         language: Language code
-    
+
     Returns:
         Formatted date string
     """
     from datetime import datetime
-    
+
     try:
         dt = datetime.fromisoformat(date_str)
-        
+
         if language == "ar":
             # Arabic month names
             arabic_months = [
-                "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
-                "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"
+                "يناير",
+                "فبراير",
+                "مارس",
+                "أبريل",
+                "مايو",
+                "يونيو",
+                "يوليو",
+                "أغسطس",
+                "سبتمبر",
+                "أكتوبر",
+                "نوفمبر",
+                "ديسمبر",
             ]
             return f"{dt.day} {arabic_months[dt.month - 1]} {dt.year}"
-        
+
         return dt.strftime("%B %d, %Y")
     except ValueError:
         return date_str
@@ -141,12 +148,12 @@ def format_date(date_str: str, language: str = "en") -> str:
 def format_quarter(year: int, quarter: int, language: str = "en") -> str:
     """
     Format quarter label.
-    
+
     Args:
         year: Year
         quarter: Quarter (1-4)
         language: Language code
-    
+
     Returns:
         Formatted quarter string
     """

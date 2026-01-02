@@ -9,9 +9,8 @@ Configuration values can be overridden via environment variables.
 
 import os
 from dataclasses import dataclass, field
-from pathlib import Path
-from typing import List, Optional
 from functools import lru_cache
+from pathlib import Path
 
 import yaml
 
@@ -19,12 +18,12 @@ import yaml
 @dataclass
 class DatabaseConfig:
     """Database configuration settings."""
-    
+
     url: str = "sqlite:///analytics_hub.db"
     echo: bool = False
     pool_size: int = 5
     max_overflow: int = 10
-    
+
     @classmethod
     def from_env(cls) -> "DatabaseConfig":
         """Create configuration from environment variables."""
@@ -39,17 +38,17 @@ class DatabaseConfig:
 @dataclass
 class SecurityConfig:
     """Security configuration settings."""
-    
+
     rate_limit_exports: int = 10  # Max exports per minute
     rate_limit_api: int = 100  # Max API calls per minute
     session_timeout_minutes: int = 60
-    
+
     # SSO Integration (stubs for future implementation)
     sso_enabled: bool = False
-    sso_provider: Optional[str] = None  # e.g., "azure_ad", "okta"
-    sso_tenant_id: Optional[str] = None
-    sso_client_id: Optional[str] = None
-    
+    sso_provider: str | None = None  # e.g., "azure_ad", "okta"
+    sso_tenant_id: str | None = None
+    sso_client_id: str | None = None
+
     @classmethod
     def from_env(cls) -> "SecurityConfig":
         """Create configuration from environment variables."""
@@ -67,11 +66,11 @@ class SecurityConfig:
 @dataclass
 class LoggingConfig:
     """Logging configuration settings."""
-    
+
     level: str = "INFO"
     format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    log_file: Optional[str] = None
-    
+    log_file: str | None = None
+
     @classmethod
     def from_env(cls) -> "LoggingConfig":
         """Create configuration from environment variables."""
@@ -84,13 +83,13 @@ class LoggingConfig:
 @dataclass
 class ModuleConfig:
     """Module enablement configuration."""
-    
+
     # Core modules that can be enabled/disabled
     sustainability_enabled: bool = True
     economic_development_enabled: bool = True
     labor_skills_enabled: bool = True
     data_quality_enabled: bool = True
-    
+
     @classmethod
     def from_env(cls) -> "ModuleConfig":
         """Create configuration from environment variables."""
@@ -100,8 +99,8 @@ class ModuleConfig:
             labor_skills_enabled=os.getenv("MODULE_LABOR", "true").lower() == "true",
             data_quality_enabled=os.getenv("MODULE_DATA_QUALITY", "true").lower() == "true",
         )
-    
-    def get_enabled_modules(self) -> List[str]:
+
+    def get_enabled_modules(self) -> list[str]:
         """Return list of enabled module names."""
         modules = []
         if self.sustainability_enabled:
@@ -119,65 +118,69 @@ class ModuleConfig:
 class AppConfig:
     """
     Main application configuration.
-    
+
     This configuration class centralizes all settings for the Analytics Hub platform.
     Values can be set via environment variables or programmatically.
-    
+
     Extension Point: Add new configuration sections here for additional platform features.
     """
-    
+
     # Application metadata
     app_name: str = "Sustainable Economic Development Analytics Hub"
     app_version: str = "1.0.0"
     environment: str = "development"
-    
+
     # Default tenant (Ministry of Economy and Planning)
     default_tenant_id: str = "mep-sa-001"
     default_tenant_name: str = "Ministry of Economy and Planning"
-    
+
     # Paths
     base_path: Path = field(default_factory=lambda: Path(__file__).parent.parent)
-    kpi_catalog_path: Path = field(default_factory=lambda: Path(__file__).parent / "kpi_catalog.yaml")
+    kpi_catalog_path: Path = field(
+        default_factory=lambda: Path(__file__).parent / "kpi_catalog.yaml"
+    )
     exports_path: Path = field(default_factory=lambda: Path(__file__).parent.parent / "exports")
-    
+
     # Sub-configurations
     database: DatabaseConfig = field(default_factory=DatabaseConfig)
     security: SecurityConfig = field(default_factory=SecurityConfig)
     logging: LoggingConfig = field(default_factory=LoggingConfig)
     modules: ModuleConfig = field(default_factory=ModuleConfig)
-    
+
     # Feature flags
     enable_exports: bool = True
     enable_api: bool = True
     enable_caching: bool = True
     cache_ttl_seconds: int = 300  # 5 minutes
-    
+
     # Default filter values
     default_year: int = 2024
     default_quarter: int = 4
     default_region: str = "all"
     default_language: str = "en"
-    
+
     # Available regions (Saudi Arabia administrative regions)
-    regions: List[str] = field(default_factory=lambda: [
-        "Riyadh",
-        "Makkah",
-        "Madinah",
-        "Eastern Province",
-        "Qassim",
-        "Asir",
-        "Tabuk",
-        "Hail",
-        "Northern Borders",
-        "Jazan",
-        "Najran",
-        "Al Bahah",
-        "Al Jawf",
-    ])
-    
+    regions: list[str] = field(
+        default_factory=lambda: [
+            "Riyadh",
+            "Makkah",
+            "Madinah",
+            "Eastern Province",
+            "Qassim",
+            "Asir",
+            "Tabuk",
+            "Hail",
+            "Northern Borders",
+            "Jazan",
+            "Najran",
+            "Al Bahah",
+            "Al Jawf",
+        ]
+    )
+
     # Available years for data
-    available_years: List[int] = field(default_factory=lambda: [2020, 2021, 2022, 2023, 2024])
-    
+    available_years: list[int] = field(default_factory=lambda: [2020, 2021, 2022, 2023, 2024])
+
     @classmethod
     def from_env(cls) -> "AppConfig":
         """Create configuration from environment variables."""
@@ -186,7 +189,9 @@ class AppConfig:
             app_version=os.getenv("APP_VERSION", "1.0.0"),
             environment=os.getenv("ENVIRONMENT", "development"),
             default_tenant_id=os.getenv("DEFAULT_TENANT_ID", "mep-sa-001"),
-            default_tenant_name=os.getenv("DEFAULT_TENANT_NAME", "Ministry of Economy and Planning"),
+            default_tenant_name=os.getenv(
+                "DEFAULT_TENANT_NAME", "Ministry of Economy and Planning"
+            ),
             database=DatabaseConfig.from_env(),
             security=SecurityConfig.from_env(),
             logging=LoggingConfig.from_env(),
@@ -196,14 +201,14 @@ class AppConfig:
             enable_caching=os.getenv("ENABLE_CACHING", "true").lower() == "true",
             cache_ttl_seconds=int(os.getenv("CACHE_TTL_SECONDS", "300")),
         )
-    
+
     def load_kpi_catalog(self) -> dict:
         """Load KPI catalog from YAML file."""
         if self.kpi_catalog_path.exists():
-            with open(self.kpi_catalog_path, "r", encoding="utf-8") as f:
+            with open(self.kpi_catalog_path, encoding="utf-8") as f:
                 return yaml.safe_load(f)
         return {"kpis": []}
-    
+
     def ensure_exports_path(self) -> Path:
         """Ensure exports directory exists and return path."""
         self.exports_path.mkdir(parents=True, exist_ok=True)
@@ -211,14 +216,14 @@ class AppConfig:
 
 
 # Global configuration instance (singleton pattern)
-_config_instance: Optional[AppConfig] = None
+_config_instance: AppConfig | None = None
 
 
 @lru_cache(maxsize=1)
 def get_config() -> AppConfig:
     """
     Get the global application configuration.
-    
+
     Uses LRU cache to ensure single instance.
     Call get_config.cache_clear() to reload configuration.
     """

@@ -4,43 +4,43 @@ Centralized color palette, spacing, and design tokens for consistent styling
 """
 
 from dataclasses import dataclass
-from typing import Dict
 
 
 @dataclass
 class ColorPalette:
     """Dark 3D theme color palette"""
+
     # Primary brand colors
     purple: str = "#a855f7"  # Primary accent
-    cyan: str = "#22d3ee"    # Secondary accent
-    pink: str = "#ec4899"    # Tertiary accent
-    
+    cyan: str = "#22d3ee"  # Secondary accent
+    pink: str = "#ec4899"  # Tertiary accent
+
     # Background colors
     bg_primary: str = "#0f1629"
     bg_secondary: str = "#1a1f3a"
     bg_card: str = "#1e2340"
     bg_card_hover: str = "#252a4a"
-    
+
     # Text colors
     text_primary: str = "#f1f5f9"
     text_secondary: str = "#e2e8f0"
     text_muted: str = "#94a3b8"
     text_disabled: str = "#64748b"
-    
+
     # Status colors
     status_green: str = "#10b981"
     status_amber: str = "#f59e0b"
     status_red: str = "#ef4444"
-    
+
     # Border and divider colors
     border: str = "#2d3555"
     border_light: str = "rgba(255,255,255,0.08)"
     divider: str = "rgba(255,255,255,0.06)"
-    
+
     # Gradient colors
     gradient_start: str = "#a855f7"
     gradient_end: str = "#22d3ee"
-    
+
     # Chart colors
     chart_purple: str = "#a855f7"
     chart_cyan: str = "#22d3ee"
@@ -55,6 +55,7 @@ class ColorPalette:
 @dataclass
 class Spacing:
     """Consistent spacing units"""
+
     xs: str = "4px"
     sm: str = "8px"
     md: str = "16px"
@@ -66,6 +67,7 @@ class Spacing:
 @dataclass
 class Typography:
     """Typography scale"""
+
     heading1: str = "24px"
     heading2: str = "20px"
     heading3: str = "18px"
@@ -78,6 +80,7 @@ class Typography:
 @dataclass
 class BorderRadius:
     """Border radius scale"""
+
     sm: str = "6px"
     md: str = "8px"
     lg: str = "12px"
@@ -88,6 +91,7 @@ class BorderRadius:
 @dataclass
 class Shadows:
     """Box shadow definitions"""
+
     sm: str = "0 1px 2px 0 rgba(0, 0, 0, 0.05)"
     md: str = "0 4px 6px -1px rgba(0, 0, 0, 0.1)"
     lg: str = "0 10px 15px -3px rgba(0, 0, 0, 0.1)"
