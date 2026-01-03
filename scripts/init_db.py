@@ -40,8 +40,7 @@ def main():
         print("✅ Database initialized successfully!")
         print()
         print("You can now run the application:")
-        print("  streamlit run app.py          # Dashboard")
-        print("  uvicorn main_api:app --reload # API")
+        print("  streamlit run streamlit_app.py  # Multi-page dashboard")
         print()
     except Exception as e:
         print(f"❌ Error initializing database: {e}")

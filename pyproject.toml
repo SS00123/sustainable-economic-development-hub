@@ -96,7 +96,6 @@ all = [
 
 [project.scripts]
 analytics-hub = "analytics_hub_platform.app:main"
-analytics-api = "analytics_hub_platform.main_api:run_server"
 
 [tool.setuptools.packages.find]
 where = ["."]
