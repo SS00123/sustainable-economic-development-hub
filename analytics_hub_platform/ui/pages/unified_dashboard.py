@@ -28,8 +28,11 @@ from analytics_hub_platform.config.theme import get_theme
 from analytics_hub_platform.domain.indicators import calculate_change
 from analytics_hub_platform.domain.models import FilterParams
 from analytics_hub_platform.domain.services import (
+    get_available_periods,
+    get_available_regions,
     get_data_quality_metrics,
     get_executive_snapshot,
+    get_regional_comparison,
     get_sustainability_summary,
 )
 from analytics_hub_platform.infrastructure.repository import get_repository
@@ -54,10 +57,15 @@ from analytics_hub_platform.ui.dark_components import (
 )
 
 # Import dark theme components
-from analytics_hub_platform.ui.dark_theme import get_dark_theme
+from analytics_hub_platform.ui.dark_theme import get_dark_theme, hex_to_rgba
 from analytics_hub_platform.utils.dataframe_adapter import add_period_column
 from analytics_hub_platform.utils.kpi_utils import get_kpi_unit
 from analytics_hub_platform.utils.narratives import generate_executive_narrative
+
+
+def _hex_to_rgba(hex_color: str, alpha: float) -> str:
+    """Convert hex color to rgba for Plotly compatibility."""
+    return hex_to_rgba(hex_color, alpha)
 
 # =============================================================================
 # CACHED DATA LOADING
@@ -132,12 +140,46 @@ def render_unified_dashboard() -> None:
     # Also get legacy theme for compatibility with existing helper functions
     theme = get_theme()
 
-    # Get filter state from session
-    year = st.session_state.get("year", 2024)
-    quarter = st.session_state.get("quarter", 4)
+    settings = get_settings()
+
+    # Load full indicator dataset once (cached) to derive available filters
+    df_all = load_indicator_data(settings.default_tenant_id)
+
+    # Available periods and regions from real data (no hard-coded lists)
+    periods = get_available_periods(df_all)
+    regions_available = get_available_regions(df_all)
+
+    if not periods:
+        st.error("No data available to render dashboard. Please ingest indicator data.")
+        return
+
+    latest_period = periods[0]
+
+    # Get filter state from session, defaulting to latest available
+    year = st.session_state.get("year", latest_period["year"])
+    quarter = st.session_state.get("quarter", latest_period["quarter"])
     region = st.session_state.get("region", "all")
     language = st.session_state.get("language", "en")
     get_strings(language)
+
+    # Ensure selected filters exist in available data; if not, reset to latest
+    if not any(p["year"] == year and p["quarter"] == quarter for p in periods):
+        year = latest_period["year"]
+        quarter = latest_period["quarter"]
+        st.session_state["year"] = year
+        st.session_state["quarter"] = quarter
+
+    # Build dynamic filter options
+    year_options = sorted({p["year"] for p in periods}, reverse=True)
+    quarter_options = [p["quarter"] for p in periods if p["year"] == year]
+    quarter_options = sorted(set(quarter_options)) or [quarter]
+    region_options = ["all"] + sorted(regions_available)
+
+    # Last updated timestamp from dataset
+    last_updated = None
+    if "load_timestamp" in df_all.columns and len(df_all.dropna(subset=["load_timestamp"])) > 0:
+        last_updated_ts = df_all["load_timestamp"].max()
+        last_updated = last_updated_ts.strftime("%B %d, %Y %H:%M") if pd.notna(last_updated_ts) else None
 
     # =========================================================================
     # DARK 3D LAYOUT: SIDEBAR + MAIN CONTENT
@@ -148,12 +190,10 @@ def render_unified_dashboard() -> None:
         render_sidebar(active="Dashboard")
 
     with main_col:
-        # Top header bar
-        datetime.now().date()
-        period_text = f"Q{quarter} {year}"
-        render_dark_header(title="Overview", period_text=f"Period: {period_text}")
-
-        st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+        # =========================================================================
+        # SECTION 1: PAGE HEADER (PDF Design Spec)
+        # =========================================================================
+        _render_page_header(dark_theme, year, quarter, last_updated)
 
         # Compact filter row
         with st.container():
@@ -161,35 +201,22 @@ def render_unified_dashboard() -> None:
             with col_f1:
                 new_year = st.selectbox(
                     "Year",
-                    [2024, 2023, 2022, 2021],
-                    index=[2024, 2023, 2022, 2021].index(year),
+                    year_options,
+                    index=year_options.index(year),
                     key="filter_year",
                 )
             with col_f2:
                 new_quarter = st.selectbox(
-                    "Quarter", [1, 2, 3, 4], index=quarter - 1, key="filter_quarter"
+                    "Quarter",
+                    quarter_options,
+                    index=quarter_options.index(quarter) if quarter in quarter_options else 0,
+                    key="filter_quarter",
                 )
             with col_f3:
-                regions = [
-                    "all",
-                    "Riyadh",
-                    "Makkah",
-                    "Eastern Province",
-                    "Madinah",
-                    "Qassim",
-                    "Asir",
-                    "Tabuk",
-                    "Hail",
-                    "Northern Borders",
-                    "Jazan",
-                    "Najran",
-                    "Al Bahah",
-                    "Al Jawf",
-                ]
                 new_region = st.selectbox(
                     "Region",
-                    regions,
-                    index=regions.index(region) if region in regions else 0,
+                    region_options,
+                    index=region_options.index(region) if region in region_options else 0,
                     key="filter_region",
                 )
             with col_f4:
@@ -217,8 +244,6 @@ def render_unified_dashboard() -> None:
         # LOAD DATA (using cached functions for performance)
         # =========================================================================
         try:
-            settings = get_settings()
-
             # Use cached data loading for better performance
             region_param = region if region != "all" else None
             dashboard_data = get_dashboard_data(
@@ -244,6 +269,18 @@ def render_unified_dashboard() -> None:
             catalog = _get_catalog()
             metrics = _enrich_metrics(df, snapshot.get("metrics", {}), filter_params, catalog)
 
+            # Previous period filters for deltas (real data, no placeholders)
+            prev_quarter = quarter - 1 if quarter > 1 else 4
+            prev_year = year if quarter > 1 else year - 1
+            prev_filters = FilterParams(
+                tenant_id=settings.default_tenant_id,
+                year=prev_year,
+                quarter=prev_quarter,
+                region=region_param,
+            )
+            sustainability_prev = get_sustainability_summary(df, prev_filters, language)
+            quality_prev = get_data_quality_metrics(df, prev_filters)
+
         except Exception as e:
             st.error(f"Error loading data: {str(e)}")
             return
@@ -256,7 +293,7 @@ def render_unified_dashboard() -> None:
             return
 
         # =========================================================================
-        # TOP ROW: ECONOMIC ACTIVITY INDEX + BY REGION
+        # HERO METRICS SECTION (PDF Design Spec: Sustainability Gauge + 4 KPI Cards)
         # =========================================================================
         st.markdown(
             "<div id='section-overview' style='height: 16px;'></div>", unsafe_allow_html=True
@@ -267,157 +304,72 @@ def render_unified_dashboard() -> None:
         amber_count = sum(1 for m in metrics.values() if m.get("status") == "amber")
         red_count = sum(1 for m in metrics.values() if m.get("status") == "red")
 
-        # Status overview row
+        # Hero section: Sustainability Gauge (4 cols) + KPI Cards (8 cols as 2x2 grid)
+        hero_gauge_col, hero_kpi_col = st.columns([0.38, 0.62], gap="large")
+
+        with hero_gauge_col:
+            # Render the enhanced sustainability gauge
+            _render_hero_sustainability_gauge(
+                sustainability,
+                sustainability_prev,
+                dark_theme,
+            )
+
+        with hero_kpi_col:
+            # 2x2 grid of hero KPI cards
+            _render_hero_kpi_cards(metrics, dark_theme, quality_metrics, quality_prev)
+
+        st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
+
+        # Status overview row (compact)
         card_open("Performance Overview", f"Q{quarter} {year} • {len(metrics)} KPIs tracked")
         render_status_overview(green_count, amber_count, red_count)
         card_close()
 
-        st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
-
-        r1c1, r1c2 = st.columns([0.48, 0.52], gap="large")
-
-        with r1c1:
-            # Economic Activity Index - Line chart with trend
-            _render_activity_chart(df, year, quarter, region, dark_theme)
-
-        with r1c2:
-            # By Region - Horizontal bars
-            _render_region_bars(df, year, quarter, dark_theme)
-
-        st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
 
         # =========================================================================
-        # MIDDLE ROW: ENERGY MIX DONUT + MINI METRICS
+        # PILLAR PERFORMANCE GRID (PDF Design Spec)
         # =========================================================================
-        r2c1, r2c2 = st.columns([0.42, 0.58], gap="large")
 
-        with r2c1:
-            # Energy Mix / Sustainability breakdown donut
-            _render_energy_mix_donut(sustainability, dark_theme)
-
-        with r2c2:
-            # Two mini metric cards side by side
-            m1, m2 = st.columns(2, gap="large")
-
-            # Green Jobs metric
-            green_jobs = metrics.get("green_jobs", {})
-            green_jobs_val = green_jobs.get("value", 0) or 0
-            green_jobs_delta = green_jobs.get("change_percent", 0) or 0
-
-            with m1:
-                render_mini_metric(
-                    title="New Green Jobs",
-                    value=f"{green_jobs_val / 1000:.1f}K"
-                    if green_jobs_val >= 1000
-                    else str(int(green_jobs_val)),
-                    delta=float(green_jobs_delta),
-                    ring_percent=min(90, max(10, green_jobs_val / 1000)),
-                    subtitle="vs previous period",
-                )
-
-            # FDI / Investment metric
-            fdi = metrics.get("foreign_investment", metrics.get("fdi", {}))
-            fdi_val = fdi.get("value", 0) or 0
-            fdi_delta = fdi.get("change_percent", 0) or 0
-
-            with m2:
-                render_mini_metric(
-                    title="Foreign Investment",
-                    value=f"{fdi_val:.1f}B" if fdi_val >= 1 else f"{fdi_val * 1000:.0f}M",
-                    delta=float(fdi_delta),
-                    ring_percent=min(95, max(15, 50 + fdi_delta)),
-                    subtitle="FDI inflows",
-                )
-
-        st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
-
-        # =========================================================================
-        # BOTTOM ROW: YEARLY KPIs GROUPED BAR CHART
-        # =========================================================================
-        _render_yearly_kpis_chart(df, region, dark_theme)
-
-        st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
-
-        # =========================================================================
-        # SECTION: SUSTAINABILITY INDEX
-        # =========================================================================
+        # Economic Performance Pillar
         render_dark_section_title(
-            "🌱 Sustainability Index", "Composite score for sustainable development"
+            "💼 Economic Performance", "GDP, Investment, and Economic Complexity"
         )
-        _render_sustainability_gauge(sustainability, dark_theme, theme)
+        _render_pillar_section_economic(df, metrics, year, quarter, region, dark_theme)
 
-        st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
 
-        # =========================================================================
-        # SECTION: KEY PERFORMANCE INDICATORS
-        # =========================================================================
-        st.markdown("<div id='section-kpis'></div>", unsafe_allow_html=True)
+        # Labor & Skills + Social & Digital (side by side per PDF)
+        labor_col, social_col = st.columns(2, gap="large")
+
+        with labor_col:
+            render_dark_section_title(
+                "👥 Labor & Skills", "Employment and workforce development"
+            )
+            _render_pillar_section_labor(df, metrics, year, quarter, dark_theme)
+
+        with social_col:
+            render_dark_section_title(
+                "🌐 Social & Digital", "Digital readiness and innovation"
+            )
+            _render_pillar_section_social(df, metrics, year, quarter, dark_theme)
+
+        st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
+
+        # Environmental & Sustainability Pillar
         render_dark_section_title(
-            "📊 Key Performance Indicators", f"Core metrics for Q{quarter} {year}"
+            "🌿 Environmental & Sustainability", "Climate, energy, and resource efficiency"
         )
+        _render_pillar_section_environmental(df, metrics, year, quarter, region, dark_theme)
 
-        # KPI subgrids by category
-        _render_dark_subgrid(
-            "Economic Performance",
-            [
-                "gdp_growth",
-                "gdp_total",
-                "foreign_investment",
-                "export_diversity_index",
-                "economic_complexity",
-            ],
-            metrics,
-            dark_theme,
-        )
-
-        _render_dark_subgrid(
-            "Labor & Skills",
-            [
-                "unemployment_rate",
-                "green_jobs",
-                "skills_gap_index",
-                "population",
-            ],
-            metrics,
-            dark_theme,
-            columns=4,
-        )
-
-        _render_dark_subgrid(
-            "Social & Digital",
-            [
-                "social_progress_score",
-                "digital_readiness",
-                "innovation_index",
-            ],
-            metrics,
-            dark_theme,
-            columns=3,
-        )
-
-        _render_dark_subgrid(
-            "Environmental & Sustainability",
-            [
-                "sustainability_index",
-                "co2_index",
-                "co2_total",
-                "renewable_share",
-                "energy_intensity",
-                "water_efficiency",
-                "waste_recycling_rate",
-                "forest_coverage",
-                "air_quality_index",
-            ],
-            metrics,
-            dark_theme,
-            columns=4,
-        )
-
-        st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
 
         # =========================================================================
-        # SECTION 3: TREND ANALYSIS
+        # ANALYTICAL BAND: TREND ANALYSIS + REGIONAL COMPARISON
         # =========================================================================
+
+        # Section: Trend Analysis
         st.markdown("<div id='section-trends' style='height: 8px;'></div>", unsafe_allow_html=True)
         render_dark_section_title("📈 Trend Analysis", "Historical performance over time")
         st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
@@ -497,110 +449,26 @@ def render_unified_dashboard() -> None:
         card_close()
 
         # =========================================================================
-        # SECTION 4: REGIONAL COMPARISON
+        # SECTION 4: REGIONAL COMPARISON (PDF Design Spec)
         # =========================================================================
         st.markdown("<div id='section-regions' style='height: 8px;'></div>", unsafe_allow_html=True)
-        render_dark_section_title("🗺️ Regional Comparison", "Performance across regions")
+        render_dark_section_title(
+            "🗺️ Regional Comparison", "Performance by region with geospatial view"
+        )
         st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
 
-        card_open("Regional Performance", "Sustainability index by region")
-        regional_df = df[(df["year"] == year) & (df["quarter"] == quarter)].copy()
+        filter_params = FilterParams(
+            tenant_id=settings.default_tenant_id,
+            year=year,
+            quarter=quarter,
+            region=region if region != "all" else None,
+        )
+        _render_regional_comparison_section(df, filter_params, region, dark_theme)
 
-        if len(regional_df) > 0:
-            reg_col1, reg_col2 = st.columns([2, 1])
+        # Dedicated Saudi map section (separate from bars/stats)
+        _render_saudi_map_section(df, filter_params, dark_theme, language)
 
-            with reg_col1:
-                regional_agg = (
-                    regional_df.groupby("region")
-                    .agg({"sustainability_index": "mean"})
-                    .reset_index()
-                )
-                regional_agg = regional_agg.sort_values("sustainability_index", ascending=True)
-                national_avg = regional_agg["sustainability_index"].mean()
-
-                colors = [
-                    dark_theme.colors.purple if v >= national_avg else dark_theme.colors.pink
-                    for v in regional_agg["sustainability_index"]
-                ]
-
-                fig = go.Figure()
-                fig.add_trace(
-                    go.Bar(
-                        y=regional_agg["region"],
-                        x=regional_agg["sustainability_index"],
-                        orientation="h",
-                        marker_color=colors,
-                        text=[f"{v:.1f}" for v in regional_agg["sustainability_index"]],
-                        textposition="outside",
-                        textfont={"color": "#94a3b8"},
-                    )
-                )
-                fig.add_vline(
-                    x=national_avg,
-                    line_dash="dash",
-                    line_color=dark_theme.colors.cyan,
-                    annotation_text=f"Avg: {national_avg:.1f}",
-                    annotation_font={"color": "#94a3b8"},
-                )
-
-                apply_dark_chart_layout(fig, height=400)
-                fig.update_layout(
-                    xaxis={
-                        "showgrid": True,
-                        "gridcolor": "rgba(255,255,255,0.05)",
-                        "title": "Sustainability Index",
-                        "title_font": {"color": "#94a3b8"},
-                    },
-                    yaxis={"showgrid": False},
-                )
-                st.plotly_chart(fig, width="stretch")
-
-            with reg_col2:
-                st.markdown(
-                    """
-                    <div style="color: #e2e8f0; font-size: 14px; font-weight: 600; margin-bottom: 16px;">
-                        📊 Regional Statistics
-                    </div>
-                """,
-                    unsafe_allow_html=True,
-                )
-
-                for label, value in [
-                    ("National Average", f"{national_avg:.1f}"),
-                    ("Highest", f"{regional_agg['sustainability_index'].max():.1f}"),
-                    ("Lowest", f"{regional_agg['sustainability_index'].min():.1f}"),
-                ]:
-                    st.markdown(
-                        f"""
-                        <div style="background: #1e2340; padding: 12px; border-radius: 8px; margin-bottom: 8px;">
-                            <div style="font-size: 11px; color: #94a3b8;">{label}</div>
-                            <div style="font-size: 18px; font-weight: 700; color: #f1f5f9;">{value}</div>
-                        </div>
-                    """,
-                        unsafe_allow_html=True,
-                    )
-
-                st.markdown(
-                    """
-                    <div style="color: #e2e8f0; font-size: 13px; font-weight: 600; margin: 16px 0 8px 0;">
-                        🏆 Top 3 Regions
-                    </div>
-                """,
-                    unsafe_allow_html=True,
-                )
-                for _, row in regional_agg.tail(3).iloc[::-1].iterrows():
-                    st.markdown(
-                        f"""
-                        <div style="color: #94a3b8; font-size: 12px; padding: 4px 0;">
-                            • {row["region"]}: <b style="color: #a855f7;">{row["sustainability_index"]:.1f}</b>
-                        </div>
-                    """,
-                        unsafe_allow_html=True,
-                    )
-        else:
-            st.info("No regional data available for this period.")
-
-        card_close()
+        st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
 
         # =========================================================================
         # SECTION 5: ENVIRONMENTAL TRENDS
@@ -684,75 +552,30 @@ def render_unified_dashboard() -> None:
         card_close()
 
         # =========================================================================
-        # SECTION 6: DATA QUALITY
+        # SECTION 6: DATA QUALITY & COMPLETENESS (PDF Design Spec)
         # =========================================================================
         st.markdown(
             "<div id='section-data-quality' style='height: 8px;'></div>", unsafe_allow_html=True
         )
-        render_dark_section_title("✅ Data Quality Overview", "Completeness and quality metrics")
+        render_dark_section_title(
+            "✅ Data Quality & Completeness", "Overall data health and completeness metrics"
+        )
         st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
 
-        card_open("Quality Metrics", "Data health indicators")
+        _render_data_quality_section(quality_metrics, quality_prev, metrics, df, catalog, dark_theme)
 
-        dq_col1, dq_col2, dq_col3, dq_col4 = st.columns(4)
-        completeness = quality_metrics.get("completeness", 0)
-        avg_quality = quality_metrics.get("avg_quality_score") or 0
-        records = quality_metrics.get("records_count", 0)
-        last_update = quality_metrics.get("last_update")
-        update_str = last_update.strftime("%Y-%m-%d") if last_update else "N/A"
-
-        for col, (label_text, value_text) in zip(
-            [dq_col1, dq_col2, dq_col3, dq_col4],
-            [
-                ("Completeness", f"{completeness:.1f}%"),
-                ("Quality Score", f"{avg_quality:.1f}"),
-                ("Records", f"{records:,}"),
-                ("Last Updated", update_str),
-            ],
-            strict=False,
-        ):
-            with col:
-                st.markdown(
-                    f"""
-                    <div style="background: #1e2340; padding: 16px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase;">{label_text}</div>
-                        <div style="font-size: 20px; font-weight: 700; color: #f1f5f9; margin-top: 4px;">{value_text}</div>
-                    </div>
-                """,
-                    unsafe_allow_html=True,
-                )
-
-        card_close()
+        st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
 
         # =========================================================================
-        # SECTION 7: INSIGHTS & NARRATIVE
+        # SECTION 7: KEY INSIGHTS (PDF Design Spec - Two Columns)
         # =========================================================================
         st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
-        render_dark_section_title("💡 Strategic Insights", "AI-generated executive briefing")
+        render_dark_section_title(
+            "💡 Key Insights", "Top improvements and areas needing attention"
+        )
         st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
 
-        card_open("Executive Summary", "Key findings and recommendations")
-        narrative = generate_executive_narrative(snapshot, language)
-
-        st.markdown(
-            f"""
-            <div style="
-                background: linear-gradient(145deg, #1e2340 0%, #252a4a 100%);
-                border-left: 4px solid {dark_theme.colors.purple};
-                border-radius: 8px;
-                padding: 24px;
-                line-height: 1.8;
-                font-size: 14px;
-                color: #cbd5e1;
-                max-height: 500px;
-                overflow-y: auto;
-            ">
-                {narrative.replace(chr(10), "<br>")}
-            </div>
-        """,
-            unsafe_allow_html=True,
-        )
-        card_close()
+        _render_key_insights_section(snapshot, metrics, dark_theme, language)
 
         # =========================================================================
         # ADVANCED ANALYTICS SECTION
@@ -821,6 +644,84 @@ def render_unified_dashboard() -> None:
         """,
             unsafe_allow_html=True,
         )
+
+
+# =============================================================================
+# PDF DESIGN SPEC - PAGE HEADER
+# =============================================================================
+
+
+def _render_page_header(
+    dark_theme, year: int, quarter: int, last_updated: str | None = None
+) -> None:
+    """
+    Render the page header matching PDF design spec.
+
+    Includes:
+    - Main title: "Sustainable Economic Development Analytics Hub"
+    - Subtitle: "Ministry of Economy and Planning • Executive Dashboard"
+    - Data freshness text
+    """
+    from datetime import datetime
+
+    if last_updated is None:
+        last_updated = datetime.now().strftime("%B %d, %Y at %H:%M")
+
+    st.markdown(
+        f"""
+        <div style="
+            background: linear-gradient(135deg, {dark_theme.colors.bg_card} 0%, {dark_theme.colors.bg_card_alt} 100%);
+            border: 1px solid {dark_theme.colors.border};
+            border-radius: {dark_theme.grid.card_radius};
+            padding: 28px 32px;
+            margin-bottom: 24px;
+        ">
+            <h1 style="
+                font-size: {dark_theme.typography.page_title};
+                font-weight: {dark_theme.typography.weight_bold};
+                color: {dark_theme.colors.text_primary};
+                margin: 0 0 8px 0;
+                font-family: {dark_theme.typography.font_family};
+            ">
+                📊 Sustainable Economic Development Analytics Hub
+            </h1>
+            <p style="
+                font-size: {dark_theme.typography.body};
+                color: {dark_theme.colors.text_secondary};
+                margin: 0 0 16px 0;
+            ">
+                Ministry of Economy and Planning • Executive Dashboard
+            </p>
+            <div style="
+                display: flex;
+                align-items: center;
+                gap: 24px;
+                flex-wrap: wrap;
+            ">
+                <span style="
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    background: {dark_theme.colors.primary}15;
+                    padding: 8px 16px;
+                    border-radius: 20px;
+                    font-size: 13px;
+                    color: {dark_theme.colors.primary};
+                    font-weight: 500;
+                ">
+                    📅 Q{quarter} {year}
+                </span>
+                <span style="
+                    font-size: 12px;
+                    color: {dark_theme.colors.text_muted};
+                ">
+                    🕐 Data last updated: {last_updated}
+                </span>
+            </div>
+        </div>
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 # =============================================================================
@@ -1211,6 +1112,1048 @@ def _render_section_title(title: str, subtitle: str = "") -> None:
         """,
         unsafe_allow_html=True,
     )
+
+
+# =============================================================================
+# PDF DESIGN SPEC - HERO METRICS SECTION
+# =============================================================================
+
+
+def _render_hero_sustainability_gauge(
+    sustainability: dict,
+    sustainability_prev: dict | None,
+    dark_theme,
+) -> None:
+    """
+    Render the Hero Sustainability Index gauge matching PDF design spec.
+
+    Features:
+    - Radial gauge with 0-100 range
+    - Red (0-40), Amber (40-70), Green (70-100) zones
+    - Main value with delta and status pill
+    """
+    card_open("Sustainability Index", "National composite score")
+
+    index_value = sustainability.get("index", 0) or 0
+    status = sustainability.get("status", "unknown")
+    previous_value = None
+    if sustainability_prev and sustainability_prev.get("status") != "no_data":
+        previous_value = sustainability_prev.get("index")
+
+    delta = ((index_value - previous_value) / previous_value * 100) if previous_value else 0
+
+    # Create radial gauge with PDF color zones
+    fig = go.Figure(
+        go.Indicator(
+            mode="gauge+number+delta",
+            value=index_value,
+            number={
+                "suffix": "",
+                "font": {"size": 48, "color": "#FFFFFF", "family": "Inter"},
+            },
+            delta={
+                "reference": previous_value,
+                "relative": True,
+                "valueformat": ".1%",
+                "font": {"size": 14},
+                "increasing": {"color": dark_theme.colors.green},
+                "decreasing": {"color": dark_theme.colors.red},
+            },
+            domain={"x": [0, 1], "y": [0.1, 1]},
+            gauge={
+                "axis": {
+                    "range": [0, 100],
+                    "tickwidth": 1,
+                    "tickcolor": "rgba(255,255,255,0.3)",
+                    "dtick": 20,
+                    "tickfont": {"size": 11, "color": "rgba(255,255,255,0.6)"},
+                },
+                "bar": {"color": dark_theme.colors.primary, "thickness": 0.75},
+                "bgcolor": "rgba(30, 41, 59, 0.8)",
+                "borderwidth": 0,
+                "steps": [
+                    {"range": [0, 40], "color": "rgba(239, 68, 68, 0.25)"},
+                    {"range": [40, 70], "color": "rgba(245, 158, 11, 0.25)"},
+                    {"range": [70, 100], "color": "rgba(16, 185, 129, 0.25)"},
+                ],
+                "threshold": {
+                    "line": {"color": dark_theme.colors.green, "width": 3},
+                    "thickness": 0.8,
+                    "value": 70,
+                },
+            },
+        )
+    )
+
+    fig.update_layout(
+        height=280,
+        margin={"l": 20, "r": 20, "t": 30, "b": 10},
+        paper_bgcolor="rgba(0,0,0,0)",
+        font={"family": "Inter, sans-serif"},
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    # Status pill
+    status_color = dark_theme.colors.get_status_color(status)
+    status_text = (
+        "On Track" if status == "green" else "Watch" if status == "amber" else "Needs Attention"
+    )
+    st.markdown(
+        f"""
+        <div style="text-align: center; margin-top: -8px;">
+            <span style="
+                background: {status_color}20;
+                color: {status_color};
+                padding: 8px 20px;
+                border-radius: 20px;
+                font-size: 13px;
+                font-weight: 600;
+                border: 1px solid {status_color}40;
+            ">
+                {status_text}
+            </span>
+        </div>
+    """,
+        unsafe_allow_html=True,
+    )
+    card_close()
+
+
+def _render_hero_kpi_cards(
+    metrics: dict, dark_theme, quality_metrics: dict, quality_prev: dict | None
+) -> None:
+    """
+    Render the 2x2 grid of hero KPI cards matching PDF design spec.
+
+    Cards: GDP Growth, Unemployment Rate, CO2 Intensity, Data Quality Score
+    """
+    # Define hero KPIs with their domain colors
+    hero_kpis = [
+        ("gdp_growth", "GDP Growth", dark_theme.colors.domain_economic, "📈"),
+        ("unemployment_rate", "Unemployment Rate", dark_theme.colors.domain_labor, "👥"),
+        ("co2_index", "CO₂ Intensity", dark_theme.colors.domain_environmental, "🌱"),
+        ("data_quality", "Data Quality", dark_theme.colors.domain_data_quality, "✅"),
+    ]
+
+    # 2x2 grid
+    row1 = st.columns(2, gap="medium")
+    row2 = st.columns(2, gap="medium")
+    cols = [row1[0], row1[1], row2[0], row2[1]]
+
+    for i, (kpi_id, label, domain_color, icon) in enumerate(hero_kpis):
+        with cols[i]:
+            if kpi_id == "data_quality":
+                # Special case for data quality score
+                val = quality_metrics.get("completeness", 0)
+                prev_val = None
+                if quality_prev and quality_prev.get("completeness") is not None:
+                    prev_val = quality_prev.get("completeness")
+                delta = ((val - prev_val) / prev_val * 100) if prev_val else 0
+                status = "green" if val >= 80 else "amber" if val >= 60 else "red"
+            else:
+                kpi = metrics.get(kpi_id, {})
+                val = kpi.get("value", 0) or 0
+                delta = kpi.get("change_percent", 0) or 0
+                status = kpi.get("status", "neutral")
+
+            _render_hero_kpi_card(
+                label=label,
+                value=val,
+                delta=delta,
+                status=status,
+                domain_color=domain_color,
+                icon=icon,
+                kpi_id=kpi_id,
+                dark_theme=dark_theme,
+            )
+
+
+def _render_hero_kpi_card(
+    label: str,
+    value: float,
+    delta: float,
+    status: str,
+    domain_color: str,
+    icon: str,
+    kpi_id: str,
+    dark_theme,
+) -> None:
+    """Render a single hero KPI card with domain color accent."""
+    # Format value
+    if kpi_id in ["gdp_growth", "unemployment_rate"]:
+        display_val = f"{value:.1f}%"
+    elif kpi_id == "data_quality":
+        display_val = f"{value:.0f}%"
+    elif abs(value) >= 1_000_000_000:
+        display_val = f"{value / 1_000_000_000:.1f}B"
+    elif abs(value) >= 1_000_000:
+        display_val = f"{value / 1_000_000:.1f}M"
+    elif abs(value) >= 1_000:
+        display_val = f"{value / 1_000:.1f}K"
+    else:
+        display_val = f"{value:.1f}"
+
+    # Delta formatting
+    delta_color = dark_theme.colors.green if delta >= 0 else dark_theme.colors.red
+    # Invert for unemployment (lower is better)
+    if kpi_id == "unemployment_rate":
+        delta_color = dark_theme.colors.red if delta >= 0 else dark_theme.colors.green
+    delta_icon = "▲" if delta >= 0 else "▼"
+
+    status_color = dark_theme.colors.get_status_color(status)
+
+    st.markdown(
+        f"""
+        <div style="
+            background: linear-gradient(145deg, {dark_theme.colors.bg_card} 0%, {dark_theme.colors.bg_card_alt} 100%);
+            border: 1px solid {domain_color}30;
+            border-left: 4px solid {domain_color};
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 12px;
+            position: relative;
+        ">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <span style="font-size: 18px;">{icon}</span>
+                <span style="font-size: 12px; color: {dark_theme.colors.text_muted};
+                           text-transform: uppercase; letter-spacing: 0.5px;">{label}</span>
+            </div>
+            <div style="font-size: 32px; font-weight: 700; color: {dark_theme.colors.text_primary};
+                       margin-bottom: 8px;">{display_val}</div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="color: {delta_color}; font-size: 13px; font-weight: 600;">
+                    {delta_icon} {abs(delta):.1f}%
+                </span>
+                <span style="
+                    background: {status_color}20;
+                    color: {status_color};
+                    padding: 3px 10px;
+                    border-radius: 12px;
+                    font-size: 11px;
+                    font-weight: 500;
+                ">vs prev quarter</span>
+            </div>
+        </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
+
+# =============================================================================
+# PDF DESIGN SPEC - PILLAR SECTIONS
+# =============================================================================
+
+
+def _render_pillar_section_economic(
+    df: pd.DataFrame, metrics: dict, year: int, quarter: int, region: str, dark_theme
+) -> None:
+    """Render Economic Performance pillar section matching PDF design."""
+    domain_color = dark_theme.colors.domain_economic
+
+    # Top row: 5 KPI cards
+    economic_kpis = [
+        "gdp_growth",
+        "gdp_total",
+        "foreign_investment",
+        "export_diversity_index",
+        "economic_complexity",
+    ]
+
+    card_open("Economic Indicators", "Key economic performance metrics")
+    cols = st.columns(5, gap="small")
+    for i, kpi_id in enumerate(economic_kpis):
+        with cols[i]:
+            _render_pillar_kpi_card(metrics.get(kpi_id, {}), kpi_id, domain_color, dark_theme)
+
+    st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
+
+    # GDP Growth vs Target chart
+    _render_gdp_trend_chart(df, year, quarter, region, dark_theme, domain_color)
+    card_close()
+
+
+def _render_pillar_section_labor(
+    df: pd.DataFrame, metrics: dict, year: int, quarter: int, dark_theme
+) -> None:
+    """Render Labor & Skills pillar section matching PDF design."""
+    domain_color = dark_theme.colors.domain_labor
+
+    labor_kpis = ["unemployment_rate", "green_jobs", "skills_gap_index", "population"]
+
+    card_open("Labor Metrics", "Workforce indicators")
+    cols = st.columns(2, gap="small")
+    for i, kpi_id in enumerate(labor_kpis):
+        with cols[i % 2]:
+            _render_pillar_kpi_card(metrics.get(kpi_id, {}), kpi_id, domain_color, dark_theme)
+
+    # Mini unemployment trend chart
+    _render_mini_trend_chart(df, "unemployment_rate", "Unemployment Trend", dark_theme, domain_color)
+    card_close()
+
+
+def _render_pillar_section_social(
+    df: pd.DataFrame, metrics: dict, year: int, quarter: int, dark_theme
+) -> None:
+    """Render Social & Digital pillar section matching PDF design."""
+    domain_color = dark_theme.colors.domain_social
+
+    social_kpis = ["digital_readiness", "social_progress_score", "innovation_index"]
+
+    card_open("Social & Digital Metrics", "Digital transformation indicators")
+    cols = st.columns(3, gap="small")
+    for i, kpi_id in enumerate(social_kpis):
+        with cols[i]:
+            _render_pillar_kpi_card(metrics.get(kpi_id, {}), kpi_id, domain_color, dark_theme)
+
+    # Mini digital readiness chart
+    _render_mini_trend_chart(
+        df, "digital_readiness", "Digital Readiness Trend", dark_theme, domain_color
+    )
+    card_close()
+
+
+def _render_pillar_section_environmental(
+    df: pd.DataFrame, metrics: dict, year: int, quarter: int, region: str, dark_theme
+) -> None:
+    """Render Environmental & Sustainability pillar section matching PDF design."""
+    domain_color = dark_theme.colors.domain_environmental
+
+    env_kpis = [
+        "sustainability_index",
+        "co2_index",
+        "renewable_share",
+        "energy_intensity",
+        "water_efficiency",
+        "waste_recycling_rate",
+        "forest_coverage",
+        "air_quality_index",
+    ]
+
+    card_open("Environmental Indicators", "Sustainability and environmental metrics")
+    # 4x2 grid
+    row1 = st.columns(4, gap="small")
+    row2 = st.columns(4, gap="small")
+    all_cols = row1 + row2
+
+    for i, kpi_id in enumerate(env_kpis):
+        if i < len(all_cols):
+            with all_cols[i]:
+                _render_pillar_kpi_card(metrics.get(kpi_id, {}), kpi_id, domain_color, dark_theme)
+
+    st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
+
+    # Multi-line environmental trends chart
+    _render_environmental_trends_chart(df, dark_theme, domain_color)
+    card_close()
+
+
+def _render_pillar_kpi_card(kpi: dict, kpi_id: str, domain_color: str, dark_theme) -> None:
+    """Render a KPI card for pillar sections with domain color accent."""
+    val = kpi.get("value", 0) or 0
+    change = kpi.get("change_percent", 0) or 0
+    status = kpi.get("status", "neutral")
+    label = kpi.get("name", kpi.get("display_name", kpi_id.replace("_", " ").title()))
+    unit = get_kpi_unit(kpi_id)
+
+    # Format value
+    if abs(val) >= 1_000_000_000:
+        display_val = f"{val / 1_000_000_000:.1f}B"
+    elif abs(val) >= 1_000_000:
+        display_val = f"{val / 1_000_000:.1f}M"
+    elif abs(val) >= 1_000:
+        display_val = f"{val / 1_000:.1f}K"
+    else:
+        display_val = f"{val:.1f}" if isinstance(val, float) else str(val)
+
+    if unit and unit not in display_val:
+        display_val = f"{display_val}{unit}"
+
+    delta_color = dark_theme.colors.green if change >= 0 else dark_theme.colors.red
+    delta_icon = "↑" if change >= 0 else "↓"
+
+    st.markdown(
+        f"""
+        <div style="
+            background: linear-gradient(145deg, {dark_theme.colors.bg_card} 0%, {dark_theme.colors.bg_card_alt} 100%);
+            border: 1px solid {domain_color}25;
+            border-top: 3px solid {domain_color};
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 8px;
+            min-height: 100px;
+        ">
+            <div style="font-size: 10px; color: {dark_theme.colors.text_muted};
+                       text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 6px;">
+                {label}
+            </div>
+            <div style="font-size: 20px; font-weight: 700; color: {dark_theme.colors.text_primary};">
+                {display_val}
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; margin-top: 6px;">
+                <span style="color: {delta_color}; font-size: 11px; font-weight: 600;">
+                    {delta_icon} {abs(change):.1f}%
+                </span>
+            </div>
+        </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
+
+def _render_gdp_trend_chart(
+    df: pd.DataFrame, year: int, quarter: int, region: str, dark_theme, domain_color: str
+) -> None:
+    """Render GDP Growth vs Target line chart."""
+    trend_df = df.copy()
+    if region != "all":
+        trend_df = trend_df[trend_df["region"] == region]
+
+    gdp_trend = (
+        trend_df.groupby(["year", "quarter"])
+        .agg({"gdp_growth": "mean"})
+        .reset_index()
+    )
+    gdp_trend = add_period_column(gdp_trend)
+    gdp_trend = gdp_trend.sort_values(["year", "quarter"])
+
+    if len(gdp_trend) < 2:
+        return
+
+    fig = go.Figure()
+
+    # Actual GDP Growth
+    fig.add_trace(
+        go.Scatter(
+            x=gdp_trend["period"],
+            y=gdp_trend["gdp_growth"],
+            mode="lines+markers",
+            name="Actual",
+            line={"color": domain_color, "width": 3},
+            marker={"size": 8, "color": domain_color},
+            fill="tozeroy",
+            fillcolor=_hex_to_rgba(domain_color, 0.15),
+        )
+    )
+
+    # Target line (3.5% example)
+    target_value = 3.5
+    fig.add_hline(
+        y=target_value,
+        line_dash="dash",
+        line_color=dark_theme.colors.green,
+        annotation_text=f"Target: {target_value}%",
+        annotation_font={"color": dark_theme.colors.text_muted},
+    )
+
+    apply_dark_chart_layout(fig, height=200)
+    fig.update_layout(
+        showlegend=True,
+        legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "x": 0.5, "xanchor": "center"},
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+
+def _render_mini_trend_chart(
+    df: pd.DataFrame, kpi_id: str, title: str, dark_theme, domain_color: str
+) -> None:
+    """Render a mini trend chart for pillar sections."""
+    if kpi_id not in df.columns:
+        return
+
+    trend_data = df.groupby(["year", "quarter"]).agg({kpi_id: "mean"}).reset_index()
+    trend_data = add_period_column(trend_data)
+    trend_data = trend_data.sort_values(["year", "quarter"]).tail(8)
+
+    if len(trend_data) < 2:
+        return
+
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=trend_data["period"],
+            y=trend_data[kpi_id],
+            mode="lines+markers",
+            line={"color": domain_color, "width": 2},
+            marker={"size": 5, "color": domain_color},
+            fill="tozeroy",
+            fillcolor=_hex_to_rgba(domain_color, 0.1),
+        )
+    )
+
+    apply_dark_chart_layout(fig, height=120)
+    fig.update_layout(
+        showlegend=False,
+        margin={"l": 10, "r": 10, "t": 10, "b": 20},
+        xaxis={"tickfont": {"size": 9}},
+        yaxis={"tickfont": {"size": 9}},
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+
+def _render_environmental_trends_chart(df: pd.DataFrame, dark_theme, domain_color: str) -> None:
+    """Render multi-line environmental trends chart."""
+    env_kpis = ["co2_index", "renewable_share", "energy_intensity", "water_efficiency"]
+    available_kpis = [k for k in env_kpis if k in df.columns]
+
+    if not available_kpis:
+        return
+
+    trend_env = (
+        df.groupby(["year", "quarter"])
+        .agg({k: "mean" for k in available_kpis})
+        .reset_index()
+    )
+    trend_env = add_period_column(trend_env)
+    trend_env = trend_env.sort_values(["year", "quarter"])
+
+    # Normalize to 0-100 scale for comparison
+    for kpi in available_kpis:
+        min_val = trend_env[kpi].min()
+        max_val = trend_env[kpi].max()
+        if max_val > min_val:
+            trend_env[f"{kpi}_norm"] = (trend_env[kpi] - min_val) / (max_val - min_val) * 100
+        else:
+            trend_env[f"{kpi}_norm"] = 50
+
+    fig = go.Figure()
+    colors = [domain_color, dark_theme.colors.cyan, dark_theme.colors.purple, dark_theme.colors.amber]
+    labels = {
+        "co2_index": "CO₂ Intensity",
+        "renewable_share": "Renewables",
+        "energy_intensity": "Energy Intensity",
+        "water_efficiency": "Water Efficiency",
+    }
+
+    for i, kpi in enumerate(available_kpis):
+        fig.add_trace(
+            go.Scatter(
+                x=trend_env["period"],
+                y=trend_env[f"{kpi}_norm"],
+                mode="lines+markers",
+                name=labels.get(kpi, kpi),
+                line={"color": colors[i % len(colors)], "width": 2},
+                marker={"size": 5},
+            )
+        )
+
+    apply_dark_chart_layout(fig, height=200)
+    fig.update_layout(
+        showlegend=True,
+        legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "x": 0.5, "xanchor": "center"},
+        yaxis_title="Normalized Index",
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+
+# =============================================================================
+# PDF DESIGN SPEC - DATA QUALITY SECTION
+# =============================================================================
+
+
+def _render_data_quality_section(
+    quality_metrics: dict,
+    quality_prev: dict | None,
+    metrics: dict,
+    df: pd.DataFrame,
+    catalog: dict,
+    dark_theme,
+) -> None:
+    """Render Data Quality & Completeness section using real completeness data."""
+    domain_color = dark_theme.colors.domain_data_quality
+
+    # Main layout: Large score card + metadata + completeness chart
+    score_col, details_col = st.columns([0.35, 0.65], gap="large")
+
+    with score_col:
+        completeness = quality_metrics.get("completeness", 0)
+        avg_quality = quality_metrics.get("avg_quality_score") or completeness
+        prev_quality = None
+        if quality_prev and quality_prev.get("avg_quality_score") is not None:
+            prev_quality = quality_prev.get("avg_quality_score")
+        elif quality_prev and quality_prev.get("completeness") is not None:
+            prev_quality = quality_prev.get("completeness")
+
+        delta = ((avg_quality - prev_quality) / prev_quality * 100) if prev_quality else 0
+
+        card_open("Overall Quality Score", "Data completeness and accuracy")
+        st.markdown(
+            f"""
+            <div style="text-align: center; padding: 20px 0;">
+                <div style="font-size: 56px; font-weight: 700; color: {dark_theme.colors.green};">
+                    {avg_quality:.0f}%
+                </div>
+                <div style="
+                    display: inline-block;
+                    background: {dark_theme.colors.green}20;
+                    color: {dark_theme.colors.green};
+                    padding: 6px 16px;
+                    border-radius: 16px;
+                    font-size: 13px;
+                    margin-top: 8px;
+                ">
+                    {"▲" if delta >= 0 else "▼"} {abs(delta):.1f}% vs previous
+                </div>
+            </div>
+        """,
+            unsafe_allow_html=True,
+        )
+        card_close()
+
+    with details_col:
+        # Metadata panel
+        card_open("Data Health Summary", "Key quality indicators")
+
+        records = quality_metrics.get("records_count", 0)
+        last_update = quality_metrics.get("last_update")
+        if not last_update and "load_timestamp" in df.columns:
+            ts = df["load_timestamp"].dropna()
+            last_update = ts.max() if len(ts) else None
+        update_str = last_update.strftime("%Y-%m-%d %H:%M") if last_update else "N/A"
+
+        total_indicators = len([k for k in catalog.get("kpis", []) if k.get("id")])
+        source_count = df["source_system"].dropna().nunique() if "source_system" in df else 0
+        complete_count = sum(1 for m in metrics.values() if m.get("value") is not None)
+        missing_count = sum(1 for m in metrics.values() if m.get("value") is None)
+
+        # Metadata grid
+        meta_cols = st.columns(4, gap="small")
+        meta_items = [
+            ("Last Updated", update_str, "🕐"),
+            ("Total Indicators", str(total_indicators), "📊"),
+            ("Complete", str(complete_count), "✅"),
+            ("Data Sources", str(source_count or "-") , "🔗"),
+        ]
+
+        for i, (label, value, icon) in enumerate(meta_items):
+            with meta_cols[i]:
+                st.markdown(
+                    f"""
+                    <div style="
+                        background: {dark_theme.colors.bg_card};
+                        padding: 12px;
+                        border-radius: 8px;
+                        text-align: center;
+                        border: 1px solid {dark_theme.colors.border};
+                    ">
+                        <div style="font-size: 16px; margin-bottom: 4px;">{icon}</div>
+                        <div style="font-size: 16px; font-weight: 700; color: {dark_theme.colors.text_primary};">
+                            {value}
+                        </div>
+                        <div style="font-size: 10px; color: {dark_theme.colors.text_muted}; text-transform: uppercase;">
+                            {label}
+                        </div>
+                    </div>
+                """,
+                    unsafe_allow_html=True,
+                )
+
+        st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
+
+        # Completeness by pillar stacked bar chart using real missing data
+        pillar_completeness = _build_pillar_completeness(quality_metrics, catalog)
+        _render_completeness_by_pillar_chart(pillar_completeness, dark_theme)
+        card_close()
+
+
+def _build_pillar_completeness(quality_metrics: dict, catalog: dict) -> dict:
+    """Compute completeness buckets per pillar from real missing_by_kpi data."""
+    missing_by_kpi = quality_metrics.get("missing_by_kpi", {}) or {}
+    category_lookup = {k.get("id"): k.get("category", "other") for k in catalog.get("kpis", [])}
+    label_lookup = {
+        "economic": "Economic",
+        "labor": "Labor & Skills",
+        "social": "Social & Digital",
+        "environmental": "Environmental",
+        "data_quality": "Data Quality",
+    }
+
+    pillar_data: dict[str, dict[str, float]] = {}
+
+    for kpi_id, stats in missing_by_kpi.items():
+        category = category_lookup.get(kpi_id, "other")
+        pillar_label = label_lookup.get(category, "Other")
+        pillar_entry = pillar_data.setdefault(pillar_label, {"complete": 0, "partial": 0, "missing": 0, "total": 0})
+
+        total = stats.get("total", 0)
+        missing = stats.get("missing", 0)
+        if total == 0:
+            continue
+        missing_pct = stats.get("percent", (missing / total) * 100 if total else 0)
+
+        pillar_entry["total"] += 1
+        if missing_pct == 0:
+            pillar_entry["complete"] += 1
+        elif missing_pct < 40:
+            pillar_entry["partial"] += 1
+        else:
+            pillar_entry["missing"] += 1
+
+    # Convert counts to percentages of KPIs per pillar
+    for pillar, data in pillar_data.items():
+        total = data.get("total", 1)
+        data["complete"] = round(data.get("complete", 0) / total * 100, 1)
+        data["partial"] = round(data.get("partial", 0) / total * 100, 1)
+        data["missing"] = round(data.get("missing", 0) / total * 100, 1)
+
+    return pillar_data
+
+
+def _render_completeness_by_pillar_chart(pillar_data: dict, dark_theme) -> None:
+    """Render 100% stacked bar chart for completeness by pillar using real metrics."""
+    if not pillar_data:
+        st.info("No completeness data available for this period.")
+        return
+
+    pillars = list(pillar_data.keys())
+
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Bar(
+            name="Complete",
+            y=pillars,
+            x=[pillar_data[p]["complete"] for p in pillars],
+            orientation="h",
+            marker_color=dark_theme.colors.green,
+            text=[f"{pillar_data[p]['complete']:.0f}%" for p in pillars],
+            textposition="inside",
+            textfont={"color": "white", "size": 11},
+        )
+    )
+
+    fig.add_trace(
+        go.Bar(
+            name="Partial",
+            y=pillars,
+            x=[pillar_data[p]["partial"] for p in pillars],
+            orientation="h",
+            marker_color=dark_theme.colors.amber,
+            text=[f"{pillar_data[p]['partial']:.0f}%" for p in pillars],
+            textposition="inside",
+            textfont={"color": "white", "size": 11},
+        )
+    )
+
+    fig.add_trace(
+        go.Bar(
+            name="Missing",
+            y=pillars,
+            x=[pillar_data[p]["missing"] for p in pillars],
+            orientation="h",
+            marker_color=dark_theme.colors.red,
+            text=[f"{pillar_data[p]['missing']:.0f}%" for p in pillars],
+            textposition="inside",
+            textfont={"color": "white", "size": 11},
+        )
+    )
+
+    apply_dark_chart_layout(fig, height=200)
+    fig.update_layout(
+        barmode="stack",
+        xaxis={"range": [0, 100], "title": "Completeness %"},
+        yaxis={"categoryorder": "array", "categoryarray": pillars[::-1]},
+        legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "x": 0.5, "xanchor": "center"},
+        bargap=0.3,
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+
+# =============================================================================
+# PDF DESIGN SPEC - REGIONAL COMPARISON + SAUDI MAP ROW
+# =============================================================================
+
+
+def _render_regional_comparison_section(
+    df: pd.DataFrame, filter_params: FilterParams, selected_region: str, dark_theme
+) -> None:
+    """Horizontal bar chart + stats panel using real regional comparison data."""
+    comparison = get_regional_comparison(df, "sustainability_index", filter_params)
+
+    if not comparison.regions:
+        st.info("No regional data available for this period.")
+        return
+
+    data = pd.DataFrame(
+        {
+            "region": comparison.regions,
+            "value": comparison.values,
+            "status": [s.value if hasattr(s, "value") else str(s) for s in comparison.statuses],
+        }
+    ).sort_values("value", ascending=False)
+
+    national_avg = comparison.national_average or 0
+    highlight_region = selected_region if selected_region != "all" else None
+
+    colors = [
+        dark_theme.colors.cyan if (highlight_region and r == highlight_region) else "#334155"
+        for r in data["region"]
+    ]
+
+    fig = go.Figure(
+        go.Bar(
+            y=data["region"],
+            x=data["value"],
+            orientation="h",
+            marker={"color": colors, "line": {"width": 0}},
+            text=[f"{v:.1f}" for v in data["value"]],
+            textposition="outside",
+            textfont={"color": "#F8FAFC", "size": 12},
+            hovertemplate="<b>%{y}</b><br>Index: %{x:.1f}<extra></extra>",
+        )
+    )
+
+    fig.add_vline(
+        x=national_avg,
+        line_dash="dash",
+        line_color="#64748B",
+        annotation_text=f"National Avg: {national_avg:.1f}",
+        annotation_font={"color": "#94A3B8", "size": 11},
+    )
+
+    apply_dark_chart_layout(fig, height=420)
+    fig.update_layout(
+        xaxis={
+            "showgrid": True,
+            "gridcolor": "rgba(148,163,184,0.2)",
+            "range": [0, max(100, max(data["value"]) + 5)],
+            "title": "Sustainability Index",
+        },
+        yaxis={"showgrid": False, "autorange": "reversed"},
+        bargap=0.35,
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    # Stats panel (Highest, Lowest, National Avg)
+    highest_row = data.loc[data["value"].idxmax()]
+    lowest_row = data.loc[data["value"].idxmin()]
+
+    stats = [
+        ("Highest Region", highest_row["region"], highest_row["value"], dark_theme.colors.green),
+        ("Lowest Region", lowest_row["region"], lowest_row["value"], dark_theme.colors.red),
+        ("National Avg", "Saudi Arabia", national_avg, dark_theme.colors.cyan),
+    ]
+
+    stat_cols = st.columns(len(stats), gap="medium")
+    for col, (label, region_name, value, color) in zip(stat_cols, stats, strict=False):
+        with col:
+            st.markdown(
+                f"""
+                <div style="
+                    background: linear-gradient(145deg, #0B1120 0%, #1E293B 100%);
+                    border: 1px solid {color}40;
+                    border-radius: 14px;
+                    padding: 18px;
+                    text-align: center;
+                    box-shadow: {dark_theme.shadows.card_sm};
+                ">
+                    <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: {dark_theme.colors.text_muted};">{label}</div>
+                    <div style="font-size: 18px; font-weight: 700; color: {dark_theme.colors.text_primary}; margin-top: 6px;">{region_name}</div>
+                    <div style="font-size: 26px; font-weight: 800; color: {color};">{value:.1f}</div>
+                </div>
+            """,
+                unsafe_allow_html=True,
+            )
+
+
+def _region_name_to_id(name: str) -> str | None:
+    mapping = {
+        "Riyadh": "riyadh",
+        "Makkah": "makkah",
+        "Eastern Province": "eastern",
+        "Madinah": "madinah",
+        "Qassim": "qassim",
+        "Asir": "asir",
+        "Tabuk": "tabuk",
+        "Hail": "hail",
+        "Northern Borders": "northern_borders",
+        "Jazan": "jazan",
+        "Najran": "najran",
+        "Al Bahah": "bahah",
+        "Al Jawf": "jawf",
+    }
+    return mapping.get(name)
+
+
+def _render_saudi_map_section(
+    df: pd.DataFrame, filter_params: FilterParams, dark_theme, language: str
+) -> None:
+    """Geospatial choropleth for Saudi regions using real sustainability index values."""
+    from analytics_hub_platform.ui.components.saudi_map import render_saudi_map
+
+    # Always show all regions for the selected period
+    period_filters = FilterParams(
+        tenant_id=filter_params.tenant_id,
+        year=filter_params.year,
+        quarter=filter_params.quarter,
+        region=None,
+    )
+
+    comparison = get_regional_comparison(df, "sustainability_index", period_filters)
+    if not comparison.regions:
+        st.info("No regional data available for this period.")
+        return
+
+    map_df = pd.DataFrame({"region": comparison.regions, "value": comparison.values})
+    map_df["region_id"] = map_df["region"].apply(_region_name_to_id)
+    map_df = map_df.dropna(subset=["region_id"])
+
+    card_open("Saudi Arabia Map", "Choropleth by sustainability index")
+    try:
+        fig_map = render_saudi_map(
+            region_data=map_df.rename(columns={"region_id": "region_id", "value": "value"}),
+            value_column="value",
+            title="",
+            height=420,
+            language=language,
+            use_three_tier=True,
+        )
+        st.plotly_chart(fig_map, use_container_width=True)
+    except Exception as e:
+        st.warning(f"Map rendering unavailable: {str(e)}")
+
+    period_df = df[(df["year"] == filter_params.year) & (df["quarter"] == filter_params.quarter)]
+    renewables_avg = period_df["renewable_share"].mean() if "renewable_share" in period_df else None
+    co2_avg = period_df["co2_index"].mean() if "co2_index" in period_df else None
+    above_target = (map_df["value"] >= 70).sum()
+
+    overlay_items = [
+        ("National Index", comparison.national_average, dark_theme.colors.cyan),
+        ("Regions ≥70", above_target, dark_theme.colors.green),
+        ("Avg Renewables", f"{renewables_avg:.1f}%" if renewables_avg is not None else "N/A", dark_theme.colors.green),
+    ]
+
+    overlay_cols = st.columns(len(overlay_items), gap="medium")
+    for col, (label, value, color) in zip(overlay_cols, overlay_items, strict=False):
+        with col:
+            st.markdown(
+                f"""
+                <div style="
+                    background: {color}15;
+                    border: 1px solid {color}40;
+                    border-radius: 12px;
+                    padding: 12px;
+                    text-align: center;
+                ">
+                    <div style="font-size: 11px; color: {dark_theme.colors.text_muted}; text-transform: uppercase;">{label}</div>
+                    <div style="font-size: 22px; font-weight: 700; color: {color};">{value}</div>
+                </div>
+            """,
+                unsafe_allow_html=True,
+            )
+    card_close()
+
+
+# =============================================================================
+# PDF DESIGN SPEC - KEY INSIGHTS SECTION
+# =============================================================================
+
+
+def _render_key_insights_section(
+    snapshot: dict, metrics: dict, dark_theme, language: str
+) -> None:
+    """Render Key Insights section with two columns matching PDF design."""
+    # Prefer domain-generated insights; fallback to metric deltas
+    improvements = snapshot.get("top_improvements") or []
+    attention_needed = snapshot.get("top_deteriorations") or []
+
+    if not improvements and not attention_needed:
+        for kpi_id, kpi in metrics.items():
+            change = kpi.get("change_percent", 0) or 0
+            status = kpi.get("status", "neutral")
+            label = kpi.get("name", kpi.get("display_name", kpi_id.replace("_", " ").title()))
+
+            if change > 0 and status == "green":
+                improvements.append({"label": label, "change": change, "kpi_id": kpi_id})
+            elif change < 0 or status == "red":
+                attention_needed.append({"label": label, "change": change, "kpi_id": kpi_id})
+
+        improvements = sorted(improvements, key=lambda x: -x["change"])[:5]
+        attention_needed = sorted(attention_needed, key=lambda x: x["change"])[:5]
+
+    def _normalize_items(items, positive: bool) -> list[dict]:
+        normalized = []
+        for item in items:
+            label = item.get("label") or item.get("display_name") or item.get("kpi_id", "").replace("_", " ").title()
+            change_val = item.get("change") or item.get("change_percent") or 0
+            normalized.append({"label": label, "change": float(change_val), "positive": positive})
+        return normalized
+
+    improvements = _normalize_items(improvements, True)
+    attention_needed = _normalize_items(attention_needed, False)
+
+    # Two-column layout
+    improve_col, attention_col = st.columns(2, gap="large")
+
+    with improve_col:
+        card_open("🚀 Top Improvements This Quarter", "KPIs showing strong positive momentum")
+        if improvements:
+            for item in improvements:
+                st.markdown(
+                    f"""
+                    <div style="
+                        display: flex;
+                        align-items: center;
+                        padding: 12px 16px;
+                        background: {dark_theme.colors.green}10;
+                        border-left: 3px solid {dark_theme.colors.green};
+                        border-radius: 0 8px 8px 0;
+                        margin-bottom: 8px;
+                    ">
+                        <span style="color: {dark_theme.colors.green}; font-size: 16px; margin-right: 12px;">▲</span>
+                        <div style="flex: 1;">
+                            <div style="color: {dark_theme.colors.text_primary}; font-weight: 500;">
+                                {item['label']}
+                            </div>
+                            <div style="color: {dark_theme.colors.green}; font-size: 12px;">
+                                +{item['change']:.1f}% improvement
+                            </div>
+                        </div>
+                    </div>
+                """,
+                    unsafe_allow_html=True,
+                )
+        else:
+            st.markdown(
+                f"<p style='color: {dark_theme.colors.text_muted};'>No significant improvements to highlight.</p>",
+                unsafe_allow_html=True,
+            )
+        card_close()
+
+    with attention_col:
+        card_open("⚠️ Areas Needing Attention", "KPIs requiring focus and intervention")
+        if attention_needed:
+            for item in attention_needed:
+                change_display = f"{item['change']:.1f}%" if item['change'] < 0 else "At Risk"
+                st.markdown(
+                    f"""
+                    <div style="
+                        display: flex;
+                        align-items: center;
+                        padding: 12px 16px;
+                        background: {dark_theme.colors.red}10;
+                        border-left: 3px solid {dark_theme.colors.red};
+                        border-radius: 0 8px 8px 0;
+                        margin-bottom: 8px;
+                    ">
+                        <span style="color: {dark_theme.colors.red}; font-size: 16px; margin-right: 12px;">▼</span>
+                        <div style="flex: 1;">
+                            <div style="color: {dark_theme.colors.text_primary}; font-weight: 500;">
+                                {item['label']}
+                            </div>
+                            <div style="color: {dark_theme.colors.red}; font-size: 12px;">
+                                {change_display}
+                            </div>
+                        </div>
+                    </div>
+                """,
+                    unsafe_allow_html=True,
+                )
+        else:
+            st.markdown(
+                f"<p style='color: {dark_theme.colors.text_muted};'>All KPIs are performing within acceptable ranges.</p>",
+                unsafe_allow_html=True,
+            )
+        card_close()
 
 
 def _render_kpi_card(kpi: dict, kpi_id: str, theme) -> None:

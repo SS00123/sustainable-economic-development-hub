@@ -5,6 +5,7 @@ Ministry of Economy and Planning
 
 Modern interactive bubble map of Saudi Arabia regions
 for visualizing KPI performance geographically.
+Matches PDF design spec with dark theme and neon accents.
 """
 
 import pandas as pd
@@ -12,6 +13,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from analytics_hub_platform.config.theme import get_theme
+from analytics_hub_platform.ui.dark_theme import get_dark_theme
 
 # Region data with accurate coordinates and relative sizes
 SAUDI_REGIONS = {
@@ -141,14 +143,42 @@ REGION_CENTERS = {
 
 
 def get_status_color(status: str) -> str:
-    """Get color based on KPI status."""
+    """Get color based on KPI status using dark theme palette."""
+    dark_theme = get_dark_theme()
     colors = {
-        "green": "#10B981",
-        "amber": "#F59E0B",
-        "red": "#EF4444",
-        "gray": "#6B7280",
+        "green": dark_theme.colors.green,
+        "amber": dark_theme.colors.amber,
+        "red": dark_theme.colors.red,
+        "gray": dark_theme.colors.text_muted,
+        "high": dark_theme.colors.green,
+        "medium": dark_theme.colors.amber,
+        "low": dark_theme.colors.red,
     }
-    return colors.get(status, colors["gray"])
+    return colors.get(status.lower() if status else "gray", colors["gray"])
+
+
+def get_three_tier_color(value: float, min_val: float, max_val: float) -> tuple[str, str]:
+    """
+    Get three-tier choropleth color matching PDF design spec.
+
+    Returns tuple of (fill_color, tier_name) based on value position.
+    - Low (0-33%): Red
+    - Medium (33-66%): Amber
+    - High (66-100%): Green
+    """
+    dark_theme = get_dark_theme()
+
+    if max_val == min_val:
+        normalized = 0.5
+    else:
+        normalized = (value - min_val) / (max_val - min_val)
+
+    if normalized < 0.33:
+        return dark_theme.colors.red, "Low"
+    elif normalized < 0.66:
+        return dark_theme.colors.amber, "Medium"
+    else:
+        return dark_theme.colors.green, "High"
 
 
 def get_value_color(value: float, min_val: float, max_val: float) -> str:
@@ -182,9 +212,12 @@ def render_saudi_map(
     language: str = "en",
     show_labels: bool = True,
     show_status_overlay: bool = True,
+    use_three_tier: bool = True,
 ) -> go.Figure:
     """
     Render a modern interactive bubble map of Saudi Arabia.
+    Matches PDF design spec with dark theme, three-tier choropleth,
+    and neon-stroke city bubbles.
 
     Args:
         region_data: DataFrame with region_id, value, and optionally status
@@ -195,16 +228,18 @@ def render_saudi_map(
         language: Display language ("en" or "ar")
         show_labels: Whether to show region labels
         show_status_overlay: Whether to show status indicators
+        use_three_tier: Whether to use three-tier (low/medium/high) color scheme
 
     Returns:
         Plotly figure object
     """
-    get_theme()
+    dark_theme = get_dark_theme()
     name_key = "name_ar" if language == "ar" else "name_en"
 
     # Prepare data lookup
     region_values = {}
     region_status = {}
+    region_tiers = {}
     for _, row in region_data.iterrows():
         region_id = row.get("region_id", row.get("region", ""))
         if region_id:
@@ -226,6 +261,7 @@ def render_saudi_map(
     sizes = []
     names = []
     hovers = []
+    tiers = []
 
     for region_id, region_info in SAUDI_REGIONS.items():
         lats.append(region_info["lat"])
@@ -239,11 +275,16 @@ def render_saudi_map(
 
         status = region_status.get(region_id, "gray")
 
-        # Use status color if available, otherwise gradient
-        if status != "gray" and show_status_overlay:
+        # Use three-tier color scheme matching PDF design
+        if use_three_tier:
+            color, tier = get_three_tier_color(value, min_val, max_val)
+            tiers.append(tier)
+        elif status != "gray" and show_status_overlay:
             color = get_status_color(status)
+            tiers.append(status.title())
         else:
             color = get_value_color(value, min_val, max_val)
+            tiers.append("N/A")
         colors.append(color)
 
         # Scale bubble size based on value and base size
@@ -256,32 +297,32 @@ def render_saudi_map(
         # Text for labels
         texts.append(f"<b>{name}</b>")
 
-        # Build hover text
-        status_label = status.upper() if status != "gray" else "N/A"
-        status_emoji = {"green": "🟢", "amber": "🟡", "red": "🔴"}.get(status, "⚪")
+        # Build hover text with tier information
+        tier_label = tiers[-1] if tiers else "N/A"
+        tier_emoji = {"High": "🟢", "Medium": "🟡", "Low": "🔴"}.get(tier_label, "⚪")
         icon = region_info["icon"]
 
         hover = (
             f"<b style='font-size:15px;'>{icon} {name}</b><br>"
-            f"<span style='color:#a855f7;'>━━━━━━━━━━━━━</span><br>"
-            f"📊 <b>Value:</b> {value:.1f}<br>"
-            f"{status_emoji} <b>Status:</b> {status_label}"
+            f"<span style='color:{dark_theme.colors.primary};'>━━━━━━━━━━━━━</span><br>"
+            f"📊 <b>Index:</b> {value:.1f}<br>"
+            f"{tier_emoji} <b>Performance:</b> {tier_label}"
         )
         hovers.append(hover)
 
     # Create figure
     fig = go.Figure()
 
-    # Add outer glow layer for depth effect
+    # Add outer neon glow layer for depth effect (PDF design spec)
     fig.add_trace(
         go.Scattergeo(
             lon=lons,
             lat=lats,
             mode="markers",
             marker={
-                "size": [s * 1.4 for s in sizes],
+                "size": [s * 1.5 for s in sizes],
                 "color": colors,
-                "opacity": 0.15,
+                "opacity": 0.12,
                 "line": {"width": 0},
             },
             hoverinfo="skip",
@@ -296,9 +337,9 @@ def render_saudi_map(
             lat=lats,
             mode="markers",
             marker={
-                "size": [s * 1.2 for s in sizes],
+                "size": [s * 1.25 for s in sizes],
                 "color": colors,
-                "opacity": 0.25,
+                "opacity": 0.2,
                 "line": {"width": 0},
             },
             hoverinfo="skip",
@@ -306,7 +347,7 @@ def render_saudi_map(
         )
     )
 
-    # Main bubble markers
+    # Main bubble markers with neon stroke (PDF design spec)
     fig.add_trace(
         go.Scattergeo(
             lon=lons,
@@ -315,18 +356,14 @@ def render_saudi_map(
             marker={
                 "size": sizes,
                 "color": colors,
-                "opacity": 0.9,
-                "line": {"color": "rgba(255,255,255,0.8)", "width": 2},
-                "gradient": {
-                    "type": "radial",
-                    "color": ["rgba(255,255,255,0.3)", "rgba(0,0,0,0.1)"],
-                },
+                "opacity": 0.85,
+                "line": {"color": dark_theme.colors.primary, "width": 2},
             },
             text=hovers,
             hovertemplate="%{text}<extra></extra>",
             hoverlabel={
-                "bgcolor": "rgba(27, 31, 54, 0.96)",
-                "bordercolor": "rgba(168, 85, 247, 0.6)",
+                "bgcolor": dark_theme.colors.bg_card,
+                "bordercolor": dark_theme.colors.primary,
                 "font": {"family": "Inter, sans-serif", "size": 12, "color": "white"},
             },
             showlegend=False,
@@ -346,7 +383,7 @@ def render_saudi_map(
                 ],
                 textfont={
                     "size": 10,
-                    "color": "rgba(255, 255, 255, 0.95)",
+                    "color": dark_theme.colors.text_primary,
                     "family": "Inter, sans-serif",
                 },
                 textposition="top center",
@@ -355,7 +392,7 @@ def render_saudi_map(
             )
         )
 
-    # Update layout for modern dark theme
+    # Update layout for dark theme matching PDF design spec
     fig.update_layout(
         title={
             "text": f"<b>{title}</b>",
@@ -363,7 +400,7 @@ def render_saudi_map(
             "xanchor": "center",
             "font": {
                 "size": 18,
-                "color": "rgba(255, 255, 255, 0.95)",
+                "color": dark_theme.colors.text_primary,
                 "family": "Inter, sans-serif",
             },
         },
@@ -373,15 +410,15 @@ def render_saudi_map(
             "projection_scale": 4.8,
             "projection_type": "natural earth",
             "showland": True,
-            "landcolor": "rgba(30, 35, 60, 0.98)",
+            "landcolor": dark_theme.colors.bg_card,  # Dark background for land
             "showocean": True,
-            "oceancolor": "rgba(15, 20, 40, 0.98)",
+            "oceancolor": dark_theme.colors.bg_deep,  # Darker ocean
             "showlakes": False,
             "showcountries": True,
-            "countrycolor": "rgba(168, 85, 247, 0.4)",
-            "countrywidth": 1.5,
+            "countrycolor": "rgba(6, 182, 212, 0.37)",  # Faded neighboring countries
+            "countrywidth": 1,
             "showcoastlines": True,
-            "coastlinecolor": "rgba(168, 85, 247, 0.5)",
+            "coastlinecolor": "rgba(6, 182, 212, 0.5)",
             "coastlinewidth": 1,
             "showframe": False,
             "bgcolor": "rgba(0, 0, 0, 0)",
@@ -395,14 +432,16 @@ def render_saudi_map(
         dragmode=False,
     )
 
-    # Add legend for status colors
-    if show_status_overlay:
-        # Add invisible traces for legend
-        for _status, color, label in [
-            ("green", "#10B981", "Excellent"),
-            ("amber", "#F59E0B", "Warning"),
-            ("red", "#EF4444", "Critical"),
-        ]:
+    # Add three-tier legend (PDF design spec: Low/Medium/High)
+    if show_status_overlay or use_three_tier:
+        # Add invisible traces for legend with three-tier color scheme
+        legend_items = [
+            ("high", dark_theme.colors.green, "High (70-100)"),
+            ("medium", dark_theme.colors.amber, "Medium (40-70)"),
+            ("low", dark_theme.colors.red, "Low (0-40)"),
+        ]
+
+        for _status, color, label in legend_items:
             fig.add_trace(
                 go.Scattergeo(
                     lon=[None],
@@ -421,14 +460,68 @@ def render_saudi_map(
                 "y": -0.05,
                 "xanchor": "center",
                 "x": 0.5,
-                "bgcolor": "rgba(27, 31, 54, 0.85)",
-                "bordercolor": "rgba(255, 255, 255, 0.1)",
+                "bgcolor": dark_theme.colors.bg_card,
+                "bordercolor": dark_theme.colors.border,
                 "borderwidth": 1,
-                "font": {"color": "rgba(255, 255, 255, 0.8)", "size": 11},
+                "font": {"color": dark_theme.colors.text_secondary, "size": 11},
             }
         )
 
     return fig
+
+
+def render_saudi_map_with_overlay(
+    region_data: pd.DataFrame,
+    value_column: str = "value",
+    title: str = "Saudi Arabia Sustainability Index",
+    height: int = 500,
+    language: str = "en",
+) -> tuple[go.Figure, dict]:
+    """
+    Render Saudi map with an overlay KPI panel.
+
+    Returns both the figure and KPI data for the overlay panel.
+
+    Args:
+        region_data: DataFrame with region_id, value, and optionally status
+        value_column: Column name for values to display
+        title: Map title
+        height: Map height in pixels
+        language: Display language
+
+    Returns:
+        Tuple of (Plotly figure, dict with national stats)
+    """
+    dark_theme = get_dark_theme()
+
+    # Calculate national statistics
+    values = region_data[value_column].dropna().tolist() if value_column in region_data else []
+    national_avg = sum(values) / len(values) if values else 0
+    regions_above_target = sum(1 for v in values if v >= 70)
+    highest_region = region_data.loc[region_data[value_column].idxmax()] if values else None
+    lowest_region = region_data.loc[region_data[value_column].idxmin()] if values else None
+
+    stats = {
+        "national_index": national_avg,
+        "regions_above_target": regions_above_target,
+        "total_regions": len(values),
+        "highest_region": highest_region["region_id"] if highest_region is not None else "N/A",
+        "highest_value": highest_region[value_column] if highest_region is not None else 0,
+        "lowest_region": lowest_region["region_id"] if lowest_region is not None else "N/A",
+        "lowest_value": lowest_region[value_column] if lowest_region is not None else 0,
+    }
+
+    # Render the map
+    fig = render_saudi_map(
+        region_data=region_data,
+        value_column=value_column,
+        title=title,
+        height=height,
+        language=language,
+        use_three_tier=True,
+    )
+
+    return fig, stats
 
 
 def render_saudi_map_simple(

@@ -3,39 +3,50 @@ Dark Theme Configuration
 Sustainable Economic Development Analytics Hub
 Ministry of Economy and Planning
 
-Modern dark 3D dashboard theme matching the provided UI reference.
-Purple/cyan/pink accent colors with glassmorphism cards.
+Modern dark 3D dashboard theme matching the PDF design spec.
+Design System: dark gradient background, domain-specific colors,
+cyan/blue/green/amber/red status colors with glassmorphism cards.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import lru_cache
 
 
 @dataclass(frozen=True)
 class DarkColorPalette:
-    """Dark theme color palette for the Minister View dashboard."""
+    """Dark theme color palette aligned with PDF design spec."""
 
-    # Background colors
-    bg_deep: str = "#0f1122"
-    bg_main: str = "#121532"
-    bg_card: str = "#1b1f36"
-    bg_card_alt: str = "#1e2340"
-    bg_hover: str = "#252a48"
+    # Background colors (PDF spec: #0B1120 → #1E293B gradient)
+    bg_deep: str = "#0B1120"
+    bg_main: str = "#111827"
+    bg_card: str = "#1E293B"
+    bg_card_alt: str = "#1E2340"
+    bg_hover: str = "#334155"
 
-    # Accent colors (neon-like)
-    purple: str = "#a855f7"
-    purple_dark: str = "#7c3aed"
-    pink: str = "#ec4899"
-    cyan: str = "#22d3ee"
-    gradient_start: str = "#a855f7"
-    gradient_end: str = "#ec4899"
+    # Primary accent colors (PDF spec)
+    primary: str = "#06B6D4"  # Cyan - primary accent
+    secondary: str = "#3B82F6"  # Blue - secondary accent
+    purple: str = "#8B5CF6"  # Violet
+    purple_dark: str = "#7C3AED"
+    pink: str = "#EC4899"
+    cyan: str = "#06B6D4"
+    blue: str = "#3B82F6"
+    gradient_start: str = "#06B6D4"
+    gradient_end: str = "#3B82F6"
 
-    # Status colors
-    green: str = "#10b981"
+    # Domain colors (PDF spec)
+    domain_economic: str = "#3B82F6"  # Blue
+    domain_labor: str = "#8B5CF6"  # Violet
+    domain_social: str = "#06B6D4"  # Cyan
+    domain_environmental: str = "#10B981"  # Green
+    domain_data_quality: str = "#64748B"  # Muted slate
+
+    # Status colors (PDF spec)
+    green: str = "#10B981"
     green_bg: str = "rgba(16, 185, 129, 0.15)"
-    amber: str = "#f59e0b"
+    amber: str = "#F59E0B"
     amber_bg: str = "rgba(245, 158, 11, 0.15)"
-    red: str = "#ef4444"
+    red: str = "#EF4444"
     red_bg: str = "rgba(239, 68, 68, 0.15)"
 
     # Text colors
@@ -50,14 +61,14 @@ class DarkColorPalette:
 
     # Chart palette
     chart_colors: tuple = (
-        "#a855f7",  # Purple
-        "#22d3ee",  # Cyan
-        "#ec4899",  # Pink
-        "#10b981",  # Green
-        "#f59e0b",  # Amber
-        "#3b82f6",  # Blue
-        "#8b5cf6",  # Violet
-        "#06b6d4",  # Teal
+        "#06B6D4",  # Cyan (primary)
+        "#3B82F6",  # Blue
+        "#10B981",  # Green
+        "#F59E0B",  # Amber
+        "#EF4444",  # Red
+        "#8B5CF6",  # Violet
+        "#EC4899",  # Pink
+        "#14B8A6",  # Teal
     )
 
     def get_status_color(self, status: str) -> str:
@@ -69,6 +80,10 @@ class DarkColorPalette:
             "success": self.green,
             "warning": self.amber,
             "error": self.red,
+            "on_track": self.green,
+            "at_risk": self.amber,
+            "off_track": self.red,
+            "needs_attention": self.red,
         }
         return status_map.get(status.lower(), self.text_muted)
 
@@ -81,6 +96,67 @@ class DarkColorPalette:
         }
         return status_map.get(status.lower(), "rgba(255,255,255,0.05)")
 
+    def get_domain_color(self, domain: str) -> str:
+        """Return color for a domain/pillar category."""
+        domain_map = {
+            "economic": self.domain_economic,
+            "labor": self.domain_labor,
+            "social": self.domain_social,
+            "environmental": self.domain_environmental,
+            "data_quality": self.domain_data_quality,
+            "economy": self.domain_economic,
+            "labor_skills": self.domain_labor,
+            "social_digital": self.domain_social,
+            "environment": self.domain_environmental,
+        }
+        return domain_map.get(domain.lower(), self.primary)
+
+
+@dataclass(frozen=True)
+class DarkTypography:
+    """Typography hierarchy matching PDF design spec."""
+
+    # Font family
+    font_family: str = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+
+    # Size hierarchy (PDF spec)
+    page_title: str = "32px"  # Page title
+    section_header: str = "24px"  # Section headers
+    card_title: str = "16px"  # Card titles
+    kpi_value: str = "48px"  # Large KPI values
+    kpi_value_sm: str = "32px"  # Medium KPI values
+    body: str = "14px"  # Body text
+    caption: str = "12px"  # Captions and labels
+    small: str = "11px"  # Small text
+
+    # Font weights
+    weight_bold: int = 700
+    weight_semibold: int = 600
+    weight_medium: int = 500
+    weight_regular: int = 400
+
+
+@dataclass(frozen=True)
+class DarkGrid:
+    """Grid system matching PDF design spec."""
+
+    # Outer margins
+    page_margin: str = "32px"
+
+    # Gutters between elements
+    gutter_lg: str = "24px"  # Between columns and rows
+    gutter_md: str = "16px"  # Medium spacing
+    gutter_sm: str = "12px"  # Small spacing
+    gutter_xs: str = "8px"  # Extra small spacing
+
+    # Card styling
+    card_radius: str = "12px"
+    card_radius_lg: str = "16px"
+
+    # Spacing
+    section_gap: str = "32px"
+    row_gap: str = "24px"
+
 
 @dataclass(frozen=True)
 class DarkShadows:
@@ -89,9 +165,14 @@ class DarkShadows:
     card: str = "0 18px 48px rgba(0, 0, 0, 0.55)"
     card_hover: str = "0 22px 55px rgba(0, 0, 0, 0.62)"
     card_sm: str = "0 10px 26px rgba(0, 0, 0, 0.45)"
-    glow_purple: str = "0 0 20px rgba(168, 85, 247, 0.35)"
-    glow_cyan: str = "0 0 20px rgba(34, 211, 238, 0.35)"
+    card_subtle: str = "0 4px 12px rgba(0, 0, 0, 0.25)"
+    glow_primary: str = "0 0 20px rgba(6, 182, 212, 0.35)"
+    glow_purple: str = "0 0 20px rgba(139, 92, 246, 0.35)"
+    glow_cyan: str = "0 0 20px rgba(6, 182, 212, 0.35)"
     glow_pink: str = "0 0 20px rgba(236, 72, 153, 0.35)"
+    glow_green: str = "0 0 15px rgba(16, 185, 129, 0.4)"
+    glow_amber: str = "0 0 15px rgba(245, 158, 11, 0.4)"
+    glow_red: str = "0 0 15px rgba(239, 68, 68, 0.4)"
 
 
 @dataclass(frozen=True)
@@ -100,16 +181,43 @@ class DarkTheme:
 
     colors: DarkColorPalette = None
     shadows: DarkShadows = None
+    typography: DarkTypography = None
+    grid: DarkGrid = None
 
     def __post_init__(self):
         object.__setattr__(self, "colors", DarkColorPalette())
         object.__setattr__(self, "shadows", DarkShadows())
+        object.__setattr__(self, "typography", DarkTypography())
+        object.__setattr__(self, "grid", DarkGrid())
 
 
 @lru_cache(maxsize=1)
 def get_dark_theme() -> DarkTheme:
     """Get the singleton dark theme instance."""
     return DarkTheme()
+
+
+def hex_to_rgba(hex_color: str, alpha: float) -> str:
+    """
+    Convert a hex color to rgba format for Plotly compatibility.
+
+    Plotly doesn't accept 8-character hex colors with alpha.
+    This function converts them to rgba() format.
+
+    Args:
+        hex_color: Hex color string (e.g., '#3B82F6')
+        alpha: Alpha value between 0 and 1 (e.g., 0.15)
+
+    Returns:
+        RGBA string (e.g., 'rgba(59, 130, 246, 0.15)')
+    """
+    hex_color = hex_color.lstrip("#")
+    if len(hex_color) == 3:
+        hex_color = "".join([c * 2 for c in hex_color])
+    r = int(hex_color[0:2], 16)
+    g = int(hex_color[2:4], 16)
+    b = int(hex_color[4:6], 16)
+    return f"rgba({r}, {g}, {b}, {alpha})"
 
 
 def get_dark_css() -> str:
@@ -120,6 +228,8 @@ def get_dark_css() -> str:
     t = get_dark_theme()
     c = t.colors
     s = t.shadows
+    ty = t.typography
+    g = t.grid
 
     return f"""
     <style>
@@ -132,24 +242,38 @@ def get_dark_css() -> str:
         --muted: {c.text_secondary};
         --muted2: {c.text_muted};
         --white: {c.text_primary};
+        --primary: {c.primary};
+        --secondary: {c.secondary};
         --purple: {c.purple};
         --purple2: {c.purple_dark};
         --pink: {c.pink};
         --cyan: {c.cyan};
+        --blue: {c.blue};
+        --green: {c.green};
+        --amber: {c.amber};
+        --red: {c.red};
+        --domain-economic: {c.domain_economic};
+        --domain-labor: {c.domain_labor};
+        --domain-social: {c.domain_social};
+        --domain-env: {c.domain_environmental};
         --shadow: {s.card};
         --shadow2: {s.card_sm};
-        --radius: 16px;
+        --radius: {g.card_radius};
+        --radius-lg: {g.card_radius_lg};
+        --gutter: {g.gutter_lg};
+        --margin: {g.page_margin};
       }}
 
-      /* ===== App background ===== */
+      /* ===== App background (PDF spec: #0B1120 → #1E293B gradient) ===== */
       html, body, [data-testid="stAppViewContainer"] {{
         background:
-          radial-gradient(1200px 700px at 10% 10%, rgba(124, 58, 237, 0.35), rgba(0,0,0,0) 60%),
-          radial-gradient(1200px 700px at 90% 25%, rgba(34, 211, 238, 0.18), rgba(0,0,0,0) 60%),
-          linear-gradient(180deg, var(--bg1), var(--bg0) 60%);
+          radial-gradient(1200px 700px at 10% 10%, rgba(6, 182, 212, 0.12), rgba(0,0,0,0) 60%),
+          radial-gradient(1200px 700px at 90% 25%, rgba(59, 130, 246, 0.10), rgba(0,0,0,0) 60%),
+          linear-gradient(180deg, {c.bg_deep} 0%, {c.bg_card} 100%);
         color: var(--white);
         min-height: 100vh;
-        font-size: 13px;
+        font-family: {ty.font_family};
+        font-size: {ty.body};
         line-height: 1.55;
       }}
 

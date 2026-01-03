@@ -38,6 +38,8 @@ st.set_page_config(
 )
 
 from analytics_hub_platform.infrastructure.db_init import initialize_database
+from analytics_hub_platform.ui.dark_theme import get_dark_css
+from analytics_hub_platform.ui.pages.unified_dashboard import render_unified_dashboard
 
 
 def initialize_session_state() -> None:
@@ -67,25 +69,9 @@ def main() -> None:
         initialize_database()
         st.session_state["initialized"] = True
 
-    # Welcome page
-    st.markdown("""
-    # 📊 Sustainable Economic Development Analytics Hub
-
-    **Ministry of Economy and Planning**
-
-    Welcome to the Analytics Hub. Please use the sidebar navigation to access different sections:
-
-    - **📊 Dashboard** - Executive overview for ministerial briefing
-    - **📈 KPIs** - Detailed key performance indicators
-    - **📊 Trends** - Historical analysis and time-series
-    - **📋 Data** - Data quality and raw data view
-    - **🧠 Advanced Analytics** - ML forecasting and AI insights
-    - **⚙️ Settings** - Configuration and preferences
-
-    ---
-
-    💡 **Tip:** Use the sidebar menu (▶️) to navigate between pages.
-    """)
+    # Apply dark CSS and render the executive dashboard by default
+    st.markdown(get_dark_css(), unsafe_allow_html=True)
+    render_unified_dashboard()
 
 
 if __name__ == "__main__":

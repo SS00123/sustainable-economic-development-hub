@@ -278,3 +278,34 @@ secrets.yaml
 
 # Streamlit secrets
 .streamlit/secrets.toml
+
+# ===========================================
+# FRONTEND (NEXT.JS / NODE.JS)
+# ===========================================
+
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Next.js build outputs
+frontend/.next/
+frontend/out/
+.next/
+out/
+
+# npm/yarn/pnpm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
