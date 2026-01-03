@@ -39,26 +39,13 @@ from analytics_hub_platform.ui.dark_components import render_sidebar
 from analytics_hub_platform.ui.dark_theme import get_dark_css, get_dark_theme
 from analytics_hub_platform.ui.ui_components import (
     card_container,
+    initialize_page_session_state,
     metric_card,
+    render_page_header,
     section_header,
     spacer,
 )
 from analytics_hub_platform.ui.ui_theme import COLORS
-
-
-# Initialize session state
-def initialize_session_state() -> None:
-    """Initialize session state variables"""
-    defaults = {
-        "year": 2024,
-        "quarter": 4,
-        "region": "all",
-        "language": "en",
-        "initialized": False,
-    }
-    for key, value in defaults.items():
-        if key not in st.session_state:
-            st.session_state[key] = value
 
 
 def get_catalog() -> dict:
@@ -135,7 +122,7 @@ def enrich_metrics(
 
 
 # Initialize
-initialize_session_state()
+initialize_page_session_state()
 if not st.session_state.get("initialized"):
     initialize_database()
     st.session_state["initialized"] = True
@@ -145,30 +132,17 @@ st.markdown(get_dark_css(), unsafe_allow_html=True)
 dark_theme = get_dark_theme()
 
 # Layout
-side_col, main_col = st.columns([0.22, 0.78], gap="large")
+side_col, main_col = st.columns([0.2, 0.8], gap="large")
 
 with side_col:
     render_sidebar(active="KPIs")
 
 with main_col:
     # Header
-    st.markdown(
-        f"""
-        <div style="
-            background: linear-gradient(135deg, {COLORS.purple} 0%, {COLORS.cyan} 100%);
-            padding: 24px 28px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-        ">
-            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">
-                📈 Key Performance Indicators
-            </h1>
-            <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 14px;">
-                Comprehensive breakdown of all tracked metrics
-            </p>
-        </div>
-    """,
-        unsafe_allow_html=True,
+    render_page_header(
+        "Key Performance Indicators",
+        "Comprehensive breakdown of all tracked metrics",
+        "📈"
     )
 
     # Filters

@@ -25,31 +25,22 @@ from analytics_hub_platform.ui.dark_components import render_sidebar
 from analytics_hub_platform.ui.dark_theme import get_dark_css
 from analytics_hub_platform.ui.ui_components import (
     card_container,
+    initialize_page_session_state,
+    render_page_header,
     section_header,
     spacer,
 )
 from analytics_hub_platform.ui.ui_theme import COLORS
 
 
-# Initialize session state
-def initialize_session_state() -> None:
-    defaults = {
-        "year": 2024,
-        "quarter": 4,
-        "region": "all",
-        "language": "en",
-        "theme": "dark",
-        "sustainability_target": 70,
-        "gdp_target": 5.0,
-        "initialized": False,
-    }
-    for key, value in defaults.items():
-        if key not in st.session_state:
-            st.session_state[key] = value
-
-
 # Initialize
-initialize_session_state()
+initialize_page_session_state()
+
+# Settings-specific defaults
+if "sustainability_target" not in st.session_state:
+    st.session_state["sustainability_target"] = 70
+if "gdp_target" not in st.session_state:
+    st.session_state["gdp_target"] = 5.0
 if not st.session_state.get("initialized"):
     initialize_database()
     st.session_state["initialized"] = True
@@ -58,30 +49,17 @@ if not st.session_state.get("initialized"):
 st.markdown(get_dark_css(), unsafe_allow_html=True)
 
 # Layout
-side_col, main_col = st.columns([0.22, 0.78], gap="large")
+side_col, main_col = st.columns([0.2, 0.8], gap="large")
 
 with side_col:
     render_sidebar(active="Settings")
 
 with main_col:
     # Header
-    st.markdown(
-        f"""
-        <div style="
-            background: linear-gradient(135deg, {COLORS.purple} 0%, {COLORS.cyan} 100%);
-            padding: 24px 28px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-        ">
-            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">
-                ⚙️ Settings
-            </h1>
-            <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 14px;">
-                Configure language, theme, and target preferences
-            </p>
-        </div>
-    """,
-        unsafe_allow_html=True,
+    render_page_header(
+        "Settings",
+        "Configure language, theme, and target preferences",
+        "⚙️"
     )
 
     spacer("md")

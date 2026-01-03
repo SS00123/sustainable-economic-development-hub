@@ -25,26 +25,10 @@ st.set_page_config(
 from analytics_hub_platform.infrastructure.db_init import initialize_database
 from analytics_hub_platform.ui.dark_theme import get_dark_css
 from analytics_hub_platform.ui.pages.unified_dashboard import render_unified_dashboard
-
-
-def initialize_session_state() -> None:
-    """Initialize session state variables with sensible defaults."""
-    defaults = {
-        "year": 2024,
-        "quarter": 4,
-        "region": "all",
-        "language": "en",
-        "user_role": "EXECUTIVE",
-        "initialized": False,
-        "theme": "dark",
-    }
-    for key, value in defaults.items():
-        if key not in st.session_state:
-            st.session_state[key] = value
-
+from analytics_hub_platform.ui.ui_components import initialize_page_session_state
 
 # Initialize session state
-initialize_session_state()
+initialize_page_session_state()
 
 # Initialize database on first run
 if not st.session_state.get("initialized"):

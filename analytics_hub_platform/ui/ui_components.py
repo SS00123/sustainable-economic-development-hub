@@ -17,6 +17,74 @@ from analytics_hub_platform.ui.ui_theme import (
 )
 
 
+def initialize_page_session_state() -> None:
+    """Initialize common session state variables across all pages."""
+    defaults = {
+        "year": 2024,
+        "quarter": 4,
+        "region": "all",
+        "language": "en",
+        "user_role": "EXECUTIVE",
+        "theme": "dark",
+        "initialized": False,
+    }
+    for key, value in defaults.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
+
+
+def render_page_header(title: str, subtitle: str, icon: str = "") -> None:
+    """
+    Render consistent page header with gradient background.
+    
+    Args:
+        title: Page title
+        subtitle: Page subtitle/description
+        icon: Optional emoji icon
+    """
+    icon_prefix = f"{icon} " if icon else ""
+    st.markdown(
+        f"""
+        <div style="
+            background: linear-gradient(135deg, {COLORS.purple} 0%, {COLORS.cyan} 100%);
+            padding: 24px 28px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        ">
+            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">
+                {icon_prefix}{title}
+            </h1>
+            <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 14px;">
+                {subtitle}
+            </p>
+        </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
+
+def page_container(content_func):
+    """
+    Wrapper to create consistent page layout with max-width and proper alignment.
+    
+    Args:
+        content_func: Function that renders page content
+    """
+    st.markdown(
+        """
+        <style>
+        .main .block-container {
+            max-width: 1440px;
+            padding-left: 2rem;
+            padding-right: 2rem;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    content_func()
+
+
 def section_header(title: str, subtitle: str = "", icon: str = "") -> None:
     """
     Render a section header with title and optional subtitle
