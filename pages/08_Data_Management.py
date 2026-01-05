@@ -298,7 +298,7 @@ def render_data_explorer():
         if columns_to_show:
             st.dataframe(
                 filtered_df[columns_to_show],
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
             )
 

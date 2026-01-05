@@ -163,7 +163,7 @@ with main_col:
 
         if quality_data:
             quality_df = pd.DataFrame(quality_data)
-            st.dataframe(quality_df, use_container_width=True, hide_index=True)
+            st.dataframe(quality_df, width="stretch", hide_index=True)
         else:
             st.info("No data quality metrics available for this period")
 
@@ -178,7 +178,7 @@ with main_col:
 
         sample_df = current_df.head(100)
         if len(sample_df) > 0:
-            st.dataframe(sample_df, use_container_width=True, height=400)
+            st.dataframe(sample_df, width="stretch", height=400)
 
             # Download button
             csv = current_df.to_csv(index=False)
@@ -205,7 +205,7 @@ with main_col:
 
         if numeric_cols:
             stats_df = current_df[numeric_cols].describe().round(2)
-            st.dataframe(stats_df, use_container_width=True)
+            st.dataframe(stats_df, width="stretch")
         else:
             st.info("No numeric data available for statistics")
 
