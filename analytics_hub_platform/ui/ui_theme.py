@@ -1,9 +1,19 @@
 """
 UI Theme Constants
 Centralized color palette, spacing, and design tokens for consistent styling
+
+DEPRECATED: This module is deprecated and will be removed in a future version.
+Please use `analytics_hub_platform.ui.theme` instead.
 """
 
+import warnings
 from dataclasses import dataclass
+
+warnings.warn(
+    "analytics_hub_platform.ui.ui_theme is deprecated. Use analytics_hub_platform.ui.theme instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 @dataclass
