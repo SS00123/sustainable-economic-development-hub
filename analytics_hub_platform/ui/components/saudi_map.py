@@ -13,7 +13,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from analytics_hub_platform.config.theme import get_theme
-from analytics_hub_platform.ui.dark_theme import get_dark_theme
+from analytics_hub_platform.ui.theme import get_dark_theme
 
 # Region data with accurate coordinates and relative sizes
 SAUDI_REGIONS = {
