@@ -13,7 +13,7 @@ for production deployment.
 """
 
 import random
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from functools import lru_cache
 from typing import Any
 
@@ -38,7 +38,7 @@ from analytics_hub_platform.infrastructure.settings import get_settings
 
 def utc_now() -> datetime:
     """Return current UTC datetime (timezone-aware)."""
-    return datetime.now(UTC)
+    return datetime.now(timezone.utc)
 
 
 # Database metadata
@@ -319,7 +319,7 @@ def generate_synthetic_data(tenant_id: str = "mep-sa-001") -> list:
     records = []
     batch_id = f"init-{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
-    years = [2020, 2021, 2022, 2023, 2024]
+    years = [2020, 2021, 2022, 2023, 2024, 2025, 2026]
     quarters = [1, 2, 3, 4]
 
     for year in years:

@@ -12,7 +12,7 @@ Design Pattern:
 - Clear separation of concerns for maintainability
 """
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 import numpy as np
 import pandas as pd
@@ -179,8 +179,8 @@ def dataframe_to_indicator_records(df: pd.DataFrame) -> list[IndicatorRecord]:
             data_quality_score=float(row.get("data_quality_score", 1.0)),
             source=str(row.get("source", "")),
             notes=str(row.get("notes", "")),
-            created_at=row.get("created_at", datetime.now(UTC)),
-            updated_at=row.get("updated_at", datetime.now(UTC)),
+            created_at=row.get("created_at", datetime.now(timezone.utc)),
+            updated_at=row.get("updated_at", datetime.now(timezone.utc)),
         )
         records.append(record)
 

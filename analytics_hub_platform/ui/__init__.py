@@ -28,7 +28,7 @@ from analytics_hub_platform.ui.dark_components import (
 )
 
 # Dark theme components
-from analytics_hub_platform.ui.dark_theme import (
+from analytics_hub_platform.ui.theme import (
     DarkColorPalette,
     DarkTheme,
     get_dark_css,

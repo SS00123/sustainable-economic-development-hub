@@ -16,7 +16,8 @@ from analytics_hub_platform.config.config import get_config
 from analytics_hub_platform.config.theme import get_theme
 from analytics_hub_platform.infrastructure.security import RBACManager, UserRole
 from analytics_hub_platform.infrastructure.settings import get_settings
-from analytics_hub_platform.locale import get_strings
+from analytics_hub_platform.locales import get_strings
+from analytics_hub_platform.ui.html import render_html
 from analytics_hub_platform.ui.filters import get_filter_state
 from analytics_hub_platform.ui.layout import (
     inject_custom_css,
@@ -114,7 +115,7 @@ def render_kpi_management(theme) -> None:
 
     st.dataframe(
         df,
-        width=None,
+        width="stretch",
         hide_index=True,
     )
 
@@ -137,7 +138,7 @@ def render_kpi_management(theme) -> None:
             col1, col2, col3 = st.columns(3)
 
             with col1:
-                st.markdown(
+                render_html(
                     f"""
                 <div style="background: {theme.colors.status_green}20;
                             border-left: 4px solid {theme.colors.status_green};
@@ -145,12 +146,11 @@ def render_kpi_management(theme) -> None:
                     <strong style="color: {theme.colors.status_green};">Green</strong><br/>
                     {thresholds.get("green", "N/A")}
                 </div>
-                """,
-                    unsafe_allow_html=True,
+                """
                 )
 
             with col2:
-                st.markdown(
+                render_html(
                     f"""
                 <div style="background: {theme.colors.status_amber}20;
                             border-left: 4px solid {theme.colors.status_amber};
@@ -158,12 +158,11 @@ def render_kpi_management(theme) -> None:
                     <strong style="color: {theme.colors.status_amber};">Amber</strong><br/>
                     {thresholds.get("amber", "N/A")}
                 </div>
-                """,
-                    unsafe_allow_html=True,
+                """
                 )
 
             with col3:
-                st.markdown(
+                render_html(
                     f"""
                 <div style="background: {theme.colors.status_red}20;
                             border-left: 4px solid {theme.colors.status_red};
@@ -171,8 +170,7 @@ def render_kpi_management(theme) -> None:
                     <strong style="color: {theme.colors.status_red};">Red</strong><br/>
                     {thresholds.get("red", "N/A")}
                 </div>
-                """,
-                    unsafe_allow_html=True,
+                """
                 )
 
             st.markdown(f"""
@@ -186,7 +184,7 @@ def render_tenant_info(theme) -> None:
 
     settings = get_settings()
 
-    st.markdown(
+    render_html(
         f"""
     <div style="background: {theme.colors.surface};
                 border: 1px solid {theme.colors.border};
@@ -211,8 +209,7 @@ def render_tenant_info(theme) -> None:
             </tr>
         </table>
     </div>
-    """,
-        unsafe_allow_html=True,
+    """
     )
 
     st.info(
@@ -269,7 +266,7 @@ def render_user_roles(theme) -> None:
 
     df = pd.DataFrame(roles_data)
 
-    st.dataframe(df, width=None, hide_index=True)
+    st.dataframe(df, width="stretch", hide_index=True)
 
     # Current session role selector (demo)
     st.markdown("### Demo Role Selector")
@@ -328,14 +325,15 @@ def render_system_settings(theme) -> None:
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        if st.button("🔄 Refresh Cache", use_container_width=False):
+        if st.button("🔄 Refresh Cache", width="content"):
             st.cache_data.clear()
             st.success("Cache cleared!")
 
     with col2:
-        if st.button("📊 Regenerate Data", use_container_width=False):
+        if st.button("📊 Regenerate Data", width="content"):
             st.info("Data regeneration available in development mode.")
 
     with col3:
-        if st.button("📋 Export Logs", use_container_width=False):
+        if st.button("📋 Export Logs", width="content"):
             st.info("Log export functionality.")
+

@@ -22,15 +22,15 @@ st.set_page_config(
 # Import application modules
 from analytics_hub_platform.infrastructure.db_init import initialize_database
 from analytics_hub_platform.ui.dark_components import render_sidebar
-from analytics_hub_platform.ui.dark_theme import get_dark_css
+from analytics_hub_platform.ui.theme import get_dark_css
+from analytics_hub_platform.ui.html import render_html
+from analytics_hub_platform.ui.theme import colors
 from analytics_hub_platform.ui.ui_components import (
-    card_container,
     initialize_page_session_state,
     render_page_header,
     section_header,
     spacer,
 )
-from analytics_hub_platform.ui.ui_theme import COLORS
 
 
 # Initialize
@@ -45,8 +45,8 @@ if not st.session_state.get("initialized"):
     initialize_database()
     st.session_state["initialized"] = True
 
-# Apply dark theme
-st.markdown(get_dark_css(), unsafe_allow_html=True)
+# Apply dark theme using safe renderer
+render_html(get_dark_css())
 
 # Layout
 side_col, main_col = st.columns([0.2, 0.8], gap="large")
@@ -67,7 +67,7 @@ with main_col:
     # Language & Display Settings
     section_header("Language & Display", "Customize language and display preferences", "🌐")
 
-    with card_container():
+    with st.container():
         col1, col2 = st.columns(2)
 
         with col1:
@@ -85,31 +85,32 @@ with main_col:
                 st.success("✅ Language updated")
 
         with col2:
-            theme = st.selectbox(
-                "Theme",
-                ["dark", "light"],
-                index=["dark", "light"].index(st.session_state.theme),
-                format_func=lambda x: "🌙 Dark Theme" if x == "dark" else "☀️ Light Theme",
-                key="settings_theme",
-                help="Select visual theme (currently only dark theme is fully supported)",
-            )
-
-            if theme != st.session_state.theme:
-                st.session_state.theme = theme
-                if theme == "light":
-                    st.warning(
-                        "⚠️ Light theme support coming soon. Dark theme will continue to be used."
-                    )
+            # Dark theme is the production theme - display as read-only info
+            render_html(f"""
+                <div style="
+                    background: linear-gradient(135deg, {colors.purple}25, {colors.cyan}15);
+                    border: 1px solid {colors.purple}50;
+                    border-radius: 8px;
+                    padding: 16px;
+                    margin-top: 8px;
+                ">
+                    <div style="font-size: 12px; color: {colors.text_muted}; margin-bottom: 4px;">Theme</div>
+                    <div style="font-size: 16px; font-weight: 600; color: {colors.text_primary};">
+                        🌙 Dark Theme
+                    </div>
+                    <div style="font-size: 11px; color: {colors.text_subtle}; margin-top: 4px;">
+                        Professional dark theme optimized for executive dashboards
+                    </div>
+                </div>
+            """)
 
     spacer("lg")
 
     # Target Configuration
     section_header("Performance Targets", "Set target thresholds for KPIs", "🎯")
 
-    with card_container():
-        st.markdown(
-            "Configure target values for key performance indicators. These targets are used for status calculations."
-        )
+    with st.container():
+        st.markdown("Configure target values for key performance indicators. These targets are used for status calculations.")
 
         spacer("sm")
 
@@ -150,14 +151,14 @@ with main_col:
     # Default Period Settings
     section_header("Default Period", "Set default time period for dashboard views", "📅")
 
-    with card_container():
+    with st.container():
         col1, col2 = st.columns(2)
 
         with col1:
             default_year = st.selectbox(
                 "Default Year",
-                [2024, 2023, 2022, 2021],
-                index=[2024, 2023, 2022, 2021].index(st.session_state.year),
+                [2026, 2025, 2024, 2023, 2022, 2021, 2020],
+                index=[2026, 2025, 2024, 2023, 2022, 2021, 2020].index(st.session_state.year),
                 key="settings_year",
             )
 
@@ -182,14 +183,14 @@ with main_col:
     # About Section
     section_header("About", "System information and version details", "ℹ️")
 
-    with card_container():
+    with st.container():
         st.markdown("""
         **Sustainable Economic Development Analytics Hub**
         Ministry of Economy and Planning
 
         **Version:** 2.0.0 – Dark Theme
-        **Last Updated:** December 2025
-        **Framework:** Streamlit + FastAPI + Plotly
+        **Last Updated:** January 2026
+        **Framework:** Streamlit + Plotly
 
         ---
 
@@ -214,13 +215,13 @@ with main_col:
     # Reset Settings
     section_header("Reset", "Reset all settings to default values", "🔄")
 
-    with card_container():
+    with st.container():
         st.warning("⚠️ This will reset all preferences to their default values")
 
         if st.button("Reset All Settings", type="secondary"):
             st.session_state.language = "en"
             st.session_state.theme = "dark"
-            st.session_state.year = 2024
+            st.session_state.year = 2026
             st.session_state.quarter = 4
             st.session_state.region = "all"
             st.session_state.sustainability_target = 70

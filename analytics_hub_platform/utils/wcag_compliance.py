@@ -13,6 +13,8 @@ from typing import Any
 
 import streamlit as st
 
+from analytics_hub_platform.ui.html import render_html
+
 
 class WCAGLevel(str, Enum):
     """WCAG conformance levels."""
@@ -455,21 +457,20 @@ def accessible_chart_wrapper(
     if data_summary:
         sr_text += f" Key data: {data_summary}"
 
-    st.markdown(
+    render_html(
         f"""
         <figure role="img" aria-labelledby="{chart_id}-desc" tabindex="0">
             <figcaption id="{chart_id}-desc" class="sr-only">
                 {sr_text}
             </figcaption>
-        """,
-        unsafe_allow_html=True,
+        """
     )
 
     # Render the chart
     if callable(chart_element):
         chart_element()
 
-    st.markdown("</figure>", unsafe_allow_html=True)
+    render_html("</figure>")
 
 
 def accessible_data_table(
@@ -529,13 +530,12 @@ def inject_skip_link(main_content_id: str = "main-content") -> None:
     Args:
         main_content_id: ID of main content area
     """
-    st.markdown(
+    render_html(
         f"""
         <a href="#{main_content_id}" class="skip-link">
             Skip to main content
         </a>
-        """,
-        unsafe_allow_html=True,
+        """
     )
 
 
@@ -543,7 +543,7 @@ def inject_live_region() -> None:
     """
     Inject ARIA live region for dynamic content announcements.
     """
-    st.markdown(
+    render_html(
         """
         <div id="live-region"
              role="status"
@@ -551,8 +551,7 @@ def inject_live_region() -> None:
              aria-atomic="true"
              class="sr-only">
         </div>
-        """,
-        unsafe_allow_html=True,
+        """
     )
 
 
@@ -619,14 +618,13 @@ def set_document_direction(lang: str = "en") -> None:
     """
     direction = "rtl" if lang in ["ar", "he", "fa", "ur"] else "ltr"
 
-    st.markdown(
+    render_html(
         f"""
         <script>
             document.documentElement.setAttribute('dir', '{direction}');
             document.documentElement.setAttribute('lang', '{lang}');
         </script>
-        """,
-        unsafe_allow_html=True,
+        """
     )
 
 
@@ -709,7 +707,7 @@ def announce(message: str, priority: str = "polite") -> None:
         message: Message to announce
         priority: 'polite' or 'assertive'
     """
-    st.markdown(
+    render_html(
         f"""
         <script>
             const liveRegion = document.getElementById('live-region');
@@ -718,8 +716,7 @@ def announce(message: str, priority: str = "polite") -> None:
                 liveRegion.textContent = '{message}';
             }}
         </script>
-        """,
-        unsafe_allow_html=True,
+        """
     )
 
 
@@ -788,3 +785,4 @@ def get_accessibility_statement() -> str:
         </p>
     </div>
     """
+

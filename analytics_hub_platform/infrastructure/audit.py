@@ -8,7 +8,7 @@ Provides audit logging functionality for tracking user actions.
 
 import json
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from analytics_hub_platform.infrastructure.db_init import audit_log, get_engine
@@ -45,7 +45,7 @@ def log_audit_event(
         with engine.connect() as conn:
             conn.execute(
                 audit_log.insert().values(
-                    timestamp=datetime.now(UTC),
+                    timestamp=datetime.now(timezone.utc),
                     tenant_id=tenant_id,
                     user_id=user_id,
                     action=action,

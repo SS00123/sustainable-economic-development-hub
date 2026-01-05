@@ -23,7 +23,8 @@ from analytics_hub_platform.domain.services import (
 )
 from analytics_hub_platform.infrastructure.repository import get_repository
 from analytics_hub_platform.infrastructure.settings import get_settings
-from analytics_hub_platform.locale import get_strings
+from analytics_hub_platform.ui.html import render_html
+from analytics_hub_platform.locales import get_strings
 from analytics_hub_platform.ui.filters import get_filter_state
 from analytics_hub_platform.ui.layout import (
     inject_custom_css,
@@ -192,7 +193,7 @@ def render_executive_view() -> None:
                 higher_is_better=kpi.get("higher_is_better", True),
             )
 
-    st.markdown("<br>", unsafe_allow_html=True)
+    render_html("<br>")
 
     # Second row
     row2_kpis = [
@@ -241,7 +242,7 @@ def render_executive_view() -> None:
     """
     components.html(narrative_html, height=400, scrolling=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
+    render_html("<br>")
 
     # Improvements and Deteriorations
     col_imp, col_det = st.columns(2)
@@ -274,3 +275,4 @@ def render_executive_view() -> None:
 
     # Footer
     render_footer(filters.language)
+

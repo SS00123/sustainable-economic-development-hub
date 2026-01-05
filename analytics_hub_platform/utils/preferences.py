@@ -8,7 +8,7 @@ User preference management for personalization.
 
 import json
 from dataclasses import asdict, dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 import streamlit as st
@@ -16,7 +16,7 @@ import streamlit as st
 
 def _utc_now_iso() -> str:
     """Return current UTC datetime as ISO string."""
-    return datetime.now(UTC).isoformat()
+    return datetime.now(timezone.utc).isoformat()
 
 
 @dataclass

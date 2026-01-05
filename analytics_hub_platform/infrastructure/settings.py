@@ -173,9 +173,10 @@ class Settings(BaseSettings):
                         "jwt_secret_key",
                         SecretStr("dev-only-insecure-secret-do-not-use-in-production"),
                     )
-                    logger.warning(
-                        "Using insecure default JWT secret. "
-                        "Set JWT_SECRET_KEY environment variable for production."
+                    # Silent in dev - this is expected behavior
+                    logger.debug(
+                        "Using development JWT secret. "
+                        "JWT_SECRET_KEY will be required in production."
                     )
                 else:
                     raise ConfigurationError(

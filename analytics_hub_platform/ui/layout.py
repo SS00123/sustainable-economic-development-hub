@@ -11,14 +11,15 @@ import streamlit as st
 
 from analytics_hub_platform.config.branding import get_branding
 from analytics_hub_platform.config.theme import get_theme
+from analytics_hub_platform.ui.html import render_html
 
 
 def inject_custom_css() -> None:
     """Inject custom CSS styles into the Streamlit app."""
     theme = get_theme()
-    st.markdown(theme.get_streamlit_custom_css(), unsafe_allow_html=True)
+    render_html(theme.get_streamlit_custom_css())
     # Global aesthetic enhancements shared across all pages
-    st.markdown(
+    render_html(
         f"""
         <style>
             /* Page canvas */
@@ -102,7 +103,6 @@ def inject_custom_css() -> None:
 
         </style>
         """,
-        unsafe_allow_html=True,
     )
 
 
@@ -173,36 +173,75 @@ def render_footer(language: str = "en") -> None:
     Args:
         language: Display language
     """
-    theme = get_theme()
-    branding = get_branding()
+    footer_html = """
+    <div style="position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px; margin-top: 48px;">
+        <!-- Left: Branding -->
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="
+                width: 48px;
+                height: 48px;
+                background: linear-gradient(145deg, rgba(168, 85, 247, 0.8), rgba(34, 211, 238, 0.6));
+                border-radius: 14px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+                box-shadow: 0 8px 24px rgba(168, 85, 247, 0.3);
+            ">📊</div>
+            <div>
+                <div style="font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.92);">
+                    Sustainable Economic Development
+                </div>
+                <div style="font-size: 12px; color: rgba(255,255,255,0.5);">
+                    Ministry of Economy and Planning
+                </div>
+            </div>
+        </div>
 
-    footer_text = branding.get_footer(language)
-    author_info = branding.get_author_info(language).replace("\n", " | ")
+        <!-- Center: Links (hidden on mobile) -->
+        <div style="display: flex; gap: 24px; align-items: center;">
+            <span style="font-size: 12px; color: rgba(255,255,255,0.4); cursor: pointer; transition: color 200ms;">Documentation</span>
+            <span style="font-size: 12px; color: rgba(255,255,255,0.4); cursor: pointer;">API</span>
+            <span style="font-size: 12px; color: rgba(255,255,255,0.4); cursor: pointer;">Support</span>
+        </div>
 
-    footer_html = f"""
+        <!-- Right: Developer info -->
+        <div style="text-align: right;">
+            <div style="font-size: 11px; color: rgba(255,255,255,0.4); margin-bottom: 4px;">
+                Developed by
+            </div>
+            <div style="font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.75);">
+                Eng. Sultan Albuqami
+            </div>
+            <div style="font-size: 11px; color: rgba(168, 85, 247, 0.8);">
+                sultan_mutep@hotmail.com
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom copyright -->
     <div style="
-        border-top: 1px solid {theme.colors.divider};
-        padding: 24px 0;
-        margin-top: 48px;
-        text-align: center;
+        position: relative;
+        z-index: 2;
+        margin-top: 24px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255,255,255,0.06);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
     ">
-        <p style="
-            color: {theme.colors.text_muted};
-            font-size: {theme.typography.size_sm}px;
-            margin: 0 0 8px 0;
-            font-family: {theme.typography.font_family};
-        ">{footer_text}</p>
-        <p style="
-            color: {theme.colors.text_muted};
-            font-size: {theme.typography.size_xs}px;
-            margin: 0;
-            font-family: {theme.typography.font_family};
-        ">Developed by: {author_info}</p>
+        <span style="font-size: 11px; color: rgba(255,255,255,0.35);">
+            © 2024-2026 Ministry of Economy and Planning. All rights reserved.
+        </span>
+        <span style="font-size: 11px; color: rgba(255,255,255,0.35);">
+            Version 2.0.0 • Built with Streamlit
+        </span>
     </div>
     """
 
-    # Use components.html for proper HTML rendering
-    st.components.v1.html(footer_html, height=100)
+    render_html(footer_html)
 
 
 def render_section_header(
@@ -487,7 +526,7 @@ def render_alert_box(message: str, alert_type: str = "info", icon: str | None = 
     </div>
     """
 
-    st.markdown(alert_html, unsafe_allow_html=True)
+    render_html(alert_html)
 
 
 def render_data_table(data: list, columns: list, title: str | None = None) -> None:
@@ -537,4 +576,5 @@ def render_data_table(data: list, columns: list, title: str | None = None) -> No
     </table>
     """
 
-    st.markdown(table_html, unsafe_allow_html=True)
+    render_html(table_html)
+

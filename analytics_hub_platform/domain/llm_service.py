@@ -579,7 +579,8 @@ def get_llm_service(provider: str | None = None) -> BaseLLMProvider:
                 timeout=settings.llm_timeout, max_retries=settings.llm_max_retries
             )
         else:
-            logger.info("No LLM API keys found, using mock provider")
+            # Silent fallback - mock provider is expected in development without API keys
+            logger.debug("No LLM API keys configured, using built-in recommendations")
             return MockLLMProvider()
 
     elif provider == "openai":

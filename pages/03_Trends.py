@@ -12,6 +12,7 @@ Displays:
 import numpy as np
 import plotly.graph_objects as go
 import streamlit as st
+from analytics_hub_platform.ui.html import render_html
 
 # Page configuration
 st.set_page_config(
@@ -26,17 +27,23 @@ from analytics_hub_platform.infrastructure.db_init import initialize_database
 from analytics_hub_platform.infrastructure.repository import get_repository
 from analytics_hub_platform.infrastructure.settings import get_settings
 from analytics_hub_platform.ui.dark_components import card_close, card_open, render_sidebar
-from analytics_hub_platform.ui.dark_theme import get_dark_css, get_dark_theme
+from analytics_hub_platform.ui.theme import get_dark_css, get_dark_theme
+from analytics_hub_platform.ui.html import render_html
+from analytics_hub_platform.ui.theme import colors, get_chart_layout_config
 from analytics_hub_platform.ui.ui_components import (
-    apply_chart_theme,
-    card_container,
     initialize_page_session_state,
     render_page_header,
     section_header,
     spacer,
 )
-from analytics_hub_platform.ui.ui_theme import COLORS, get_chart_colors
 from analytics_hub_platform.utils.dataframe_adapter import add_period_column
+
+
+def apply_chart_theme(fig: go.Figure, height: int = 400) -> None:
+    """Apply dark theme to Plotly chart."""
+    config = get_chart_layout_config()
+    config["height"] = height
+    fig.update_layout(**config)
 
 
 # Initialize
@@ -45,8 +52,8 @@ if not st.session_state.get("initialized"):
     initialize_database()
     st.session_state["initialized"] = True
 
-# Apply dark theme
-st.markdown(get_dark_css(), unsafe_allow_html=True)
+# Apply dark theme using safe renderer
+render_html(get_dark_css())
 dark_theme = get_dark_theme()
 
 # Layout
@@ -69,20 +76,9 @@ with main_col:
         region = st.selectbox(
             "Region",
             [
-                "all",
-                "Riyadh",
-                "Makkah",
-                "Eastern Province",
-                "Madinah",
-                "Qassim",
-                "Asir",
-                "Tabuk",
-                "Hail",
-                "Northern Borders",
-                "Jazan",
-                "Najran",
-                "Al Bahah",
-                "Al Jawf",
+                "all", "Riyadh", "Makkah", "Eastern Province", "Madinah", "Qassim",
+                "Asir", "Tabuk", "Hail", "Northern Borders", "Jazan", "Najran",
+                "Al Bahah", "Al Jawf",
             ],
             index=0,
             key="trend_filter_region",
@@ -103,7 +99,7 @@ with main_col:
             "Indicator Trends", "Select an indicator to view historical performance", "📈"
         )
 
-        with card_container():
+        with st.container():
             col1, col2 = st.columns([3, 1])
 
             with col2:
@@ -142,8 +138,8 @@ with main_col:
                         y=trend_agg[selected_kpi],
                         mode="lines+markers",
                         name=kpi_options[selected_kpi],
-                        line={"color": COLORS.purple, "width": 3},
-                        marker={"size": 10, "color": COLORS.purple},
+                        line={"color": colors.purple, "width": 3},
+                        marker={"size": 10, "color": colors.purple},
                         fill="tozeroy",
                         fillcolor="rgba(168, 85, 247, 0.15)",
                         hovertemplate="<b>%{x}</b><br>Value: %{y:.1f}<extra></extra>",
@@ -161,7 +157,7 @@ with main_col:
                             y=p(x_numeric),
                             mode="lines",
                             name="Trend",
-                            line={"color": COLORS.cyan, "width": 2, "dash": "dash"},
+                            line={"color": colors.cyan, "width": 2, "dash": "dash"},
                         )
                     )
 
@@ -191,8 +187,8 @@ with main_col:
                 regional_agg = regional_agg.sort_values("sustainability_index", ascending=True)
                 national_avg = regional_agg["sustainability_index"].mean()
 
-                colors = [
-                    COLORS.purple if v >= national_avg else COLORS.pink
+                bar_colors = [
+                    colors.purple if v >= national_avg else colors.pink
                     for v in regional_agg["sustainability_index"]
                 ]
 
@@ -202,18 +198,18 @@ with main_col:
                         y=regional_agg["region"],
                         x=regional_agg["sustainability_index"],
                         orientation="h",
-                        marker_color=colors,
+                        marker_color=bar_colors,
                         text=[f"{v:.1f}" for v in regional_agg["sustainability_index"]],
                         textposition="outside",
-                        textfont={"color": COLORS.text_muted},
+                        textfont={"color": colors.text_muted},
                     )
                 )
                 fig.add_vline(
                     x=national_avg,
                     line_dash="dash",
-                    line_color=COLORS.cyan,
+                    line_color=colors.cyan,
                     annotation_text=f"Avg: {national_avg:.1f}",
-                    annotation_font={"color": COLORS.text_muted},
+                    annotation_font={"color": colors.text_muted},
                 )
 
                 apply_chart_theme(fig, height=450)
@@ -224,13 +220,12 @@ with main_col:
                 st.plotly_chart(fig, use_container_width=True)
 
             with reg_col2:
-                st.markdown(
+                render_html(
                     f"""
-                    <div style="color: {COLORS.text_secondary}; font-size: 14px; font-weight: 600; margin-bottom: 16px;">
+                    <div style="color: {colors.text_secondary}; font-size: 14px; font-weight: 600; margin-bottom: 16px;">
                         📊 Regional Statistics
                     </div>
-                """,
-                    unsafe_allow_html=True,
+                    """
                 )
 
                 for label, value in [
@@ -239,14 +234,13 @@ with main_col:
                     ("Lowest", f"{regional_agg['sustainability_index'].min():.1f}"),
                     ("Std Dev", f"{regional_agg['sustainability_index'].std():.1f}"),
                 ]:
-                    st.markdown(
+                    render_html(
                         f"""
-                        <div style="background: {COLORS.bg_card}; padding: 12px; border-radius: 8px; margin-bottom: 8px;">
-                            <div style="font-size: 11px; color: {COLORS.text_muted};">{label}</div>
-                            <div style="font-size: 18px; font-weight: 700; color: {COLORS.text_primary};">{value}</div>
+                        <div style="background: {colors.bg_card}; padding: 12px; border-radius: 8px; margin-bottom: 8px;">
+                            <div style="font-size: 11px; color: {colors.text_muted};">{label}</div>
+                            <div style="font-size: 18px; font-weight: 700; color: {colors.text_primary};">{value}</div>
                         </div>
-                    """,
-                        unsafe_allow_html=True,
+                        """
                     )
         else:
             st.info("No regional data available")
@@ -263,14 +257,8 @@ with main_col:
         card_open("Environmental KPIs", "Tracking sustainability metrics")
 
         env_kpis = [
-            "co2_index",
-            "renewable_share",
-            "energy_intensity",
-            "water_efficiency",
-            "waste_recycling_rate",
-            "air_quality_index",
-            "forest_coverage",
-            "green_jobs",
+            "co2_index", "renewable_share", "energy_intensity", "water_efficiency",
+            "waste_recycling_rate", "air_quality_index", "forest_coverage", "green_jobs",
         ]
 
         trend_env = (
@@ -282,7 +270,7 @@ with main_col:
         trend_env = trend_env.sort_values(["year", "quarter"])
 
         fig_env = go.Figure()
-        chart_colors = get_chart_colors()
+        chart_colors = list(colors.chart_palette)
         label_map = {
             "co2_index": "CO2 Intensity",
             "renewable_share": "Renewables %",
@@ -309,11 +297,10 @@ with main_col:
             )
 
         apply_chart_theme(fig_env, height=420)
-        st.plotly_chart(fig_env, width="stretch")
+        st.plotly_chart(fig_env, use_container_width=True)
         card_close()
 
     except Exception as e:
         st.error(f"Error loading trend data: {str(e)}")
         import traceback
-
         st.code(traceback.format_exc())

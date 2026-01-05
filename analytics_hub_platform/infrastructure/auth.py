@@ -7,7 +7,7 @@ Provides JWT token creation, validation, and user authentication.
 """
 
 import logging
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from analytics_hub_platform.domain.models import User, UserRole
@@ -83,7 +83,7 @@ class JWTHandler:
             return f"poc_token:{user.id}:{user.role.value}"
 
         try:
-            expire = datetime.now(UTC) + (expires_delta or timedelta(minutes=self._expire_minutes))
+            expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=self._expire_minutes))
 
             payload = {
                 "sub": user.id,
@@ -92,7 +92,7 @@ class JWTHandler:
                 "role": user.role.value,
                 "tenant_id": user.tenant_id,
                 "exp": expire,
-                "iat": datetime.now(UTC),
+                "iat": datetime.now(timezone.utc),
                 "iss": "analytics-hub",
             }
 

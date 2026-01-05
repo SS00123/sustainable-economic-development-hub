@@ -15,7 +15,7 @@ def check_file_exists(filepath: str, required: bool = True) -> bool:
     status = "✅" if exists else ("❌" if required else "⚠️")
     requirement = "REQUIRED" if required else "OPTIONAL"
     print(f"{status} {filepath} ({requirement}): {'Found' if exists else 'Missing'}")
-    return exists
+    return exists or not required
 
 
 def check_requirements_txt():
@@ -27,7 +27,7 @@ def check_requirements_txt():
         print("❌ requirements.txt not found!")
         return False
 
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         content = f.read()
 
     required_packages = [
@@ -62,7 +62,7 @@ def check_streamlit_config():
         print("❌ .streamlit/config.toml not found!")
         return False
 
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         content = f.read()
 
     required_sections = ["[theme]", "[server]", "[browser]"]
@@ -79,24 +79,24 @@ def check_streamlit_config():
 def check_main_file():
     """Check main entry point."""
     print("\n🚀 Checking main entry point...")
-    path = Path("app.py")
+    path = Path("streamlit_app.py")
 
     if not path.exists():
-        print("❌ app.py not found!")
+        print("❌ streamlit_app.py not found!")
         return False
 
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         content = f.read()
 
     if "st.set_page_config" not in content:
-        print("⚠️  st.set_page_config not found in app.py")
+        print("⚠️  st.set_page_config not found in streamlit_app.py")
         return False
 
     if "import streamlit" not in content:
-        print("❌ Streamlit not imported in app.py")
+        print("❌ Streamlit not imported in streamlit_app.py")
         return False
 
-    print("✅ app.py is valid")
+    print("✅ streamlit_app.py is valid")
     return True
 
 
@@ -109,7 +109,7 @@ def check_gitignore():
         print("⚠️  .gitignore not found")
         return False
 
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         content = f.read()
 
     critical_entries = [".env", "secrets.toml", "*.key", "*.pem"]
@@ -131,7 +131,7 @@ def main():
     print("=" * 60)
 
     checks = [
-        ("app.py", True),
+        ("streamlit_app.py", True),
         ("requirements.txt", True),
         ("packages.txt", False),
         (".streamlit/config.toml", True),

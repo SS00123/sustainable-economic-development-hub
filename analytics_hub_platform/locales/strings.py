@@ -6,8 +6,8 @@ Ministry of Economy and Planning
 String dictionaries for English and Arabic localization.
 """
 
-from analytics_hub_platform.locale.ar import STRINGS_AR
-from analytics_hub_platform.locale.en import STRINGS_EN
+from analytics_hub_platform.locales.ar import STRINGS_AR
+from analytics_hub_platform.locales.en import STRINGS_EN
 
 # All available locales
 LOCALES: dict[str, dict[str, str]] = {

@@ -6,6 +6,7 @@ Production-grade card, metric, and chart components for consistent styling
 import plotly.graph_objects as go
 import streamlit as st
 
+from analytics_hub_platform.ui.html import render_html
 from analytics_hub_platform.ui.ui_theme import (
     COLORS,
     RADIUS,
@@ -20,7 +21,7 @@ from analytics_hub_platform.ui.ui_theme import (
 def initialize_page_session_state() -> None:
     """Initialize common session state variables across all pages."""
     defaults = {
-        "year": 2024,
+        "year": 2026,
         "quarter": 4,
         "region": "all",
         "language": "en",
@@ -43,7 +44,7 @@ def render_page_header(title: str, subtitle: str, icon: str = "") -> None:
         icon: Optional emoji icon
     """
     icon_prefix = f"{icon} " if icon else ""
-    st.markdown(
+    render_html(
         f"""
         <div style="
             background: linear-gradient(135deg, {COLORS.purple} 0%, {COLORS.cyan} 100%);
@@ -58,8 +59,7 @@ def render_page_header(title: str, subtitle: str, icon: str = "") -> None:
                 {subtitle}
             </p>
         </div>
-    """,
-        unsafe_allow_html=True,
+    """
     )
 
 
@@ -70,7 +70,7 @@ def page_container(content_func):
     Args:
         content_func: Function that renders page content
     """
-    st.markdown(
+    render_html(
         """
         <style>
         .main .block-container {
@@ -79,8 +79,7 @@ def page_container(content_func):
             padding-right: 2rem;
         }
         </style>
-        """,
-        unsafe_allow_html=True,
+        """
     )
     content_func()
 
@@ -101,7 +100,7 @@ def section_header(title: str, subtitle: str = "", icon: str = "") -> None:
         else ""
     )
 
-    st.markdown(
+    render_html(
         f"""
         <div style="
             margin: {SPACING.lg} 0;
@@ -120,8 +119,7 @@ def section_header(title: str, subtitle: str = "", icon: str = "") -> None:
             </h2>
             {subtitle_html}
         </div>
-    """,
-        unsafe_allow_html=True,
+    """
     )
 
 
@@ -147,7 +145,7 @@ def card_container(title: str = "", subtitle: str = ""):
                 else ""
             )
 
-            st.markdown(
+            render_html(
                 f"""
                 <div style="
                     background: {COLORS.bg_card};
@@ -160,13 +158,12 @@ def card_container(title: str = "", subtitle: str = ""):
                 ">
                 {title_html}
                 {subtitle_html}
-            """,
-                unsafe_allow_html=True,
+            """
             )
             return self
 
         def __exit__(self, *args):
-            st.markdown("</div>", unsafe_allow_html=True)
+            render_html("</div>")
 
     return CardContext()
 
@@ -230,7 +227,7 @@ def metric_card(
 {delta_html}
 </div>"""
 
-    st.markdown(html, unsafe_allow_html=True)
+    render_html(html)
 
 
 def status_pills(green: int = 0, amber: int = 0, red: int = 0) -> None:
@@ -242,7 +239,7 @@ def status_pills(green: int = 0, amber: int = 0, red: int = 0) -> None:
         amber: Count of amber status items
         red: Count of red status items
     """
-    st.markdown(
+    render_html(
         f"""
         <div style="display: flex; gap: {SPACING.md}; flex-wrap: wrap;">
             <div style="
@@ -306,8 +303,7 @@ def status_pills(green: int = 0, amber: int = 0, red: int = 0) -> None:
                 </span>
             </div>
         </div>
-    """,
-        unsafe_allow_html=True,
+    """
     )
 
 
@@ -371,7 +367,7 @@ def mini_stat(label: str, value: str, icon: str = "") -> None:
         icon: Optional icon
     """
     icon_html = f"{icon} " if icon else ""
-    st.markdown(
+    render_html(
         f"""
         <div style="
             background: {COLORS.bg_card};
@@ -386,8 +382,7 @@ def mini_stat(label: str, value: str, icon: str = "") -> None:
                 {value}
             </div>
         </div>
-    """,
-        unsafe_allow_html=True,
+    """
     )
 
 
@@ -408,7 +403,7 @@ def info_banner(message: str, type: str = "info") -> None:
 
     color, icon = colors_map.get(type, colors_map["info"])
 
-    st.markdown(
+    render_html(
         f"""
         <div style="
             background: {get_gradient(color, color, 135)}15;
@@ -421,8 +416,7 @@ def info_banner(message: str, type: str = "info") -> None:
         ">
             <strong>{icon}</strong> {message}
         </div>
-    """,
-        unsafe_allow_html=True,
+    """
     )
 
 
@@ -436,4 +430,5 @@ def spacer(size: str = "md") -> None:
         "xl": "32px",
     }
     height = size_map.get(size, "16px")
-    st.markdown(f'<div style="height: {height};"></div>', unsafe_allow_html=True)
+    render_html(f'<div style="height: {height};"></div>')
+

@@ -38,14 +38,19 @@ st.set_page_config(
 )
 
 from analytics_hub_platform.infrastructure.db_init import initialize_database
-from analytics_hub_platform.ui.dark_theme import get_dark_css
+from analytics_hub_platform.ui.theme import get_dark_css
+from analytics_hub_platform.ui.html import (
+    render_html,
+    render_rtl_aware_container_start,
+    render_rtl_aware_container_end,
+)
 from analytics_hub_platform.ui.pages.unified_dashboard import render_unified_dashboard
 
 
 def initialize_session_state() -> None:
     """Initialize session state variables with sensible defaults."""
     defaults = {
-        "year": 2024,
+        "year": 2026,
         "quarter": 4,
         "region": "all",
         "language": "en",
@@ -69,9 +74,20 @@ def main() -> None:
         initialize_database()
         st.session_state["initialized"] = True
 
-    # Apply dark CSS and render the executive dashboard by default
-    st.markdown(get_dark_css(), unsafe_allow_html=True)
+    # Get current language for RTL support
+    language = st.session_state.get("language", "en")
+
+    # Apply dark CSS using safe renderer
+    render_html(get_dark_css())
+
+    # Apply RTL wrapper if Arabic
+    render_rtl_aware_container_start(language)
+
+    # Render the executive dashboard
     render_unified_dashboard()
+
+    # Close RTL wrapper
+    render_rtl_aware_container_end()
 
 
 if __name__ == "__main__":

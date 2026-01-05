@@ -16,7 +16,7 @@ from analytics_hub_platform.domain.models import FilterParams
 from analytics_hub_platform.domain.services import get_data_quality_metrics
 from analytics_hub_platform.infrastructure.repository import get_repository
 from analytics_hub_platform.infrastructure.settings import get_settings
-from analytics_hub_platform.locale import get_strings
+from analytics_hub_platform.locales import get_strings
 from analytics_hub_platform.ui.filters import get_filter_state
 from analytics_hub_platform.ui.layout import (
     inject_custom_css,

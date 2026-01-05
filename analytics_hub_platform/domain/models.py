@@ -10,7 +10,7 @@ Models are designed to be:
 - Extensible for future requirements
 """
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -19,7 +19,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 def utc_now() -> datetime:
     """Return current UTC datetime (timezone-aware)."""
-    return datetime.now(UTC)
+    return datetime.now(timezone.utc)
 
 
 class UserRole(str, Enum):

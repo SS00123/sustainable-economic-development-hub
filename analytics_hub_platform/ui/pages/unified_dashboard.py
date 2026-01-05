@@ -37,10 +37,11 @@ from analytics_hub_platform.domain.services import (
 )
 from analytics_hub_platform.infrastructure.repository import get_repository
 from analytics_hub_platform.infrastructure.settings import get_settings
-from analytics_hub_platform.locale import get_strings
+from analytics_hub_platform.locales import get_strings
 from analytics_hub_platform.ui.components.cards import (
     render_kpi_card,
 )
+from analytics_hub_platform.ui.html import render_html
 from analytics_hub_platform.ui.dark_components import (
     apply_dark_chart_layout,
     card_close,
@@ -48,6 +49,12 @@ from analytics_hub_platform.ui.dark_components import (
     render_mini_metric,
     render_sidebar,
     render_status_overview,
+    create_sparkline_svg,
+    create_progress_ring,
+    create_alert_badge,
+    render_enhanced_kpi_card,
+    render_yoy_comparison,
+    add_target_line_to_chart,
 )
 from analytics_hub_platform.ui.dark_components import (
     render_header as render_dark_header,
@@ -57,7 +64,7 @@ from analytics_hub_platform.ui.dark_components import (
 )
 
 # Import dark theme components
-from analytics_hub_platform.ui.dark_theme import get_dark_theme, hex_to_rgba
+from analytics_hub_platform.ui.theme import get_dark_theme, hex_to_rgba
 from analytics_hub_platform.utils.dataframe_adapter import add_period_column
 from analytics_hub_platform.utils.kpi_utils import get_kpi_unit
 from analytics_hub_platform.utils.narratives import generate_executive_narrative
@@ -295,9 +302,7 @@ def render_unified_dashboard() -> None:
         # =========================================================================
         # HERO METRICS SECTION (PDF Design Spec: Sustainability Gauge + 4 KPI Cards)
         # =========================================================================
-        st.markdown(
-            "<div id='section-overview' style='height: 16px;'></div>", unsafe_allow_html=True
-        )
+        render_html("<div id='section-overview' style='height: 16px;'></div>")
 
         # Status summary for display
         green_count = sum(1 for m in metrics.values() if m.get("status") == "green")
@@ -316,17 +321,17 @@ def render_unified_dashboard() -> None:
             )
 
         with hero_kpi_col:
-            # 2x2 grid of hero KPI cards
-            _render_hero_kpi_cards(metrics, dark_theme, quality_metrics, quality_prev)
+            # 2x2 grid of hero KPI cards with sparklines
+            _render_hero_kpi_cards(metrics, dark_theme, quality_metrics, quality_prev, df=df)
 
-        st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
+        render_html("<div style='height: 24px;'></div>")
 
         # Status overview row (compact)
         card_open("Performance Overview", f"Q{quarter} {year} • {len(metrics)} KPIs tracked")
         render_status_overview(green_count, amber_count, red_count)
         card_close()
 
-        st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
+        render_html("<div style='height: 24px;'></div>")
 
         # =========================================================================
         # PILLAR PERFORMANCE GRID (PDF Design Spec)
@@ -338,7 +343,7 @@ def render_unified_dashboard() -> None:
         )
         _render_pillar_section_economic(df, metrics, year, quarter, region, dark_theme)
 
-        st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
+        render_html("<div style='height: 24px;'></div>")
 
         # Labor & Skills + Social & Digital (side by side per PDF)
         labor_col, social_col = st.columns(2, gap="large")
@@ -355,7 +360,7 @@ def render_unified_dashboard() -> None:
             )
             _render_pillar_section_social(df, metrics, year, quarter, dark_theme)
 
-        st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
+        render_html("<div style='height: 24px;'></div>")
 
         # Environmental & Sustainability Pillar
         render_dark_section_title(
@@ -363,16 +368,16 @@ def render_unified_dashboard() -> None:
         )
         _render_pillar_section_environmental(df, metrics, year, quarter, region, dark_theme)
 
-        st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
+        render_html("<div style='height: 24px;'></div>")
 
         # =========================================================================
         # ANALYTICAL BAND: TREND ANALYSIS + REGIONAL COMPARISON
         # =========================================================================
 
         # Section: Trend Analysis
-        st.markdown("<div id='section-trends' style='height: 8px;'></div>", unsafe_allow_html=True)
+        render_html("<div id='section-trends' style='height: 8px;'></div>")
         render_dark_section_title("📈 Trend Analysis", "Historical performance over time")
-        st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+        render_html("<div style='height: 12px;'></div>")
 
         card_open("Trend Line", "Select indicator to view")
         trend_col1, trend_col2 = st.columns([3, 1])
@@ -451,11 +456,11 @@ def render_unified_dashboard() -> None:
         # =========================================================================
         # SECTION 4: REGIONAL COMPARISON (PDF Design Spec)
         # =========================================================================
-        st.markdown("<div id='section-regions' style='height: 8px;'></div>", unsafe_allow_html=True)
+        render_html("<div id='section-regions' style='height: 8px;'></div>")
         render_dark_section_title(
             "🗺️ Regional Comparison", "Performance by region with geospatial view"
         )
-        st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+        render_html("<div style='height: 12px;'></div>")
 
         filter_params = FilterParams(
             tenant_id=settings.default_tenant_id,
@@ -468,18 +473,16 @@ def render_unified_dashboard() -> None:
         # Dedicated Saudi map section (separate from bars/stats)
         _render_saudi_map_section(df, filter_params, dark_theme, language)
 
-        st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
+        render_html("<div style='height: 24px;'></div>")
 
         # =========================================================================
         # SECTION 5: ENVIRONMENTAL TRENDS
         # =========================================================================
-        st.markdown(
-            "<div id='section-environment' style='height: 8px;'></div>", unsafe_allow_html=True
-        )
+        render_html("<div id='section-environment' style='height: 8px;'></div>")
         render_dark_section_title(
             "🌿 Sustainability & Environmental Trends", "Multi-indicator performance"
         )
-        st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+        render_html("<div style='height: 12px;'></div>")
 
         card_open("Environmental KPIs", "Tracking sustainability metrics over time")
 
@@ -552,35 +555,46 @@ def render_unified_dashboard() -> None:
         card_close()
 
         # =========================================================================
+        # SECTION 5.5: YEAR-OVER-YEAR COMPARISON
+        # =========================================================================
+        render_html("<div id='section-yoy' style='height: 8px;'></div>")
+        render_dark_section_title(
+            "📈 Year-over-Year Comparison", "Key indicators compared to previous year"
+        )
+        render_html("<div style='height: 12px;'></div>")
+
+        _render_yoy_comparison_section(df, year, quarter, region, dark_theme)
+
+        render_html("<div style='height: 24px;'></div>")
+
+        # =========================================================================
         # SECTION 6: DATA QUALITY & COMPLETENESS (PDF Design Spec)
         # =========================================================================
-        st.markdown(
-            "<div id='section-data-quality' style='height: 8px;'></div>", unsafe_allow_html=True
-        )
+        render_html("<div id='section-data-quality' style='height: 8px;'></div>")
         render_dark_section_title(
             "✅ Data Quality & Completeness", "Overall data health and completeness metrics"
         )
-        st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+        render_html("<div style='height: 12px;'></div>")
 
         _render_data_quality_section(quality_metrics, quality_prev, metrics, df, catalog, dark_theme)
 
-        st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
+        render_html("<div style='height: 24px;'></div>")
 
         # =========================================================================
         # SECTION 7: KEY INSIGHTS (PDF Design Spec - Two Columns)
         # =========================================================================
-        st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+        render_html("<div style='height: 8px;'></div>")
         render_dark_section_title(
             "💡 Key Insights", "Top improvements and areas needing attention"
         )
-        st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+        render_html("<div style='height: 12px;'></div>")
 
         _render_key_insights_section(snapshot, metrics, dark_theme, language)
 
         # =========================================================================
         # ADVANCED ANALYTICS SECTION
         # =========================================================================
-        st.markdown(
+        render_html(
             f"""
             <div style="
                 background: linear-gradient(135deg, {dark_theme.colors.purple}15 0%, {dark_theme.colors.cyan}10 100%);
@@ -596,8 +610,7 @@ def render_unified_dashboard() -> None:
                     ML-powered forecasting, anomaly detection, and AI recommendations
                 </p>
             </div>
-        """,
-            unsafe_allow_html=True,
+        """
         )
 
         # Create layout with sidebar and content
@@ -619,31 +632,111 @@ def render_unified_dashboard() -> None:
             elif selected_section == "map":
                 _render_regional_map_section(df, year, quarter, theme, language)
 
-        st.markdown("<div style='height: 48px;'></div>", unsafe_allow_html=True)
+        render_html("<div style='height: 48px;'></div>")
 
         # =========================================================================
-        # PROFESSIONAL FOOTER
+        # PREMIUM FOOTER
         # =========================================================================
-        st.markdown(
-            f"""
+        footer_html = f"""
             <div style="
-                border-top: 1px solid #2d3555;
-                padding: 24px 0;
-                text-align: center;
-                background: #121532;
-                border-radius: 0 0 12px 12px;
-                margin-top: 24px;
+                position: relative;
+                background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(11, 17, 32, 0.98));
+                border: 1px solid rgba(168, 85, 247, 0.15);
+                border-radius: 20px;
+                padding: 32px 40px;
+                margin-top: 32px;
+                overflow: hidden;
             ">
-                <p style="color: #64748b; font-size: 12px; margin: 0 0 8px 0;">
-                    Sustainable Economic Development Analytics Hub • Ministry of Economy and Planning
-                </p>
-                <p style="color: #64748b; font-size: 11px; margin: 0;">
-                    Developed by {BRANDING["author_name"]} • {BRANDING["author_mobile"]} • {BRANDING["author_email"]}
-                </p>
+                <!-- Gradient orbs -->
+                <div style="
+                    position: absolute;
+                    bottom: -40px;
+                    left: 10%;
+                    width: 200px;
+                    height: 200px;
+                    background: radial-gradient(circle, rgba(168, 85, 247, 0.1) 0%, transparent 60%);
+                    border-radius: 50%;
+                    filter: blur(40px);
+                "></div>
+                <div style="
+                    position: absolute;
+                    bottom: -30px;
+                    right: 15%;
+                    width: 150px;
+                    height: 150px;
+                    background: radial-gradient(circle, rgba(34, 211, 238, 0.1) 0%, transparent 60%);
+                    border-radius: 50%;
+                    filter: blur(35px);
+                "></div>
+
+                <div style="position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px;">
+                    <!-- Left: Branding -->
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <div style="
+                            width: 48px;
+                            height: 48px;
+                            background: linear-gradient(145deg, rgba(168, 85, 247, 0.8), rgba(34, 211, 238, 0.6));
+                            border-radius: 14px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 24px;
+                            box-shadow: 0 8px 24px rgba(168, 85, 247, 0.3);
+                        ">📊</div>
+                        <div>
+                            <div style="font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.92);">
+                                Sustainable Economic Development
+                            </div>
+                            <div style="font-size: 12px; color: rgba(255,255,255,0.5);">
+                                Ministry of Economy and Planning
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Center: Links -->
+                    <div style="display: flex; gap: 24px; align-items: center;">
+                        <span style="font-size: 12px; color: rgba(255,255,255,0.4); cursor: pointer;">Documentation</span>
+                        <span style="font-size: 12px; color: rgba(255,255,255,0.4); cursor: pointer;">API</span>
+                        <span style="font-size: 12px; color: rgba(255,255,255,0.4); cursor: pointer;">Support</span>
+                    </div>
+
+                    <!-- Right: Developer info -->
+                    <div style="text-align: right;">
+                        <div style="font-size: 11px; color: rgba(255,255,255,0.4); margin-bottom: 4px;">
+                            Developed by
+                        </div>
+                        <div style="font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.75);">
+                            Eng. Sultan Albuqami
+                        </div>
+                        <div style="font-size: 11px; color: rgba(168, 85, 247, 0.8);">
+                            sultan_mutep@hotmail.com
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom copyright -->
+                <div style="
+                    position: relative;
+                    z-index: 2;
+                    margin-top: 24px;
+                    padding-top: 20px;
+                    border-top: 1px solid rgba(255,255,255,0.06);
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    flex-wrap: wrap;
+                    gap: 12px;
+                ">
+                    <span style="font-size: 11px; color: rgba(255,255,255,0.35);">
+                        © 2024-2026 Ministry of Economy and Planning. All rights reserved.
+                    </span>
+                    <span style="font-size: 11px; color: rgba(255,255,255,0.35);">
+                        Version 2.0.0 • Built with Streamlit
+                    </span>
+                </div>
             </div>
-        """,
-            unsafe_allow_html=True,
-        )
+        """
+        render_html(footer_html)
 
 
 # =============================================================================
@@ -655,73 +748,168 @@ def _render_page_header(
     dark_theme, year: int, quarter: int, last_updated: str | None = None
 ) -> None:
     """
-    Render the page header matching PDF design spec.
+    Render the premium page header matching modern dashboard design.
 
     Includes:
+    - Animated gradient background with mesh overlay
     - Main title: "Sustainable Economic Development Analytics Hub"
     - Subtitle: "Ministry of Economy and Planning • Executive Dashboard"
-    - Data freshness text
+    - Live indicator and data freshness
     """
     from datetime import datetime
 
     if last_updated is None:
-        last_updated = datetime.now().strftime("%B %d, %Y at %H:%M")
+        last_updated = datetime.now().strftime("%B %d, %Y %H:%M")
 
-    st.markdown(
-        f"""
+    # Using st.html for pure HTML content (recommended for Streamlit 1.52+)
+    header_html = f"""
         <div style="
-            background: linear-gradient(135deg, {dark_theme.colors.bg_card} 0%, {dark_theme.colors.bg_card_alt} 100%);
-            border: 1px solid {dark_theme.colors.border};
-            border-radius: {dark_theme.grid.card_radius};
-            padding: 28px 32px;
-            margin-bottom: 24px;
+            position: relative;
+            background: linear-gradient(135deg,
+                rgba(27, 31, 54, 0.95) 0%,
+                rgba(15, 17, 34, 0.98) 50%,
+                rgba(30, 35, 64, 0.95) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 20px;
+            padding: 32px 36px;
+            margin-bottom: 28px;
+            overflow: hidden;
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06);
         ">
-            <h1 style="
-                font-size: {dark_theme.typography.page_title};
-                font-weight: {dark_theme.typography.weight_bold};
-                color: {dark_theme.colors.text_primary};
-                margin: 0 0 8px 0;
-                font-family: {dark_theme.typography.font_family};
-            ">
-                📊 Sustainable Economic Development Analytics Hub
-            </h1>
-            <p style="
-                font-size: {dark_theme.typography.body};
-                color: {dark_theme.colors.text_secondary};
-                margin: 0 0 16px 0;
-            ">
-                Ministry of Economy and Planning • Executive Dashboard
-            </p>
             <div style="
-                display: flex;
-                align-items: center;
-                gap: 24px;
-                flex-wrap: wrap;
-            ">
-                <span style="
+                position: absolute;
+                top: -80px;
+                right: -60px;
+                width: 250px;
+                height: 250px;
+                background: radial-gradient(circle, rgba(168, 85, 247, 0.25) 0%, transparent 60%);
+                border-radius: 50%;
+                filter: blur(40px);
+                animation: float-orb 8s ease-in-out infinite;
+            "></div>
+            <div style="
+                position: absolute;
+                bottom: -60px;
+                left: 20%;
+                width: 200px;
+                height: 200px;
+                background: radial-gradient(circle, rgba(34, 211, 238, 0.2) 0%, transparent 60%);
+                border-radius: 50%;
+                filter: blur(35px);
+                animation: float-orb 10s ease-in-out infinite reverse;
+            "></div>
+            <div style="
+                position: absolute;
+                top: 30%;
+                left: 60%;
+                width: 150px;
+                height: 150px;
+                background: radial-gradient(circle, rgba(236, 72, 153, 0.15) 0%, transparent 60%);
+                border-radius: 50%;
+                filter: blur(30px);
+                animation: float-orb 6s ease-in-out infinite;
+            "></div>
+
+            <div style="position: relative; z-index: 2;">
+                <div style="
                     display: inline-flex;
                     align-items: center;
                     gap: 8px;
-                    background: {dark_theme.colors.primary}15;
-                    padding: 8px 16px;
+                    background: rgba(16, 185, 129, 0.15);
+                    border: 1px solid rgba(16, 185, 129, 0.3);
+                    padding: 6px 14px;
                     border-radius: 20px;
-                    font-size: 13px;
-                    color: {dark_theme.colors.primary};
+                    margin-bottom: 16px;
+                    font-size: 11px;
+                    color: #10b981;
+                    font-weight: 600;
+                    letter-spacing: 0.5px;
+                ">
+                    <span style="
+                        width: 8px;
+                        height: 8px;
+                        background: #10b981;
+                        border-radius: 50%;
+                        display: inline-block;
+                        box-shadow: 0 0 12px #10b981;
+                        animation: pulse-glow 2s ease-in-out infinite;
+                    "></span>
+                    LIVE DATA
+                </div>
+
+                <h1 style="
+                    font-size: 34px;
+                    font-weight: 800;
+                    color: rgba(255,255,255,0.98);
+                    margin: 0 0 10px 0;
+                    font-family: 'Inter', -apple-system, sans-serif;
+                    letter-spacing: -0.5px;
+                    background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.85) 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                ">
+                    📊 Sustainable Economic Development
+                </h1>
+                <p style="
+                    font-size: 16px;
+                    color: rgba(255,255,255,0.65);
+                    margin: 0 0 20px 0;
                     font-weight: 500;
                 ">
-                    📅 Q{quarter} {year}
-                </span>
-                <span style="
-                    font-size: 12px;
-                    color: {dark_theme.colors.text_muted};
+                    Ministry of Economy and Planning • Executive Analytics Hub
+                </p>
+
+                <div style="
+                    display: flex;
+                    align-items: center;
+                    gap: 20px;
+                    flex-wrap: wrap;
                 ">
-                    🕐 Data last updated: {last_updated}
-                </span>
+                    <span style="
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 10px;
+                        background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(34, 211, 238, 0.15));
+                        padding: 10px 20px;
+                        border-radius: 24px;
+                        border: 1px solid rgba(168, 85, 247, 0.3);
+                        font-size: 14px;
+                        color: rgba(255,255,255,0.95);
+                        font-weight: 600;
+                        box-shadow: 0 4px 20px rgba(168, 85, 247, 0.2);
+                    ">
+                        <span style="font-size: 16px;">📅</span>
+                        Q{quarter} {year}
+                    </span>
+                    <span style="
+                        font-size: 13px;
+                        color: rgba(255,255,255,0.5);
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    ">
+                        <span style="font-size: 14px;">🕐</span>
+                        Last updated: {last_updated}
+                    </span>
+                </div>
             </div>
         </div>
-    """,
-        unsafe_allow_html=True,
-    )
+
+        <style>
+            @keyframes float-orb {{
+                0%, 100% {{ transform: translate(0, 0) scale(1); opacity: 0.8; }}
+                50% {{ transform: translate(20px, 25px) scale(1.15); opacity: 1; }}
+            }}
+            @keyframes pulse-glow {{
+                0%, 100% {{ opacity: 1; transform: scale(1); }}
+                50% {{ opacity: 0.6; transform: scale(1.2); }}
+            }}
+        </style>
+    """
+    render_html(header_html)
 
 
 # =============================================================================
@@ -1005,7 +1193,7 @@ def _render_sustainability_gauge(sustainability: dict, dark_theme, theme) -> Non
     status_text = (
         "On Track" if status == "green" else "At Risk" if status == "amber" else "Critical"
     )
-    st.markdown(
+    render_html(
         f"""
         <div style="text-align: center; margin-top: -10px;">
             <span style="background: {status_color}22; color: {status_color}; padding: 6px 16px;
@@ -1013,8 +1201,7 @@ def _render_sustainability_gauge(sustainability: dict, dark_theme, theme) -> Non
                 {status_text} • Target: 70
             </span>
         </div>
-    """,
-        unsafe_allow_html=True,
+    """
     )
     card_close()
 
@@ -1023,13 +1210,12 @@ def _render_dark_subgrid(
     title: str, kpis: list, metrics: dict, dark_theme, columns: int = 4
 ) -> None:
     """Render KPI cards in a dark-themed grid."""
-    st.markdown(
+    render_html(
         f"""
         <div style="margin: 16px 0 12px 0;">
             <span style="font-size: 14px; font-weight: 600; color: #e2e8f0;">{title}</span>
         </div>
-    """,
-        unsafe_allow_html=True,
+    """
     )
 
     cols = st.columns(columns)
@@ -1070,7 +1256,7 @@ def _render_dark_subgrid(
             delta_color = "#22c55e" if change > 0 else "#ef4444" if change < 0 else "#94a3b8"
             delta_icon = "↑" if change > 0 else "↓" if change < 0 else "→"
 
-            st.markdown(
+            render_html(
                 f"""
                 <div style="
                     background: linear-gradient(145deg, #1b1f36 0%, #1e2340 100%);
@@ -1091,8 +1277,7 @@ def _render_dark_subgrid(
                         </span>
                     </div>
                 </div>
-            """,
-                unsafe_allow_html=True,
+            """
             )
 
 
@@ -1103,14 +1288,13 @@ def _render_dark_subgrid(
 
 def _render_section_title(title: str, subtitle: str = "") -> None:
     """Render a modern section title."""
-    st.markdown(
+    render_html(
         f"""
         <div class='section-header'>
             <span>{title}</span>
         </div>
         <div class='section-subtitle'>{subtitle}</div>
-        """,
-        unsafe_allow_html=True,
+        """
     )
 
 
@@ -1125,15 +1309,14 @@ def _render_hero_sustainability_gauge(
     dark_theme,
 ) -> None:
     """
-    Render the Hero Sustainability Index gauge matching PDF design spec.
+    Render the premium Hero Sustainability Index gauge.
 
     Features:
-    - Radial gauge with 0-100 range
+    - Premium radial gauge with animated glow effects
     - Red (0-40), Amber (40-70), Green (70-100) zones
     - Main value with delta and status pill
+    - Glassmorphism card with accent lighting
     """
-    card_open("Sustainability Index", "National composite score")
-
     index_value = sustainability.get("index", 0) or 0
     status = sustainability.get("status", "unknown")
     previous_value = None
@@ -1142,43 +1325,93 @@ def _render_hero_sustainability_gauge(
 
     delta = ((index_value - previous_value) / previous_value * 100) if previous_value else 0
 
-    # Create radial gauge with PDF color zones
+    # Determine glow color based on value
+    if index_value >= 70:
+        glow_color = dark_theme.colors.green
+        status_text = "On Track"
+    elif index_value >= 40:
+        glow_color = dark_theme.colors.amber
+        status_text = "Monitor"
+    else:
+        glow_color = dark_theme.colors.red
+        status_text = "Needs Attention"
+
+    # Premium card with accent glow
+    render_html(
+        f"""
+        <div class="dark-card" style="
+            position: relative;
+            border-left: 4px solid {glow_color};
+            box-shadow:
+                0 4px 6px rgba(0, 0, 0, 0.1),
+                0 25px 60px rgba(0, 0, 0, 0.4),
+                -8px 0 40px {glow_color}20,
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        ">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px;">
+                <div>
+                    <div class="card-title">SUSTAINABILITY INDEX</div>
+                    <div class="card-sub">National composite score</div>
+                </div>
+                <div style="
+                    background: linear-gradient(135deg, {glow_color}25, {glow_color}15);
+                    border: 1px solid {glow_color}40;
+                    padding: 6px 14px;
+                    border-radius: 20px;
+                    font-size: 11px;
+                    color: {glow_color};
+                    font-weight: 600;
+                    box-shadow: 0 0 20px {glow_color}20;
+                ">
+                    {status_text}
+                </div>
+            </div>
+        """
+    )
+
+    # Create premium radial gauge
     fig = go.Figure(
         go.Indicator(
             mode="gauge+number+delta",
             value=index_value,
             number={
                 "suffix": "",
-                "font": {"size": 48, "color": "#FFFFFF", "family": "Inter"},
+                "font": {"size": 54, "color": "#FFFFFF", "family": "'Inter', sans-serif"},
             },
             delta={
                 "reference": previous_value,
                 "relative": True,
                 "valueformat": ".1%",
-                "font": {"size": 14},
+                "font": {"size": 16},
                 "increasing": {"color": dark_theme.colors.green},
                 "decreasing": {"color": dark_theme.colors.red},
+                "position": "bottom",
             },
-            domain={"x": [0, 1], "y": [0.1, 1]},
+            domain={"x": [0, 1], "y": [0.08, 1]},
             gauge={
                 "axis": {
                     "range": [0, 100],
-                    "tickwidth": 1,
-                    "tickcolor": "rgba(255,255,255,0.3)",
+                    "tickwidth": 2,
+                    "tickcolor": "rgba(255,255,255,0.2)",
                     "dtick": 20,
-                    "tickfont": {"size": 11, "color": "rgba(255,255,255,0.6)"},
+                    "tickfont": {"size": 12, "color": "rgba(255,255,255,0.5)"},
                 },
-                "bar": {"color": dark_theme.colors.primary, "thickness": 0.75},
-                "bgcolor": "rgba(30, 41, 59, 0.8)",
-                "borderwidth": 0,
+                "bar": {
+                    "color": glow_color,
+                    "thickness": 0.7,
+                    "line": {"width": 0},
+                },
+                "bgcolor": "rgba(15, 23, 42, 0.9)",
+                "borderwidth": 2,
+                "bordercolor": "rgba(255,255,255,0.08)",
                 "steps": [
-                    {"range": [0, 40], "color": "rgba(239, 68, 68, 0.25)"},
-                    {"range": [40, 70], "color": "rgba(245, 158, 11, 0.25)"},
-                    {"range": [70, 100], "color": "rgba(16, 185, 129, 0.25)"},
+                    {"range": [0, 40], "color": "rgba(239, 68, 68, 0.15)"},
+                    {"range": [40, 70], "color": "rgba(245, 158, 11, 0.15)"},
+                    {"range": [70, 100], "color": "rgba(16, 185, 129, 0.15)"},
                 ],
                 "threshold": {
-                    "line": {"color": dark_theme.colors.green, "width": 3},
-                    "thickness": 0.8,
+                    "line": {"color": "rgba(255,255,255,0.5)", "width": 2},
+                    "thickness": 0.85,
                     "value": 70,
                 },
             },
@@ -1186,41 +1419,39 @@ def _render_hero_sustainability_gauge(
     )
 
     fig.update_layout(
-        height=280,
-        margin={"l": 20, "r": 20, "t": 30, "b": 10},
+        height=300,
+        margin={"l": 25, "r": 25, "t": 35, "b": 20},
         paper_bgcolor="rgba(0,0,0,0)",
-        font={"family": "Inter, sans-serif"},
+        font={"family": "'Inter', -apple-system, sans-serif"},
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
-    # Status pill
-    status_color = dark_theme.colors.get_status_color(status)
-    status_text = (
-        "On Track" if status == "green" else "Watch" if status == "amber" else "Needs Attention"
-    )
-    st.markdown(
+    # Target indicator
+    render_html(
         f"""
-        <div style="text-align: center; margin-top: -8px;">
-            <span style="
-                background: {status_color}20;
-                color: {status_color};
-                padding: 8px 20px;
-                border-radius: 20px;
-                font-size: 13px;
-                font-weight: 600;
-                border: 1px solid {status_color}40;
+            <div style="
+                text-align: center;
+                margin-top: -10px;
+                padding-top: 16px;
+                border-top: 1px solid rgba(255,255,255,0.06);
             ">
-                {status_text}
-            </span>
+                <span style="
+                    font-size: 12px;
+                    color: rgba(255,255,255,0.45);
+                ">
+                    Target: <span style="color: rgba(255,255,255,0.7); font-weight: 600;">70</span>
+                    &nbsp;•&nbsp;
+                    Current: <span style="color: {glow_color}; font-weight: 700;">{index_value:.1f}</span>
+                </span>
+            </div>
         </div>
-    """,
-        unsafe_allow_html=True,
+    """
     )
-    card_close()
 
 
 def _render_hero_kpi_cards(
-    metrics: dict, dark_theme, quality_metrics: dict, quality_prev: dict | None
+    metrics: dict, dark_theme, quality_metrics: dict, quality_prev: dict | None,
+    df: pd.DataFrame | None = None
 ) -> None:
     """
     Render the 2x2 grid of hero KPI cards matching PDF design spec.
@@ -1242,6 +1473,10 @@ def _render_hero_kpi_cards(
 
     for i, (kpi_id, label, domain_color, icon) in enumerate(hero_kpis):
         with cols[i]:
+            sparkline_data = None
+            has_alert = False
+            alert_type = "info"
+
             if kpi_id == "data_quality":
                 # Special case for data quality score
                 val = quality_metrics.get("completeness", 0)
@@ -1250,11 +1485,34 @@ def _render_hero_kpi_cards(
                     prev_val = quality_prev.get("completeness")
                 delta = ((val - prev_val) / prev_val * 100) if prev_val else 0
                 status = "green" if val >= 80 else "amber" if val >= 60 else "red"
+                # Alert for low data quality
+                if val < 60:
+                    has_alert = True
+                    alert_type = "critical"
+                elif val < 80:
+                    has_alert = True
+                    alert_type = "warning"
             else:
                 kpi = metrics.get(kpi_id, {})
                 val = kpi.get("value", 0) or 0
                 delta = kpi.get("change_percent", 0) or 0
                 status = kpi.get("status", "neutral")
+
+                # Generate sparkline data from historical data
+                if df is not None and not df.empty and kpi_id in df.columns:
+                    # Get last 8 data points for sparkline
+                    hist_data = df.sort_values(["year", "quarter"])
+                    sparkline_vals = hist_data[kpi_id].dropna().tail(8).tolist()
+                    if len(sparkline_vals) >= 2:
+                        sparkline_data = sparkline_vals
+
+                # Check for alerts based on status
+                if status == "red":
+                    has_alert = True
+                    alert_type = "critical"
+                elif status == "amber":
+                    has_alert = True
+                    alert_type = "warning"
 
             _render_hero_kpi_card(
                 label=label,
@@ -1265,6 +1523,9 @@ def _render_hero_kpi_cards(
                 icon=icon,
                 kpi_id=kpi_id,
                 dark_theme=dark_theme,
+                sparkline_data=sparkline_data,
+                has_alert=has_alert,
+                alert_type=alert_type,
             )
 
 
@@ -1277,8 +1538,11 @@ def _render_hero_kpi_card(
     icon: str,
     kpi_id: str,
     dark_theme,
+    sparkline_data: list[float] | None = None,
+    has_alert: bool = False,
+    alert_type: str = "warning",
 ) -> None:
-    """Render a single hero KPI card with domain color accent."""
+    """Render a single hero KPI card with domain color accent, sparkline, and alert badge."""
     # Format value
     if kpi_id in ["gdp_growth", "unemployment_rate"]:
         display_val = f"{value:.1f}%"
@@ -1302,40 +1566,130 @@ def _render_hero_kpi_card(
 
     status_color = dark_theme.colors.get_status_color(status)
 
-    st.markdown(
+    # Generate sparkline SVG if data provided
+    sparkline_html = ""
+    if sparkline_data and len(sparkline_data) >= 2:
+        spark_color = dark_theme.colors.green if delta >= 0 else dark_theme.colors.red
+        if kpi_id == "unemployment_rate":
+            spark_color = dark_theme.colors.red if delta >= 0 else dark_theme.colors.green
+        sparkline_html = f'''
+            <div style="margin-top: 12px; opacity: 0.85;">
+                {create_sparkline_svg(sparkline_data, width=140, height=35, color=spark_color, fill_color=spark_color)}
+            </div>'''
+
+    # Alert badge if needed
+    alert_html = ""
+    if has_alert:
+        alert_icon = "!" if alert_type == "critical" else "⚡"
+        alert_html = f'''
+            <div class="alert-badge {alert_type}" style="
+                position: absolute;
+                top: 12px;
+                left: 12px;
+            ">{alert_icon}</div>'''
+
+    render_html(
         f"""
-        <div style="
-            background: linear-gradient(145deg, {dark_theme.colors.bg_card} 0%, {dark_theme.colors.bg_card_alt} 100%);
-            border: 1px solid {domain_color}30;
+        <div class="dark-card animate-fade-in" style="
+            background: linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+            border: 1px solid {domain_color}35;
             border-left: 4px solid {domain_color};
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 12px;
+            border-radius: 16px;
+            padding: 22px 24px;
+            margin-bottom: 14px;
             position: relative;
+            overflow: hidden;
+            box-shadow:
+                0 4px 6px rgba(0, 0, 0, 0.1),
+                0 20px 50px rgba(0, 0, 0, 0.35),
+                -6px 0 30px {domain_color}15,
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            transition: all 280ms cubic-bezier(0.4, 0, 0.2, 1);
         ">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                <span style="font-size: 18px;">{icon}</span>
-                <span style="font-size: 12px; color: {dark_theme.colors.text_muted};
-                           text-transform: uppercase; letter-spacing: 0.5px;">{label}</span>
-            </div>
-            <div style="font-size: 32px; font-weight: 700; color: {dark_theme.colors.text_primary};
-                       margin-bottom: 8px;">{display_val}</div>
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <span style="color: {delta_color}; font-size: 13px; font-weight: 600;">
-                    {delta_icon} {abs(delta):.1f}%
+            {alert_html}
+
+            <!-- Background glow effect -->
+            <div style="
+                position: absolute;
+                top: -30px;
+                right: -30px;
+                width: 120px;
+                height: 120px;
+                background: radial-gradient(circle, {domain_color}15 0%, transparent 60%);
+                border-radius: 50%;
+                pointer-events: none;
+            "></div>
+
+            <!-- Icon badge -->
+            <div style="
+                position: absolute;
+                top: 16px;
+                right: 16px;
+                width: 44px;
+                height: 44px;
+                background: linear-gradient(135deg, {domain_color}25, {domain_color}10);
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+                border: 1px solid {domain_color}30;
+            ">{icon}</div>
+
+            <!-- Label -->
+            <div style="
+                font-size: 11px;
+                font-weight: 600;
+                color: rgba(255,255,255,0.5);
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                margin-bottom: 12px;
+            ">{label}</div>
+
+            <!-- Main Value -->
+            <div class="animate-count" style="
+                font-size: 38px;
+                font-weight: 800;
+                color: rgba(255,255,255,0.98);
+                margin-bottom: 12px;
+                letter-spacing: -0.5px;
+                background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.85));
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            ">{display_val}</div>
+
+            <!-- Delta and Status -->
+            <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+                <span style="
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 5px;
+                    color: {delta_color};
+                    font-size: 13px;
+                    font-weight: 600;
+                    padding: 5px 12px;
+                    background: {delta_color}15;
+                    border-radius: 20px;
+                    border: 1px solid {delta_color}30;
+                ">
+                    <span style="font-size: 12px;">{'↑' if delta >= 0 else '↓'}</span>
+                    {abs(delta):.1f}%
                 </span>
                 <span style="
-                    background: {status_color}20;
+                    background: linear-gradient(135deg, {status_color}20, {status_color}10);
                     color: {status_color};
-                    padding: 3px 10px;
-                    border-radius: 12px;
+                    padding: 5px 12px;
+                    border-radius: 20px;
                     font-size: 11px;
-                    font-weight: 500;
+                    font-weight: 600;
+                    border: 1px solid {status_color}30;
                 ">vs prev quarter</span>
             </div>
+
+            {sparkline_html}
         </div>
-    """,
-        unsafe_allow_html=True,
+    """
     )
 
 
@@ -1365,7 +1719,7 @@ def _render_pillar_section_economic(
         with cols[i]:
             _render_pillar_kpi_card(metrics.get(kpi_id, {}), kpi_id, domain_color, dark_theme)
 
-    st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
+    render_html("<div style='height: 16px;'></div>")
 
     # GDP Growth vs Target chart
     _render_gdp_trend_chart(df, year, quarter, region, dark_theme, domain_color)
@@ -1440,7 +1794,7 @@ def _render_pillar_section_environmental(
             with all_cols[i]:
                 _render_pillar_kpi_card(metrics.get(kpi_id, {}), kpi_id, domain_color, dark_theme)
 
-    st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
+    render_html("<div style='height: 16px;'></div>")
 
     # Multi-line environmental trends chart
     _render_environmental_trends_chart(df, dark_theme, domain_color)
@@ -1471,7 +1825,7 @@ def _render_pillar_kpi_card(kpi: dict, kpi_id: str, domain_color: str, dark_them
     delta_color = dark_theme.colors.green if change >= 0 else dark_theme.colors.red
     delta_icon = "↑" if change >= 0 else "↓"
 
-    st.markdown(
+    render_html(
         f"""
         <div style="
             background: linear-gradient(145deg, {dark_theme.colors.bg_card} 0%, {dark_theme.colors.bg_card_alt} 100%);
@@ -1495,8 +1849,7 @@ def _render_pillar_kpi_card(kpi: dict, kpi_id: str, domain_color: str, dark_them
                 </span>
             </div>
         </div>
-    """,
-        unsafe_allow_html=True,
+    """
     )
 
 
@@ -1550,7 +1903,7 @@ def _render_gdp_trend_chart(
         showlegend=True,
         legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "x": 0.5, "xanchor": "center"},
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 
 def _render_mini_trend_chart(
@@ -1587,7 +1940,7 @@ def _render_mini_trend_chart(
         xaxis={"tickfont": {"size": 9}},
         yaxis={"tickfont": {"size": 9}},
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 
 def _render_environmental_trends_chart(df: pd.DataFrame, dark_theme, domain_color: str) -> None:
@@ -1642,7 +1995,7 @@ def _render_environmental_trends_chart(df: pd.DataFrame, dark_theme, domain_colo
         legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "x": 0.5, "xanchor": "center"},
         yaxis_title="Normalized Index",
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 
 # =============================================================================
@@ -1676,12 +2029,12 @@ def _render_data_quality_section(
         delta = ((avg_quality - prev_quality) / prev_quality * 100) if prev_quality else 0
 
         card_open("Overall Quality Score", "Data completeness and accuracy")
-        st.markdown(
+
+        # Use progress ring for quality score
+        render_html(
             f"""
             <div style="text-align: center; padding: 20px 0;">
-                <div style="font-size: 56px; font-weight: 700; color: {dark_theme.colors.green};">
-                    {avg_quality:.0f}%
-                </div>
+                {create_progress_ring(avg_quality, max_value=100, size=100, stroke_width=10, label="Quality")}
                 <div style="
                     display: inline-block;
                     background: {dark_theme.colors.green}20;
@@ -1689,13 +2042,12 @@ def _render_data_quality_section(
                     padding: 6px 16px;
                     border-radius: 16px;
                     font-size: 13px;
-                    margin-top: 8px;
+                    margin-top: 12px;
                 ">
                     {"▲" if delta >= 0 else "▼"} {abs(delta):.1f}% vs previous
                 </div>
             </div>
-        """,
-            unsafe_allow_html=True,
+        """
         )
         card_close()
 
@@ -1726,7 +2078,7 @@ def _render_data_quality_section(
 
         for i, (label, value, icon) in enumerate(meta_items):
             with meta_cols[i]:
-                st.markdown(
+                render_html(
                     f"""
                     <div style="
                         background: {dark_theme.colors.bg_card};
@@ -1743,11 +2095,10 @@ def _render_data_quality_section(
                             {label}
                         </div>
                     </div>
-                """,
-                    unsafe_allow_html=True,
+                """
                 )
 
-        st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
+        render_html("<div style='height: 16px;'></div>")
 
         # Completeness by pillar stacked bar chart using real missing data
         pillar_completeness = _build_pillar_completeness(quality_metrics, catalog)
@@ -1855,7 +2206,88 @@ def _render_completeness_by_pillar_chart(pillar_data: dict, dark_theme) -> None:
         legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "x": 0.5, "xanchor": "center"},
         bargap=0.3,
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
+
+
+# =============================================================================
+# PDF DESIGN SPEC - YEAR-OVER-YEAR COMPARISON
+# =============================================================================
+
+
+def _render_yoy_comparison_section(
+    df: pd.DataFrame, year: int, quarter: int, region: str, dark_theme
+) -> None:
+    """Render Year-over-Year comparison cards for key KPIs."""
+
+    # Filter by region if specified
+    filtered_df = df.copy()
+    if region and region != "all":
+        filtered_df = filtered_df[filtered_df["region"] == region]
+
+    # Get current and previous year data
+    current_data = filtered_df[(filtered_df["year"] == year) & (filtered_df["quarter"] == quarter)]
+    prev_year_data = filtered_df[(filtered_df["year"] == year - 1) & (filtered_df["quarter"] == quarter)]
+
+    # KPIs to compare
+    yoy_kpis = [
+        ("gdp_growth", "GDP Growth", "%", "📈"),
+        ("unemployment_rate", "Unemployment Rate", "%", "👥"),
+        ("sustainability_index", "Sustainability Index", "", "🌱"),
+        ("digital_readiness", "Digital Readiness", "", "💻"),
+    ]
+
+    card_open("Year-over-Year Performance", f"Q{quarter} {year} vs Q{quarter} {year-1}")
+
+    # Create 2x2 grid for YoY comparisons
+    row1 = st.columns(2, gap="medium")
+    row2 = st.columns(2, gap="medium")
+    cols = [row1[0], row1[1], row2[0], row2[1]]
+
+    for i, (kpi_id, kpi_name, unit, icon) in enumerate(yoy_kpis):
+        with cols[i]:
+            if kpi_id not in current_data.columns:
+                continue
+
+            current_val = current_data[kpi_id].mean() if not current_data.empty else 0
+            prev_val = prev_year_data[kpi_id].mean() if not prev_year_data.empty else 0
+
+            # Handle NaN
+            current_val = 0 if pd.isna(current_val) else current_val
+            prev_val = 0 if pd.isna(prev_val) else prev_val
+
+            # Calculate change
+            change = current_val - prev_val
+            pct_change = ((current_val - prev_val) / prev_val * 100) if prev_val != 0 else 0
+
+            # Invert logic for unemployment (lower is better)
+            is_positive = change >= 0
+            if kpi_id == "unemployment_rate":
+                is_positive = change <= 0
+
+            change_class = "positive" if is_positive else "negative"
+            arrow = "→"
+
+            render_html(f'''
+            <div style="margin-bottom:8px; color:rgba(255,255,255,0.7); font-size:13px">{icon} {kpi_name}</div>
+            <div class="yoy-comparison animate-fade-in">
+                <div class="yoy-year">
+                    <div class="year-label">{year - 1}</div>
+                    <div class="year-value">{prev_val:.1f}{unit}</div>
+                </div>
+                <div class="yoy-divider">
+                    <span class="yoy-arrow">{arrow}</span>
+                    <span class="yoy-change {change_class}">
+                        {"+" if pct_change >= 0 else ""}{pct_change:.1f}%
+                    </span>
+                </div>
+                <div class="yoy-year">
+                    <div class="year-label">{year}</div>
+                    <div class="year-value">{current_val:.1f}{unit}</div>
+                </div>
+            </div>
+            ''')
+
+    card_close()
 
 
 # =============================================================================
@@ -1921,7 +2353,7 @@ def _render_regional_comparison_section(
         yaxis={"showgrid": False, "autorange": "reversed"},
         bargap=0.35,
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     # Stats panel (Highest, Lowest, National Avg)
     highest_row = data.loc[data["value"].idxmax()]
@@ -1936,7 +2368,7 @@ def _render_regional_comparison_section(
     stat_cols = st.columns(len(stats), gap="medium")
     for col, (label, region_name, value, color) in zip(stat_cols, stats, strict=False):
         with col:
-            st.markdown(
+            render_html(
                 f"""
                 <div style="
                     background: linear-gradient(145deg, #0B1120 0%, #1E293B 100%);
@@ -1950,8 +2382,7 @@ def _render_regional_comparison_section(
                     <div style="font-size: 18px; font-weight: 700; color: {dark_theme.colors.text_primary}; margin-top: 6px;">{region_name}</div>
                     <div style="font-size: 26px; font-weight: 800; color: {color};">{value:.1f}</div>
                 </div>
-            """,
-                unsafe_allow_html=True,
+            """
             )
 
 
@@ -2007,7 +2438,7 @@ def _render_saudi_map_section(
             language=language,
             use_three_tier=True,
         )
-        st.plotly_chart(fig_map, use_container_width=True)
+        st.plotly_chart(fig_map, width="stretch")
     except Exception as e:
         st.warning(f"Map rendering unavailable: {str(e)}")
 
@@ -2025,7 +2456,7 @@ def _render_saudi_map_section(
     overlay_cols = st.columns(len(overlay_items), gap="medium")
     for col, (label, value, color) in zip(overlay_cols, overlay_items, strict=False):
         with col:
-            st.markdown(
+            render_html(
                 f"""
                 <div style="
                     background: {color}15;
@@ -2037,8 +2468,7 @@ def _render_saudi_map_section(
                     <div style="font-size: 11px; color: {dark_theme.colors.text_muted}; text-transform: uppercase;">{label}</div>
                     <div style="font-size: 22px; font-weight: 700; color: {color};">{value}</div>
                 </div>
-            """,
-                unsafe_allow_html=True,
+            """
             )
     card_close()
 
@@ -2088,7 +2518,7 @@ def _render_key_insights_section(
         card_open("🚀 Top Improvements This Quarter", "KPIs showing strong positive momentum")
         if improvements:
             for item in improvements:
-                st.markdown(
+                render_html(
                     f"""
                     <div style="
                         display: flex;
@@ -2109,13 +2539,11 @@ def _render_key_insights_section(
                             </div>
                         </div>
                     </div>
-                """,
-                    unsafe_allow_html=True,
+                """
                 )
         else:
-            st.markdown(
-                f"<p style='color: {dark_theme.colors.text_muted};'>No significant improvements to highlight.</p>",
-                unsafe_allow_html=True,
+            render_html(
+                f"<p style='color: {dark_theme.colors.text_muted};'>No significant improvements to highlight.</p>"
             )
         card_close()
 
@@ -2124,7 +2552,7 @@ def _render_key_insights_section(
         if attention_needed:
             for item in attention_needed:
                 change_display = f"{item['change']:.1f}%" if item['change'] < 0 else "At Risk"
-                st.markdown(
+                render_html(
                     f"""
                     <div style="
                         display: flex;
@@ -2145,13 +2573,11 @@ def _render_key_insights_section(
                             </div>
                         </div>
                     </div>
-                """,
-                    unsafe_allow_html=True,
+                """
                 )
         else:
-            st.markdown(
-                f"<p style='color: {dark_theme.colors.text_muted};'>All KPIs are performing within acceptable ranges.</p>",
-                unsafe_allow_html=True,
+            render_html(
+                f"<p style='color: {dark_theme.colors.text_muted};'>All KPIs are performing within acceptable ranges.</p>"
             )
         card_close()
 
@@ -2187,17 +2613,16 @@ def _render_kpi_card(kpi: dict, kpi_id: str, theme) -> None:
 
 def _render_subgrid(title: str, kpis: list, metrics: dict, theme, columns: int = 4) -> None:
     """Render a titled KPI subgrid in compact modern card design."""
-    st.markdown("<div class='modern-card' style='padding: 20px;'>", unsafe_allow_html=True)
-    st.markdown(
-        f"<h3 style='margin: 0 0 16px 0; color: #0f172a; font-size: 15px; font-weight: 600;'>{title}</h3>",
-        unsafe_allow_html=True,
+    render_html("<div class='modern-card' style='padding: 20px;'>")
+    render_html(
+        f"<h3 style='margin: 0 0 16px 0; color: #0f172a; font-size: 15px; font-weight: 600;'>{title}</h3>"
     )
     cols = st.columns(columns)
     for idx, kpi_id in enumerate(kpis):
         col = cols[idx % columns]
         with col:
             _render_kpi_card(metrics.get(kpi_id, {}), kpi_id, theme)
-    st.markdown("</div>", unsafe_allow_html=True)
+    render_html("</div>")
 
 
 # =============================================================================
@@ -2437,7 +2862,7 @@ def _render_ml_forecast_section(
                 forecast_df[
                     ["period", "predicted_value", "confidence_lower", "confidence_upper"]
                 ].round(2),
-                width=None,
+                width="stretch",
                 hide_index=True,
             )
 
@@ -2486,11 +2911,11 @@ def _render_anomaly_section(
         with col3:
             st.metric("📊 KPIs Monitored", len(available_kpis))
 
-        st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
+        render_html("<div style='height: 16px;'></div>")
 
         if not all_anomalies:
             # Show healthy status with detail
-            st.markdown(
+            render_html(
                 f"""
             <div style="
                 background: linear-gradient(135deg, #10B981 0%, #059669 100%);
@@ -2507,8 +2932,7 @@ def _render_anomaly_section(
                     </div>
                 </div>
             </div>
-            """,
-                unsafe_allow_html=True,
+            """
             )
 
             # Show monitored KPIs list
@@ -2530,7 +2954,7 @@ def _render_anomaly_section(
                     "CRITICAL" if anomaly.severity == AnomalySeverity.CRITICAL else "WARNING"
                 )
 
-                st.markdown(
+                render_html(
                     f"""
                 <div style="
                     background: white;
@@ -2561,8 +2985,7 @@ def _render_anomaly_section(
                         <span>📈 Z-Score: {anomaly.zscore:.2f}</span>
                     </div>
                 </div>
-                """,
-                    unsafe_allow_html=True,
+                """
                 )
 
     except Exception as e:
@@ -2663,7 +3086,7 @@ def _render_llm_recommendations_section(snapshot: dict, theme, language: str) ->
         result = st.session_state["ai_recommendations"]
 
         # Executive Summary
-        st.markdown(
+        render_html(
             f"""
         <div style="
             background: linear-gradient(135deg, {theme.colors.primary} 0%, {theme.colors.secondary} 100%);
@@ -2675,8 +3098,7 @@ def _render_llm_recommendations_section(snapshot: dict, theme, language: str) ->
             <h4 style="margin: 0 0 12px 0; color: white;">📋 Executive Summary</h4>
             <p style="margin: 0; line-height: 1.6;">{result.get("executive_summary", "N/A")}</p>
         </div>
-        """,
-            unsafe_allow_html=True,
+        """
         )
 
         # Key Insights
@@ -2686,7 +3108,7 @@ def _render_llm_recommendations_section(snapshot: dict, theme, language: str) ->
             for insight in insights:
                 st.markdown(f"• {insight}")
 
-        st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
+        render_html("<div style='height: 16px;'></div>")
 
         # Recommendations
         recommendations = result.get("recommendations", [])
@@ -2699,7 +3121,7 @@ def _render_llm_recommendations_section(snapshot: dict, theme, language: str) ->
                     "low": theme.colors.status_green,
                 }.get(rec.get("priority", "medium"), theme.colors.text_muted)
 
-                st.markdown(
+                render_html(
                     f"""
                 <div style="
                     background: white;
@@ -2725,14 +3147,13 @@ def _render_llm_recommendations_section(snapshot: dict, theme, language: str) ->
                         <span>📊 {rec.get("impact", "N/A")}</span>
                     </div>
                 </div>
-                """,
-                    unsafe_allow_html=True,
+                """
                 )
 
         # Risk Alerts
         risk_alerts = result.get("risk_alerts", [])
         if risk_alerts:
-            st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
+            render_html("<div style='height: 16px;'></div>")
             st.markdown("**⚠️ Risk Alerts**")
             for alert in risk_alerts:
                 st.warning(alert)
@@ -2816,3 +3237,4 @@ def _render_regional_map_section(
 
     except Exception as e:
         st.warning(f"⚠️ Map visualization unavailable: {str(e)}")
+

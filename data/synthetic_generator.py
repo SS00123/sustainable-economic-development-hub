@@ -23,7 +23,7 @@ REGIONS: list[str] = [
 class SyntheticDataGenerator:
     """Generate simple synthetic KPI data with seasonality and trend."""
 
-    def __init__(self, start_year: int = 2018, end_year: int = 2024) -> None:
+    def __init__(self, start_year: int = 2020, end_year: int = 2026) -> None:
         self.start_year = start_year
         self.end_year = end_year
         self.regions = REGIONS

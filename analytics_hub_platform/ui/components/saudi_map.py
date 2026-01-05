@@ -546,4 +546,4 @@ def render_saudi_map_simple(
         language=language,
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")

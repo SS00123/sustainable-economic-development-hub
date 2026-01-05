@@ -11,6 +11,8 @@ from io import BytesIO
 
 import pandas as pd
 
+from typing import Any
+
 try:
     from pptx import Presentation
     from pptx.dml.color import RGBColor
@@ -21,12 +23,13 @@ try:
     PPTX_AVAILABLE = True
 except ImportError:
     PPTX_AVAILABLE = False
+    RGBColor = Any  # type: ignore
 
 from analytics_hub_platform.config.branding import BRANDING
 from analytics_hub_platform.config.theme import get_theme
 
 
-def hex_to_rgb(hex_color: str) -> RGBColor:
+def hex_to_rgb(hex_color: str) -> Any:
     """Convert hex color to RGBColor."""
     hex_color = hex_color.lstrip("#")
     return RGBColor(

@@ -19,7 +19,7 @@ from analytics_hub_platform.domain.services import get_data_quality_metrics
 from analytics_hub_platform.infrastructure.repository import get_repository
 from analytics_hub_platform.infrastructure.security import RateLimitExceeded, get_rate_limiter
 from analytics_hub_platform.infrastructure.settings import get_settings
-from analytics_hub_platform.locale import get_strings
+from analytics_hub_platform.locales import get_strings
 from analytics_hub_platform.ui.filters import get_filter_state
 from analytics_hub_platform.ui.layout import (
     inject_custom_css,
@@ -174,7 +174,7 @@ def render_data_explorer_tab(df: pd.DataFrame, theme, filters) -> None:
     # Display data
     st.dataframe(
         filtered_df.iloc[start_idx:end_idx],
-        width=None,
+        width="stretch",
         height=400,
     )
 
@@ -186,7 +186,7 @@ def render_data_explorer_tab(df: pd.DataFrame, theme, filters) -> None:
     if len(numeric_cols) > 0:
         st.dataframe(
             filtered_df[numeric_cols].describe().round(2),
-            width=None,
+            width="stretch",
         )
 
 
@@ -273,7 +273,7 @@ def render_data_quality_tab(df: pd.DataFrame, theme, filters) -> None:
 
         st.dataframe(
             missing_df.style.map(color_completeness, subset=["Complete %"]),
-            width=None,
+            width="stretch",
             height=400,
         )
 
@@ -298,7 +298,7 @@ def render_data_quality_tab(df: pd.DataFrame, theme, filters) -> None:
         freshness.columns = ["Region", "Last Update", "Avg Quality"]
         freshness = freshness.sort_values("Last Update", ascending=False)
 
-        st.dataframe(freshness, width=None)
+        st.dataframe(freshness, width="stretch")
     else:
         st.info("Timestamp data not available for freshness analysis.")
 

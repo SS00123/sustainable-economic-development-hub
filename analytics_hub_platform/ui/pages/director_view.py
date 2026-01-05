@@ -23,9 +23,10 @@ from analytics_hub_platform.domain.services import (
     get_executive_snapshot,
     get_sustainability_summary,
 )
+from analytics_hub_platform.ui.html import render_html
 from analytics_hub_platform.infrastructure.repository import get_repository
 from analytics_hub_platform.infrastructure.settings import get_settings
-from analytics_hub_platform.locale import get_strings
+from analytics_hub_platform.locales import get_strings
 from analytics_hub_platform.ui.filters import get_filter_state
 from analytics_hub_platform.ui.layout import (
     inject_custom_css,
@@ -134,7 +135,7 @@ def render_overview_tab(snapshot: dict, sustainability: dict, theme, filters) ->
                 higher_is_better=kpi.get("higher_is_better", True),
             )
 
-    st.markdown("<br>", unsafe_allow_html=True)
+    render_html("<br>")
 
     # Secondary KPIs
     col1, col2, col3, col4, col5 = st.columns(5)
@@ -517,3 +518,4 @@ def render_sustainability_tab(sustainability: dict, df: pd.DataFrame, theme, fil
             if raw_value is not None:
                 st.markdown(f"{status_emoji} **{name}**")
                 st.markdown(f"   Value: {raw_value:.1f} {unit} (Weight: {weight:.0%})")
+

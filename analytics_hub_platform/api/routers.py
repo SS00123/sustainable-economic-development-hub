@@ -7,7 +7,7 @@ FastAPI route definitions for REST API endpoints.
 """
 
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, ConfigDict, Field
@@ -270,7 +270,7 @@ def create_api_router() -> APIRouter:
         """Check API health status."""
         return HealthResponse(
             status="ok",
-            timestamp=datetime.now(UTC).isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             version="1.0.0",
         )
 

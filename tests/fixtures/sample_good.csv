@@ -1,0 +1,9 @@
+tenant_id,year,quarter,region,gdp_growth,gdp_total,foreign_investment,export_diversity_index,unemployment_rate,green_jobs,co2_index,renewable_share
+ministry_economy,2024,1,Riyadh,3.5,850.5,45.2,72.5,11.2,125.0,65.0,12.5
+ministry_economy,2024,1,Makkah,2.8,420.0,22.1,68.0,12.5,85.0,60.0,10.0
+ministry_economy,2024,1,Eastern,4.2,520.0,55.0,75.0,10.0,150.0,55.0,15.0
+ministry_economy,2024,2,Riyadh,3.8,870.0,48.5,73.0,10.8,130.0,67.0,13.0
+ministry_economy,2024,2,Makkah,3.0,430.0,24.0,69.0,12.0,90.0,62.0,11.0
+ministry_economy,2024,2,Eastern,4.5,540.0,58.0,76.0,9.5,160.0,57.0,16.0
+ministry_economy,2024,3,Riyadh,4.0,890.0,50.0,74.0,10.5,135.0,68.0,14.0
+ministry_economy,2024,3,Makkah,3.2,445.0,26.0,70.0,11.5,95.0,63.0,12.0

@@ -19,7 +19,7 @@ from collections import defaultdict
 from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from functools import wraps
 from typing import Any
 
@@ -123,7 +123,7 @@ class StructuredLogFormatter(logging.Formatter):
         """Format log record as JSON."""
         # Base log structure
         log_data = {
-            "timestamp": datetime.now(UTC).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),
@@ -256,7 +256,7 @@ class MetricPoint:
 
     name: str
     value: float
-    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     labels: dict[str, str] = field(default_factory=dict)
 
 
@@ -573,7 +573,7 @@ class HealthChecker:
 
         return {
             "status": "healthy" if all_healthy else "unhealthy",
-            "timestamp": datetime.now(UTC).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "checks": {
                 name: {
                     "healthy": r.healthy,
@@ -711,7 +711,7 @@ class AlertManager:
                     "threshold": threshold.threshold,
                     "severity": threshold.severity,
                     "message": threshold.format_message(value),
-                    "timestamp": datetime.now(UTC).isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 }
                 alerts.append(alert)
 

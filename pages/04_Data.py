@@ -28,15 +28,36 @@ from analytics_hub_platform.infrastructure.db_init import initialize_database
 from analytics_hub_platform.infrastructure.repository import get_repository
 from analytics_hub_platform.infrastructure.settings import get_settings
 from analytics_hub_platform.ui.dark_components import card_close, card_open, render_sidebar
-from analytics_hub_platform.ui.dark_theme import get_dark_css, get_dark_theme
+from analytics_hub_platform.ui.theme import get_dark_css, get_dark_theme
+from analytics_hub_platform.ui.html import render_html
+from analytics_hub_platform.ui.theme import colors
 from analytics_hub_platform.ui.ui_components import (
     initialize_page_session_state,
-    mini_stat,
     render_page_header,
     section_header,
     spacer,
 )
-from analytics_hub_platform.ui.ui_theme import COLORS
+
+
+def mini_stat(label: str, value: str, icon: str = "") -> None:
+    """Render a mini stat card."""
+    icon_html = f'<span style="margin-right: 6px;">{icon}</span>' if icon else ""
+    render_html(f"""
+        <div style="
+            background: {colors.bg_card};
+            border: 1px solid {colors.border};
+            border-radius: 12px;
+            padding: 16px 20px;
+            text-align: center;
+        ">
+            <div style="font-size: 12px; color: {colors.text_muted}; margin-bottom: 6px;">
+                {icon_html}{label}
+            </div>
+            <div style="font-size: 24px; font-weight: 700; color: {colors.text_primary};">
+                {value}
+            </div>
+        </div>
+    """)
 
 
 # Initialize
@@ -45,8 +66,8 @@ if not st.session_state.get("initialized"):
     initialize_database()
     st.session_state["initialized"] = True
 
-# Apply dark theme
-st.markdown(get_dark_css(), unsafe_allow_html=True)
+# Apply dark theme using safe renderer
+render_html(get_dark_css())
 dark_theme = get_dark_theme()
 
 # Layout
@@ -122,10 +143,8 @@ with main_col:
             current_df = current_df[current_df["region"] == region]
 
         kpi_columns = [
-            col
-            for col in df.columns
-            if col
-            not in ["year", "quarter", "region", "tenant_id", "id", "created_at", "updated_at"]
+            col for col in df.columns
+            if col not in ["year", "quarter", "region", "tenant_id", "id", "created_at", "updated_at"]
         ]
 
         quality_data = []
@@ -135,18 +154,16 @@ with main_col:
                 non_null = current_df[kpi].notna().sum()
                 completeness_pct = (non_null / total * 100) if total > 0 else 0
 
-                quality_data.append(
-                    {
-                        "KPI": kpi.replace("_", " ").title(),
-                        "Completeness (%)": f"{completeness_pct:.1f}",
-                        "Records": non_null,
-                        "Total": total,
-                    }
-                )
+                quality_data.append({
+                    "KPI": kpi.replace("_", " ").title(),
+                    "Completeness (%)": f"{completeness_pct:.1f}",
+                    "Records": non_null,
+                    "Total": total,
+                })
 
         if quality_data:
             quality_df = pd.DataFrame(quality_data)
-            st.dataframe(quality_df, width="stretch", hide_index=True)
+            st.dataframe(quality_df, use_container_width=True, hide_index=True)
         else:
             st.info("No data quality metrics available for this period")
 
@@ -161,7 +178,7 @@ with main_col:
 
         sample_df = current_df.head(100)
         if len(sample_df) > 0:
-            st.dataframe(sample_df, width="stretch", height=400)
+            st.dataframe(sample_df, use_container_width=True, height=400)
 
             # Download button
             csv = current_df.to_csv(index=False)
@@ -188,7 +205,7 @@ with main_col:
 
         if numeric_cols:
             stats_df = current_df[numeric_cols].describe().round(2)
-            st.dataframe(stats_df, width="stretch")
+            st.dataframe(stats_df, use_container_width=True)
         else:
             st.info("No numeric data available for statistics")
 
@@ -197,5 +214,4 @@ with main_col:
     except Exception as e:
         st.error(f"Error loading data quality metrics: {str(e)}")
         import traceback
-
         st.code(traceback.format_exc())

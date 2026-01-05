@@ -1,0 +1,696 @@
+# =============================================================================
+# KPI REGISTER
+# Sustainable Economic Development Analytics Hub
+# =============================================================================
+#
+# This file contains the formal registry of all Key Performance Indicators (KPIs)
+# tracked in the Analytics Hub Platform. Each KPI includes metadata for:
+# - Governance (ownership, stewardship)
+# - Definition (calculation, interpretation)
+# - Quality (thresholds, alerts)
+# - Compliance (regulatory requirements)
+#
+# Version: 1.0
+# Last Updated: 2026-01-05
+# Owner: Ministry of Economy and Planning
+# =============================================================================
+
+metadata:
+  version: "1.0.0"
+  last_updated: "2026-01-05"
+  owner: "Ministry of Economy and Planning"
+  contact: "data-governance@mep.gov.sa"
+  classification: "OFFICIAL"
+  review_cycle: "Quarterly"
+
+# =============================================================================
+# PILLAR: ECONOMIC
+# =============================================================================
+
+pillars:
+  economic:
+    name: "Economic Sustainability"
+    name_ar: "الاستدامة الاقتصادية"
+    description: "Indicators measuring economic growth, diversification, and resilience"
+    owner: "Economic Policy Division"
+    steward: "Chief Economist"
+    
+    kpis:
+      gdp_growth:
+        id: "ECON-001"
+        name: "GDP Growth Rate"
+        name_ar: "معدل نمو الناتج المحلي الإجمالي"
+        definition: "Annual percentage change in Gross Domestic Product at constant prices"
+        calculation: "((GDP_current - GDP_previous) / GDP_previous) * 100"
+        unit: "percentage"
+        frequency: "annual"
+        source: "General Authority for Statistics (GASTAT)"
+        source_url: "https://www.stats.gov.sa"
+        methodology: "System of National Accounts (SNA 2008)"
+        
+        governance:
+          owner: "Economic Policy Division"
+          steward: "National Accounts Team"
+          data_custodian: "Statistics Authority Liaison"
+          last_reviewed: "2025-12-01"
+          next_review: "2026-03-01"
+          approval_authority: "Chief Economist"
+        
+        quality:
+          timeliness_days: 90
+          accuracy_target: 0.99
+          completeness_target: 1.0
+          
+        thresholds:
+          critical_low: -2.0
+          warning_low: 0.0
+          target: 3.0
+          warning_high: 8.0
+          critical_high: 10.0
+          
+        alerts:
+          - condition: "value < 0"
+            severity: "warning"
+            message: "GDP growth is negative"
+            notify: ["economics-team@mep.gov.sa"]
+          - condition: "value < -2"
+            severity: "critical"
+            message: "GDP contraction exceeds 2%"
+            notify: ["economics-team@mep.gov.sa", "leadership@mep.gov.sa"]
+            
+        compliance:
+          regulations: ["Vision 2030 Reporting", "IMF Article IV"]
+          audit_frequency: "annual"
+          retention_years: 10
+          
+        metadata:
+          tags: ["growth", "gdp", "macro", "vision2030"]
+          related_kpis: ["non_oil_gdp_share", "diversification_index"]
+          dashboard_priority: 1
+          
+      non_oil_gdp_share:
+        id: "ECON-002"
+        name: "Non-Oil GDP Share"
+        name_ar: "حصة الناتج المحلي غير النفطي"
+        definition: "Percentage of GDP derived from non-oil sectors"
+        calculation: "(Non_Oil_GDP / Total_GDP) * 100"
+        unit: "percentage"
+        frequency: "annual"
+        source: "General Authority for Statistics (GASTAT)"
+        source_url: "https://www.stats.gov.sa"
+        methodology: "Sector classification per ISIC Rev 4"
+        
+        governance:
+          owner: "Economic Diversification Unit"
+          steward: "Sector Analysis Team"
+          data_custodian: "Statistics Authority Liaison"
+          last_reviewed: "2025-12-01"
+          next_review: "2026-03-01"
+          approval_authority: "Deputy Minister for Economic Affairs"
+        
+        quality:
+          timeliness_days: 90
+          accuracy_target: 0.99
+          completeness_target: 1.0
+          
+        thresholds:
+          critical_low: 40.0
+          warning_low: 50.0
+          target: 65.0
+          warning_high: null
+          critical_high: null
+          
+        alerts:
+          - condition: "value < 50"
+            severity: "warning"
+            message: "Non-oil GDP share below 50%"
+            notify: ["diversification-team@mep.gov.sa"]
+            
+        compliance:
+          regulations: ["Vision 2030 Economic Pillar"]
+          audit_frequency: "annual"
+          retention_years: 10
+          
+        metadata:
+          tags: ["diversification", "non-oil", "vision2030"]
+          related_kpis: ["gdp_growth", "diversification_index"]
+          dashboard_priority: 2
+          
+      unemployment_rate:
+        id: "ECON-003"
+        name: "Unemployment Rate"
+        name_ar: "معدل البطالة"
+        definition: "Percentage of labor force that is unemployed"
+        calculation: "(Unemployed / Labor_Force) * 100"
+        unit: "percentage"
+        frequency: "quarterly"
+        source: "General Authority for Statistics (GASTAT)"
+        source_url: "https://www.stats.gov.sa"
+        methodology: "ILO Labour Force Survey Standards"
+        
+        governance:
+          owner: "Labor Market Division"
+          steward: "Employment Statistics Team"
+          data_custodian: "GASTAT Liaison"
+          last_reviewed: "2025-11-01"
+          next_review: "2026-02-01"
+          approval_authority: "Chief Economist"
+        
+        quality:
+          timeliness_days: 45
+          accuracy_target: 0.95
+          completeness_target: 0.98
+          
+        thresholds:
+          critical_low: null
+          warning_low: null
+          target: 7.0
+          warning_high: 10.0
+          critical_high: 12.0
+          
+        alerts:
+          - condition: "value > 10"
+            severity: "warning"
+            message: "Unemployment rate exceeds 10%"
+            notify: ["labor-team@mep.gov.sa"]
+          - condition: "value > 12"
+            severity: "critical"
+            message: "Unemployment rate critical - exceeds 12%"
+            notify: ["labor-team@mep.gov.sa", "leadership@mep.gov.sa"]
+            
+        compliance:
+          regulations: ["ILO Reporting Standards", "Vision 2030 Labor"]
+          audit_frequency: "annual"
+          retention_years: 10
+          
+        metadata:
+          tags: ["employment", "labor", "social"]
+          related_kpis: ["female_labor_participation", "youth_unemployment"]
+          dashboard_priority: 3
+
+      fdi_inflow:
+        id: "ECON-004"
+        name: "Foreign Direct Investment Inflow"
+        name_ar: "تدفقات الاستثمار الأجنبي المباشر"
+        definition: "Annual foreign direct investment inflows in billion SAR"
+        calculation: "Sum of all qualifying FDI transactions"
+        unit: "billion_sar"
+        frequency: "annual"
+        source: "Saudi Central Bank (SAMA)"
+        source_url: "https://www.sama.gov.sa"
+        methodology: "IMF Balance of Payments Manual 6"
+        
+        governance:
+          owner: "Investment Policy Division"
+          steward: "FDI Analytics Team"
+          data_custodian: "SAMA Liaison"
+          last_reviewed: "2025-12-01"
+          next_review: "2026-03-01"
+          approval_authority: "Director of Investment"
+        
+        quality:
+          timeliness_days: 120
+          accuracy_target: 0.98
+          completeness_target: 0.95
+          
+        thresholds:
+          critical_low: 10.0
+          warning_low: 20.0
+          target: 50.0
+          warning_high: null
+          critical_high: null
+          
+        compliance:
+          regulations: ["UNCTAD Reporting", "Vision 2030 Investment"]
+          audit_frequency: "annual"
+          retention_years: 10
+          
+        metadata:
+          tags: ["investment", "fdi", "capital", "international"]
+          related_kpis: ["gdp_growth", "diversification_index"]
+          dashboard_priority: 4
+
+# =============================================================================
+# PILLAR: ENVIRONMENTAL
+# =============================================================================
+
+  environmental:
+    name: "Environmental Sustainability"
+    name_ar: "الاستدامة البيئية"
+    description: "Indicators measuring environmental protection and resource efficiency"
+    owner: "Environment Policy Division"
+    steward: "Chief Environmental Officer"
+    
+    kpis:
+      renewable_energy_share:
+        id: "ENV-001"
+        name: "Renewable Energy Share"
+        name_ar: "حصة الطاقة المتجددة"
+        definition: "Percentage of total energy production from renewable sources"
+        calculation: "(Renewable_Energy_Production / Total_Energy_Production) * 100"
+        unit: "percentage"
+        frequency: "annual"
+        source: "King Abdullah City for Atomic and Renewable Energy (KACARE)"
+        source_url: "https://www.kacare.gov.sa"
+        methodology: "IEA Energy Statistics Manual"
+        
+        governance:
+          owner: "Energy Policy Division"
+          steward: "Renewable Energy Team"
+          data_custodian: "KACARE Liaison"
+          last_reviewed: "2025-11-01"
+          next_review: "2026-02-01"
+          approval_authority: "Chief Environmental Officer"
+        
+        quality:
+          timeliness_days: 60
+          accuracy_target: 0.98
+          completeness_target: 1.0
+          
+        thresholds:
+          critical_low: 5.0
+          warning_low: 15.0
+          target: 50.0
+          warning_high: null
+          critical_high: null
+          
+        alerts:
+          - condition: "value < 15"
+            severity: "warning"
+            message: "Renewable energy share below 15%"
+            notify: ["energy-team@mep.gov.sa"]
+            
+        compliance:
+          regulations: ["Paris Agreement", "Saudi Green Initiative"]
+          audit_frequency: "annual"
+          retention_years: 15
+          
+        metadata:
+          tags: ["energy", "renewable", "climate", "green"]
+          related_kpis: ["carbon_emissions", "energy_efficiency"]
+          dashboard_priority: 1
+
+      carbon_emissions:
+        id: "ENV-002"
+        name: "Carbon Emissions per Capita"
+        name_ar: "انبعاثات الكربون للفرد"
+        definition: "Metric tons of CO2 equivalent per capita per year"
+        calculation: "Total_CO2_Emissions / Population"
+        unit: "metric_tons_per_capita"
+        frequency: "annual"
+        source: "Ministry of Environment, Water and Agriculture"
+        source_url: "https://www.mewa.gov.sa"
+        methodology: "IPCC Guidelines for National GHG Inventories"
+        
+        governance:
+          owner: "Climate Policy Division"
+          steward: "Emissions Monitoring Team"
+          data_custodian: "MEWA Liaison"
+          last_reviewed: "2025-10-01"
+          next_review: "2026-01-01"
+          approval_authority: "Chief Environmental Officer"
+        
+        quality:
+          timeliness_days: 180
+          accuracy_target: 0.95
+          completeness_target: 0.95
+          
+        thresholds:
+          critical_low: null
+          warning_low: null
+          target: 12.0
+          warning_high: 18.0
+          critical_high: 22.0
+          
+        alerts:
+          - condition: "value > 18"
+            severity: "warning"
+            message: "Carbon emissions above target"
+            notify: ["climate-team@mep.gov.sa"]
+          - condition: "value > 22"
+            severity: "critical"
+            message: "Carbon emissions critical level"
+            notify: ["climate-team@mep.gov.sa", "leadership@mep.gov.sa"]
+            
+        compliance:
+          regulations: ["UNFCCC Reporting", "Paris Agreement NDC"]
+          audit_frequency: "annual"
+          retention_years: 20
+          
+        metadata:
+          tags: ["emissions", "carbon", "climate", "environment"]
+          related_kpis: ["renewable_energy_share", "energy_efficiency"]
+          dashboard_priority: 2
+
+      water_efficiency:
+        id: "ENV-003"
+        name: "Water Use Efficiency"
+        name_ar: "كفاءة استخدام المياه"
+        definition: "GDP generated per cubic meter of water consumed"
+        calculation: "GDP / Total_Water_Consumption"
+        unit: "sar_per_cubic_meter"
+        frequency: "annual"
+        source: "Ministry of Environment, Water and Agriculture"
+        source_url: "https://www.mewa.gov.sa"
+        methodology: "FAO AQUASTAT Methodology"
+        
+        governance:
+          owner: "Water Resources Division"
+          steward: "Water Efficiency Team"
+          data_custodian: "MEWA Liaison"
+          last_reviewed: "2025-09-01"
+          next_review: "2025-12-01"
+          approval_authority: "Director of Natural Resources"
+        
+        quality:
+          timeliness_days: 120
+          accuracy_target: 0.90
+          completeness_target: 0.95
+          
+        thresholds:
+          critical_low: 50.0
+          warning_low: 75.0
+          target: 150.0
+          warning_high: null
+          critical_high: null
+          
+        compliance:
+          regulations: ["SDG 6 Reporting", "National Water Strategy"]
+          audit_frequency: "annual"
+          retention_years: 10
+          
+        metadata:
+          tags: ["water", "efficiency", "resources"]
+          related_kpis: ["renewable_water_share"]
+          dashboard_priority: 3
+
+# =============================================================================
+# PILLAR: SOCIAL
+# =============================================================================
+
+  social:
+    name: "Social Sustainability"
+    name_ar: "الاستدامة الاجتماعية"
+    description: "Indicators measuring social well-being, education, and healthcare"
+    owner: "Social Policy Division"
+    steward: "Chief Social Policy Officer"
+    
+    kpis:
+      education_enrollment:
+        id: "SOC-001"
+        name: "Higher Education Enrollment Rate"
+        name_ar: "معدل الالتحاق بالتعليم العالي"
+        definition: "Percentage of eligible population enrolled in higher education"
+        calculation: "(Enrolled_Students / Eligible_Population) * 100"
+        unit: "percentage"
+        frequency: "annual"
+        source: "Ministry of Education"
+        source_url: "https://www.moe.gov.sa"
+        methodology: "UNESCO Institute for Statistics Methodology"
+        
+        governance:
+          owner: "Education Policy Division"
+          steward: "Higher Education Team"
+          data_custodian: "MOE Liaison"
+          last_reviewed: "2025-08-01"
+          next_review: "2025-11-01"
+          approval_authority: "Director of Education Policy"
+        
+        quality:
+          timeliness_days: 90
+          accuracy_target: 0.98
+          completeness_target: 1.0
+          
+        thresholds:
+          critical_low: 30.0
+          warning_low: 40.0
+          target: 60.0
+          warning_high: null
+          critical_high: null
+          
+        compliance:
+          regulations: ["SDG 4 Reporting", "Vision 2030 Education"]
+          audit_frequency: "annual"
+          retention_years: 10
+          
+        metadata:
+          tags: ["education", "enrollment", "youth"]
+          related_kpis: ["literacy_rate", "stem_graduates"]
+          dashboard_priority: 1
+
+      healthcare_coverage:
+        id: "SOC-002"
+        name: "Healthcare Coverage Rate"
+        name_ar: "معدل التغطية الصحية"
+        definition: "Percentage of population with access to essential health services"
+        calculation: "UHC service coverage index"
+        unit: "index"
+        frequency: "annual"
+        source: "Ministry of Health"
+        source_url: "https://www.moh.gov.sa"
+        methodology: "WHO Universal Health Coverage Index"
+        
+        governance:
+          owner: "Health Policy Division"
+          steward: "Healthcare Analytics Team"
+          data_custodian: "MOH Liaison"
+          last_reviewed: "2025-10-01"
+          next_review: "2026-01-01"
+          approval_authority: "Director of Health Policy"
+        
+        quality:
+          timeliness_days: 120
+          accuracy_target: 0.95
+          completeness_target: 0.98
+          
+        thresholds:
+          critical_low: 60.0
+          warning_low: 70.0
+          target: 85.0
+          warning_high: null
+          critical_high: null
+          
+        compliance:
+          regulations: ["SDG 3 Reporting", "WHO Health Statistics"]
+          audit_frequency: "annual"
+          retention_years: 10
+          
+        metadata:
+          tags: ["health", "coverage", "wellbeing"]
+          related_kpis: ["life_expectancy", "infant_mortality"]
+          dashboard_priority: 2
+
+      female_labor_participation:
+        id: "SOC-003"
+        name: "Female Labor Force Participation"
+        name_ar: "مشاركة المرأة في القوى العاملة"
+        definition: "Percentage of working-age females in the labor force"
+        calculation: "(Female_Labor_Force / Female_Working_Age_Population) * 100"
+        unit: "percentage"
+        frequency: "quarterly"
+        source: "General Authority for Statistics (GASTAT)"
+        source_url: "https://www.stats.gov.sa"
+        methodology: "ILO Labour Force Survey Standards"
+        
+        governance:
+          owner: "Labor Market Division"
+          steward: "Gender Analytics Team"
+          data_custodian: "GASTAT Liaison"
+          last_reviewed: "2025-11-01"
+          next_review: "2026-02-01"
+          approval_authority: "Director of Labor Policy"
+        
+        quality:
+          timeliness_days: 45
+          accuracy_target: 0.95
+          completeness_target: 0.98
+          
+        thresholds:
+          critical_low: 20.0
+          warning_low: 25.0
+          target: 35.0
+          warning_high: null
+          critical_high: null
+          
+        alerts:
+          - condition: "value < 25"
+            severity: "warning"
+            message: "Female labor participation below 25%"
+            notify: ["labor-team@mep.gov.sa"]
+            
+        compliance:
+          regulations: ["Vision 2030 Social Pillar", "ILO Reporting"]
+          audit_frequency: "quarterly"
+          retention_years: 10
+          
+        metadata:
+          tags: ["gender", "employment", "labor", "vision2030"]
+          related_kpis: ["unemployment_rate", "gender_pay_gap"]
+          dashboard_priority: 3
+
+# =============================================================================
+# PILLAR: GOVERNANCE
+# =============================================================================
+
+  governance:
+    name: "Governance Quality"
+    name_ar: "جودة الحوكمة"
+    description: "Indicators measuring government effectiveness and transparency"
+    owner: "Governance Policy Division"
+    steward: "Chief Governance Officer"
+    
+    kpis:
+      government_effectiveness:
+        id: "GOV-001"
+        name: "Government Effectiveness Index"
+        name_ar: "مؤشر فعالية الحكومة"
+        definition: "World Bank Governance Indicator for government effectiveness"
+        calculation: "Composite index based on perceptions and surveys"
+        unit: "index"
+        frequency: "annual"
+        source: "World Bank Worldwide Governance Indicators"
+        source_url: "https://info.worldbank.org/governance/wgi/"
+        methodology: "WGI Aggregation Methodology"
+        
+        governance:
+          owner: "Governance Policy Division"
+          steward: "Performance Analytics Team"
+          data_custodian: "International Relations Liaison"
+          last_reviewed: "2025-07-01"
+          next_review: "2025-10-01"
+          approval_authority: "Chief Governance Officer"
+        
+        quality:
+          timeliness_days: 180
+          accuracy_target: 0.90
+          completeness_target: 1.0
+          
+        thresholds:
+          critical_low: -0.5
+          warning_low: 0.0
+          target: 0.5
+          warning_high: null
+          critical_high: null
+          
+        compliance:
+          regulations: ["Vision 2030 Governance Pillar"]
+          audit_frequency: "annual"
+          retention_years: 10
+          
+        metadata:
+          tags: ["governance", "effectiveness", "international"]
+          related_kpis: ["transparency_index", "regulatory_quality"]
+          dashboard_priority: 1
+
+      e_government_index:
+        id: "GOV-002"
+        name: "E-Government Development Index"
+        name_ar: "مؤشر تطوير الحكومة الإلكترونية"
+        definition: "UN E-Government Development Index score"
+        calculation: "Composite of online service, infrastructure, and human capital indices"
+        unit: "index"
+        frequency: "biennial"
+        source: "United Nations E-Government Survey"
+        source_url: "https://publicadministration.un.org/egovkb/"
+        methodology: "UNDESA EGDI Methodology"
+        
+        governance:
+          owner: "Digital Government Division"
+          steward: "E-Government Analytics Team"
+          data_custodian: "UN Relations Liaison"
+          last_reviewed: "2025-06-01"
+          next_review: "2025-12-01"
+          approval_authority: "Director of Digital Transformation"
+        
+        quality:
+          timeliness_days: 365
+          accuracy_target: 0.95
+          completeness_target: 1.0
+          
+        thresholds:
+          critical_low: 0.5
+          warning_low: 0.7
+          target: 0.85
+          warning_high: null
+          critical_high: null
+          
+        compliance:
+          regulations: ["Digital Government Strategy"]
+          audit_frequency: "biennial"
+          retention_years: 10
+          
+        metadata:
+          tags: ["digital", "e-government", "technology"]
+          related_kpis: ["government_effectiveness", "digital_adoption"]
+          dashboard_priority: 2
+
+# =============================================================================
+# VALIDATION RULES
+# =============================================================================
+
+validation_rules:
+  required_fields:
+    - id
+    - name
+    - name_ar
+    - definition
+    - unit
+    - frequency
+    - source
+    
+  id_patterns:
+    economic: "ECON-\\d{3}"
+    environmental: "ENV-\\d{3}"
+    social: "SOC-\\d{3}"
+    governance: "GOV-\\d{3}"
+    
+  valid_frequencies:
+    - daily
+    - weekly
+    - monthly
+    - quarterly
+    - annual
+    - biennial
+    
+  valid_units:
+    - percentage
+    - index
+    - billion_sar
+    - million_sar
+    - metric_tons_per_capita
+    - sar_per_cubic_meter
+    - count
+    - ratio
+
+# =============================================================================
+# CHANGE MANAGEMENT
+# =============================================================================
+
+change_management:
+  approval_workflow:
+    - step: 1
+      role: "Data Steward"
+      action: "Propose change"
+    - step: 2
+      role: "Pillar Owner"
+      action: "Review and approve"
+    - step: 3
+      role: "Chief Data Officer"
+      action: "Final approval"
+    - step: 4
+      role: "IT Operations"
+      action: "Implement change"
+      
+  change_types:
+    minor:
+      description: "Documentation updates, threshold adjustments"
+      approval_required: "Data Steward"
+      notification: "Pillar Owner"
+    major:
+      description: "New KPIs, methodology changes, ownership changes"
+      approval_required: "Chief Data Officer"
+      notification: "All stakeholders"
+    breaking:
+      description: "KPI removal, ID changes, unit changes"
+      approval_required: "Steering Committee"
+      notification: "All stakeholders + IT"

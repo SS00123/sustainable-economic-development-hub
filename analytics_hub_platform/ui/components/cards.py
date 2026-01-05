@@ -10,6 +10,7 @@ as the single source of truth for styling.
 import streamlit as st
 
 from analytics_hub_platform.config.theme import get_theme
+from analytics_hub_platform.ui.html import render_html
 
 
 def render_kpi_card(
@@ -215,7 +216,7 @@ def render_status_pill(status: str, label: str | None = None, size: str = "mediu
     </span>
     """
 
-    st.markdown(pill_html, unsafe_allow_html=True)
+    render_html(pill_html)
 
 
 def render_narrative_block(
@@ -277,7 +278,7 @@ def render_narrative_block(
     </div>
     """
 
-    st.markdown(narrative_html, unsafe_allow_html=True)
+    render_html(narrative_html)
 
 
 def render_metric_comparison_card(
@@ -382,4 +383,5 @@ def render_metric_comparison_card(
     </div>
     """
 
-    st.markdown(card_html, unsafe_allow_html=True)
+    render_html(card_html)
+
