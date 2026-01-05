@@ -61,6 +61,7 @@ def render_sidebar(active: str = "Dashboard") -> None:
         position: relative;
         overflow: hidden;
         box-shadow: 0 8px 32px rgba(168, 85, 247, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
       }
 
       .sidebar-header-card::before {
@@ -318,18 +319,93 @@ def render_sidebar(active: str = "Dashboard") -> None:
             # Show active page with special styling (non-clickable)
             render_html(
                 f"""
-            <div class="nav-active-indicator">
-                <p style="margin: 0; display: flex; align-items: center; gap: 10px;">
-                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #22d3ee; box-shadow: 0 0 12px #22d3ee;"></span>
-                    <span>{icon}</span>
-                    <span>{name}</span>
+            <div class="nav-active-indicator" style="
+                background: linear-gradient(90deg, rgba(34, 211, 238, 0.15), transparent);
+                border-left: 3px solid #22d3ee;
+                padding: 12px 16px;
+                border-radius: 0 8px 8px 0;
+                margin-bottom: 8px;
+            ">
+                <p style="margin: 0; display: flex; align-items: center; gap: 12px; color: #22d3ee; font-weight: 600;">
+                    <span style="font-size: 1.1em;">{icon}</span>
+                    <span style="letter-spacing: 0.5px;">{name}</span>
                 </p>
             </div>
             """
             )
         else:
             # Clickable link to other pages
-            st.page_link(page_path, label=f"● {icon} {name}", width="stretch")
+            st.page_link(page_path, label=f"{icon} {name}", width="stretch")
+
+
+def render_sticky_header(
+    year: int,
+    quarter: int,
+    region: str,
+    language: str,
+) -> None:
+    """
+    Render a sticky header with current filter context.
+    """
+    render_html(
+        f"""
+        <style>
+            .sticky-header {{
+                position: sticky;
+                top: 0;
+                z-index: 999;
+                background: rgba(15, 23, 42, 0.85);
+                backdrop-filter: blur(12px);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 12px 24px;
+                margin: -16px -24px 24px -24px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            }}
+            .filter-chip {{
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 20px;
+                padding: 4px 12px;
+                font-size: 12px;
+                color: rgba(255, 255, 255, 0.8);
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }}
+            .filter-chip strong {{
+                color: #fff;
+                font-weight: 600;
+            }}
+            .reset-btn {{
+                background: transparent;
+                border: 1px solid rgba(239, 68, 68, 0.3);
+                color: #fca5a5;
+                border-radius: 6px;
+                padding: 4px 12px;
+                font-size: 12px;
+                cursor: pointer;
+                transition: all 0.2s;
+            }}
+            .reset-btn:hover {{
+                background: rgba(239, 68, 68, 0.1);
+                border-color: rgba(239, 68, 68, 0.5);
+            }}
+        </style>
+        <div class="sticky-header">
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <span style="font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px;">Active Context</span>
+                <div class="filter-chip">📅 Year: <strong>{year}</strong></div>
+                <div class="filter-chip">📊 Quarter: <strong>Q{quarter}</strong></div>
+                <div class="filter-chip">🌍 Region: <strong>{region.title()}</strong></div>
+                <div class="filter-chip">🗣️ Lang: <strong>{language.upper()}</strong></div>
+            </div>
+            <!-- Reset button logic would go here if using callbacks, for now just visual -->
+        </div>
+        """
+    )
 
 
 def render_header(
@@ -1546,6 +1622,8 @@ def render_enhanced_kpi_card(
     alert_type: str | None = None,
     icon: str = "📊",
     color: str = "#a855f7",
+    target: float | None = None,
+    status: str | None = None,
 ) -> None:
     """
     Render an enhanced KPI card with sparkline and optional alert badge.
@@ -1559,6 +1637,8 @@ def render_enhanced_kpi_card(
         alert_type: Alert badge type ('critical', 'warning', 'info', None)
         icon: Icon emoji
         color: Accent color for the card
+        target: Target value for comparison
+        status: Status label ('On Track', 'Watch', 'Off Track')
     """
     delta_class = "positive" if delta and delta >= 0 else "negative"
     delta_icon = "↑" if delta and delta >= 0 else "↓"
@@ -1579,12 +1659,50 @@ def render_enhanced_kpi_card(
             {create_sparkline_svg(sparkline_data, width=120, height=35, color=spark_color, fill_color=spark_color)}
         </div>"""
 
+    # Target and Status HTML
+    target_html = ""
+    if target is not None:
+        target_html = f"""
+        <div style="font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 4px;">
+            Target: <span style="color: rgba(255,255,255,0.8);">{target}</span>
+        </div>
+        """
+
+    status_html = ""
+    if status:
+        status_colors = {
+            "On Track": "#10b981",
+            "Watch": "#f59e0b",
+            "Off Track": "#ef4444",
+        }
+        s_color = status_colors.get(status, "#a855f7")
+        status_html = f"""
+        <div style="
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: {s_color}20;
+            border: 1px solid {s_color}40;
+            color: {s_color};
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-top: 6px;
+        ">
+            {status}
+        </div>
+        """
+
     html = f"""
     <div class="kpi-card-enhanced" style="--accent-color: {color}">
         {alert_html}
-        <div class="kpi-label">{icon} {title}</div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div class="kpi-label">{icon} {title}</div>
+            {status_html}
+        </div>
         <div class="kpi-value">{value}</div>
         {delta_html}
+        {target_html}
         {sparkline_html}
     </div>
     """

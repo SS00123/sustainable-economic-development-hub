@@ -22,78 +22,149 @@ def inject_custom_css() -> None:
     render_html(
         f"""
         <style>
-            /* Page canvas */
+            /* Import modern font */
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+            /* Global Typography */
+            html, body, [class*="css"] {{
+                font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+            }}
+
+            /* Page canvas - Deep Space Gradient */
+            .stApp {{
+                background-color: {theme.colors.bg_deep} !important;
+                background-image: 
+                    radial-gradient(circle at 15% 50%, rgba(139, 92, 246, 0.08), transparent 25%),
+                    radial-gradient(circle at 85% 30%, rgba(6, 182, 212, 0.08), transparent 25%),
+                    radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.05), transparent 50%) !important;
+                background-attachment: fixed !important;
+            }}
+            
+            /* Main container background override */
             .main {{
-                background: radial-gradient(120% 120% at 20% 20%, rgba(27,127,140,0.12), transparent),
-                            radial-gradient(120% 120% at 80% 0%, rgba(18,67,109,0.10), transparent),
-                            {theme.colors.background};
+                background: transparent !important;
             }}
+
             .block-container {{
-                padding-top: 1.5rem !important;
-                padding-bottom: 2rem !important;
-                max-width: 1200px;
+                padding-top: 2rem !important;
+                padding-bottom: 3rem !important;
+                max-width: 1280px !important;
             }}
-            /* Glass surfaces */
+
+            /* Glass surfaces with premium border */
             .glass-box {{
-                background: rgba(255,255,255,0.78);
-                border: 1px solid {theme.colors.border};
-                box-shadow: 0 12px 40px -18px rgba(17, 24, 39, 0.35);
-                border-radius: 16px;
-                padding: 16px 18px;
-                backdrop-filter: blur(6px);
+                background: rgba(30, 41, 59, 0.7) !important;
+                border: 1px solid rgba(255, 255, 255, 0.08) !important;
+                box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2) !important;
+                border-radius: 16px !important;
+                padding: 20px !important;
+                backdrop-filter: blur(12px) !important;
+                -webkit-backdrop-filter: blur(12px) !important;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
             }}
+
+            .glass-box:hover {{
+                border-color: rgba(255, 255, 255, 0.15) !important;
+                box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.3) !important;
+                transform: translateY(-2px) !important;
+            }}
+
+            /* Custom Scrollbar */
+            ::-webkit-scrollbar {{
+                width: 8px;
+                height: 8px;
+            }}
+            ::-webkit-scrollbar-track {{
+                background: {theme.colors.bg_deep};
+            }}
+            ::-webkit-scrollbar-thumb {{
+                background: {theme.colors.bg_hover};
+                border-radius: 4px;
+            }}
+            ::-webkit-scrollbar-thumb:hover {{
+                background: {theme.colors.text_muted};
+            }}
+
             /* Pills for highlights/filters */
             .pill {{
                 display: inline-flex;
                 align-items: center;
-                gap: 10px;
-                padding: 10px 14px;
-                border-radius: 999px;
-                background: linear-gradient(120deg, rgba(27,127,140,0.12), rgba(18,67,109,0.07));
-                border: 1px solid {theme.colors.border};
+                gap: 8px;
+                padding: 6px 12px;
+                border-radius: 8px;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
                 color: {theme.colors.text_secondary};
-                font-weight: 600;
-                font-size: 13px;
+                font-weight: 500;
+                font-size: 0.85rem;
+                transition: all 0.2s ease;
             }}
+            
+            .pill:hover {{
+                background: rgba(255, 255, 255, 0.1);
+                border-color: rgba(255, 255, 255, 0.2);
+                color: {theme.colors.text_primary};
+            }}
+
             /* Inline labels for compact filters */
             .filter-label {{
-                font-size: 12px;
-                letter-spacing: 0.5px;
+                font-size: 0.75rem;
+                letter-spacing: 0.05em;
                 text-transform: uppercase;
                 color: {theme.colors.text_muted};
-                margin-bottom: 6px;
+                margin-bottom: 4px;
+                font-weight: 600;
             }}
-            /* Card hover lift */
-            .element-container:hover > div[data-testid="stMarkdownContainer"],
-            .element-container:hover > div[data-testid="stVerticalBlock"] > div {{
+
+            /* Streamlit Elements Polish */
+            
+            /* Buttons */
+            .stButton > button {{
+                border-radius: 8px !important;
+                font-weight: 500 !important;
+                border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                transition: all 0.2s ease !important;
+            }}
+            
+            .stButton > button:hover {{
                 transform: translateY(-1px);
-                transition: transform 0.15s ease, box-shadow 0.15s ease;
-                box-shadow: {theme.shadows.md};
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            }}
+
+            /* Inputs & Selects */
+            .stTextInput > div > div, .stSelectbox > div > div {{
+                background-color: rgba(30, 41, 59, 0.5) !important;
+                border-color: rgba(255, 255, 255, 0.1) !important;
+                border-radius: 8px !important;
+            }}
+            
+            .stTextInput > div > div:focus-within, .stSelectbox > div > div:focus-within {{
+                border-color: {theme.colors.primary} !important;
+                box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2) !important;
+            }}
+
+            /* Metrics */
+            div[data-testid="stMetricValue"] {{
+                font-family: 'Inter', sans-serif !important;
+                font-weight: 600 !important;
             }}
 
             /* Soft entrance animations */
             @keyframes fadeUp {{
-                0% {{ opacity: 0; transform: translateY(12px); }}
+                0% {{ opacity: 0; transform: translateY(10px); }}
                 100% {{ opacity: 1; transform: translateY(0); }}
             }}
+            
             .glass-box, .stPlotlyChart, .stMetric, .element-container > div {{
-                animation: fadeUp 320ms ease both;
+                animation: fadeUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
             }}
+            
             /* Stagger columns slightly */
-            .stColumn:nth-child(1) > div {{ animation-delay: 40ms; }}
-            .stColumn:nth-child(2) > div {{ animation-delay: 80ms; }}
-            .stColumn:nth-child(3) > div {{ animation-delay: 120ms; }}
-            .stColumn:nth-child(4) > div {{ animation-delay: 160ms; }}
-            /* Buttons and selects polish */
-            button[kind="secondary"], button[kind="primary"], .stSelectbox > div {{
-                border-radius: 10px !important;
-                box-shadow: {theme.shadows.sm};
-                transition: transform 0.12s ease, box-shadow 0.12s ease;
-            }}
-            button:hover, .stSelectbox > div:hover {{
-                transform: translateY(-1px);
-                box-shadow: {theme.shadows.md};
-            }}
+            .stColumn:nth-child(1) > div {{ animation-delay: 0ms; }}
+            .stColumn:nth-child(2) > div {{ animation-delay: 50ms; }}
+            .stColumn:nth-child(3) > div {{ animation-delay: 100ms; }}
+            .stColumn:nth-child(4) > div {{ animation-delay: 150ms; }}
+
             /* Section divider accent */
             hr {{
                 border: none;

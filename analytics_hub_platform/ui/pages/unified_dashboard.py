@@ -55,6 +55,7 @@ from analytics_hub_platform.ui.dark_components import (
     render_enhanced_kpi_card,
     render_yoy_comparison,
     add_target_line_to_chart,
+    render_sticky_header,
 )
 from analytics_hub_platform.ui.dark_components import (
     render_header as render_dark_header,
@@ -202,8 +203,11 @@ def render_unified_dashboard() -> None:
         # =========================================================================
         _render_page_header(dark_theme, year, quarter, last_updated)
 
-        # Compact filter row
-        with st.container():
+        # Sticky Filter Bar (Phase B1)
+        render_sticky_header(year, quarter, region, language)
+
+        # Hidden filter controls (kept for state management but visually replaced by sticky header/sidebar)
+        with st.expander("⚙️ Configure View", expanded=False):
             col_f1, col_f2, col_f3, col_f4 = st.columns([1, 1, 1.5, 1])
             with col_f1:
                 new_year = st.selectbox(
@@ -300,7 +304,7 @@ def render_unified_dashboard() -> None:
             return
 
         # =========================================================================
-        # HERO METRICS SECTION (PDF Design Spec: Sustainability Gauge + 4 KPI Cards)
+        # HERO METRICS SECTION (Always Visible)
         # =========================================================================
         render_html("<div id='section-overview' style='height: 16px;'></div>")
 
@@ -334,303 +338,302 @@ def render_unified_dashboard() -> None:
         render_html("<div style='height: 24px;'></div>")
 
         # =========================================================================
-        # PILLAR PERFORMANCE GRID (PDF Design Spec)
+        # TABS NAVIGATION (Phase B2)
         # =========================================================================
+        tab_overview, tab_econ, tab_social, tab_env, tab_regional, tab_dq, tab_advanced = st.tabs([
+            "📊 Overview", "💼 Economic", "👥 Social", "🌿 Environmental", "🗺️ Regional", "✅ Data Quality", "🧠 Advanced"
+        ])
 
-        # Economic Performance Pillar
-        render_dark_section_title(
-            "💼 Economic Performance", "GDP, Investment, and Economic Complexity"
-        )
-        _render_pillar_section_economic(df, metrics, year, quarter, region, dark_theme)
+        with tab_overview:
+            # =========================================================================
+            # ANALYTICAL BAND: TREND ANALYSIS
+            # =========================================================================
+            render_html("<div id='section-trends' style='height: 8px;'></div>")
+            render_dark_section_title("📈 Trend Analysis", "Historical performance over time")
+            render_html("<div style='height: 12px;'></div>")
 
-        render_html("<div style='height: 24px;'></div>")
+            card_open("Trend Line", "Select indicator to view")
+            trend_col1, trend_col2 = st.columns([3, 1])
 
-        # Labor & Skills + Social & Digital (side by side per PDF)
-        labor_col, social_col = st.columns(2, gap="large")
-
-        with labor_col:
-            render_dark_section_title(
-                "👥 Labor & Skills", "Employment and workforce development"
-            )
-            _render_pillar_section_labor(df, metrics, year, quarter, dark_theme)
-
-        with social_col:
-            render_dark_section_title(
-                "🌐 Social & Digital", "Digital readiness and innovation"
-            )
-            _render_pillar_section_social(df, metrics, year, quarter, dark_theme)
-
-        render_html("<div style='height: 24px;'></div>")
-
-        # Environmental & Sustainability Pillar
-        render_dark_section_title(
-            "🌿 Environmental & Sustainability", "Climate, energy, and resource efficiency"
-        )
-        _render_pillar_section_environmental(df, metrics, year, quarter, region, dark_theme)
-
-        render_html("<div style='height: 24px;'></div>")
-
-        # =========================================================================
-        # ANALYTICAL BAND: TREND ANALYSIS + REGIONAL COMPARISON
-        # =========================================================================
-
-        # Section: Trend Analysis
-        render_html("<div id='section-trends' style='height: 8px;'></div>")
-        render_dark_section_title("📈 Trend Analysis", "Historical performance over time")
-        render_html("<div style='height: 12px;'></div>")
-
-        card_open("Trend Line", "Select indicator to view")
-        trend_col1, trend_col2 = st.columns([3, 1])
-
-        with trend_col2:
-            kpi_options = {
-                "sustainability_index": "Sustainability Index",
-                "gdp_growth": "GDP Growth",
-                "renewable_share": "Renewable Energy",
-                "co2_index": "CO2 Intensity",
-                "unemployment_rate": "Unemployment",
-                "green_jobs": "Green Jobs",
-            }
-            selected_kpi = st.selectbox(
-                "Select Indicator",
-                list(kpi_options.keys()),
-                format_func=lambda x: kpi_options[x],
-                key="trend_kpi",
-            )
-
-        with trend_col1:
-            trend_df = df.copy()
-            if region != "all":
-                trend_df = trend_df[trend_df["region"] == region]
-
-            trend_agg = (
-                trend_df.groupby(["year", "quarter"]).agg({selected_kpi: "mean"}).reset_index()
-            )
-            trend_agg = add_period_column(trend_agg)  # Vectorized period creation
-            trend_agg = trend_agg.sort_values(["year", "quarter"])
-
-            fig = go.Figure()
-            fig.add_trace(
-                go.Scatter(
-                    x=trend_agg["period"],
-                    y=trend_agg[selected_kpi],
-                    mode="lines+markers",
-                    name=kpi_options[selected_kpi],
-                    line={"color": dark_theme.colors.purple, "width": 3},
-                    marker={"size": 10, "color": dark_theme.colors.purple},
-                    fill="tozeroy",
-                    fillcolor="rgba(168, 85, 247, 0.15)",
-                    hovertemplate="<b>%{x}</b><br>Value: %{y:.1f}<extra></extra>",
+            with trend_col2:
+                kpi_options = {
+                    "sustainability_index": "Sustainability Index",
+                    "gdp_growth": "GDP Growth",
+                    "renewable_share": "Renewable Energy",
+                    "co2_index": "CO2 Intensity",
+                    "unemployment_rate": "Unemployment",
+                    "green_jobs": "Green Jobs",
+                }
+                selected_kpi = st.selectbox(
+                    "Select Indicator",
+                    list(kpi_options.keys()),
+                    format_func=lambda x: kpi_options[x],
+                    key="trend_kpi",
                 )
-            )
 
-            # Add trend line
-            if len(trend_agg) > 2:
-                x_numeric = np.arange(len(trend_agg))
-                z = np.polyfit(x_numeric, trend_agg[selected_kpi].values, 1)
-                p = np.poly1d(z)
+            with trend_col1:
+                trend_df = df.copy()
+                if region != "all":
+                    trend_df = trend_df[trend_df["region"] == region]
+
+                trend_agg = (
+                    trend_df.groupby(["year", "quarter"]).agg({selected_kpi: "mean"}).reset_index()
+                )
+                trend_agg = add_period_column(trend_agg)  # Vectorized period creation
+                trend_agg = trend_agg.sort_values(["year", "quarter"])
+
+                fig = go.Figure()
                 fig.add_trace(
                     go.Scatter(
                         x=trend_agg["period"],
-                        y=p(x_numeric),
-                        mode="lines",
-                        name="Trend",
-                        line={"color": dark_theme.colors.cyan, "width": 2, "dash": "dash"},
+                        y=trend_agg[selected_kpi],
+                        mode="lines+markers",
+                        name=kpi_options[selected_kpi],
+                        line={"color": dark_theme.colors.purple, "width": 3},
+                        marker={"size": 10, "color": dark_theme.colors.purple},
+                        fill="tozeroy",
+                        fillcolor="rgba(168, 85, 247, 0.15)",
+                        hovertemplate="<b>%{x}</b><br>Value: %{y:.1f}<extra></extra>",
                     )
                 )
 
-            apply_dark_chart_layout(fig, height=350)
-            fig.update_layout(
-                legend={
-                    "orientation": "h",
-                    "yanchor": "bottom",
-                    "y": 1.02,
-                    "xanchor": "right",
-                    "x": 1,
-                },
-            )
-            st.plotly_chart(fig, width="stretch")
+                # Add trend line
+                if len(trend_agg) > 2:
+                    x_numeric = np.arange(len(trend_agg))
+                    z = np.polyfit(x_numeric, trend_agg[selected_kpi].values, 1)
+                    p = np.poly1d(z)
+                    fig.add_trace(
+                        go.Scatter(
+                            x=trend_agg["period"],
+                            y=p(x_numeric),
+                            mode="lines",
+                            name="Trend",
+                            line={"color": dark_theme.colors.cyan, "width": 2, "dash": "dash"},
+                        )
+                    )
 
-        card_close()
-
-        # =========================================================================
-        # SECTION 4: REGIONAL COMPARISON (PDF Design Spec)
-        # =========================================================================
-        render_html("<div id='section-regions' style='height: 8px;'></div>")
-        render_dark_section_title(
-            "🗺️ Regional Comparison", "Performance by region with geospatial view"
-        )
-        render_html("<div style='height: 12px;'></div>")
-
-        filter_params = FilterParams(
-            tenant_id=settings.default_tenant_id,
-            year=year,
-            quarter=quarter,
-            region=region if region != "all" else None,
-        )
-        _render_regional_comparison_section(df, filter_params, region, dark_theme)
-
-        # Dedicated Saudi map section (separate from bars/stats)
-        _render_saudi_map_section(df, filter_params, dark_theme, language)
-
-        render_html("<div style='height: 24px;'></div>")
-
-        # =========================================================================
-        # SECTION 5: ENVIRONMENTAL TRENDS
-        # =========================================================================
-        render_html("<div id='section-environment' style='height: 8px;'></div>")
-        render_dark_section_title(
-            "🌿 Sustainability & Environmental Trends", "Multi-indicator performance"
-        )
-        render_html("<div style='height: 12px;'></div>")
-
-        card_open("Environmental KPIs", "Tracking sustainability metrics over time")
-
-        env_kpis = [
-            "co2_index",
-            "renewable_share",
-            "energy_intensity",
-            "water_efficiency",
-            "waste_recycling_rate",
-            "air_quality_index",
-            "forest_coverage",
-            "green_jobs",
-        ]
-
-        trend_env = (
-            df.groupby(["year", "quarter"])
-            .agg({k: "mean" for k in env_kpis if k in df.columns})
-            .reset_index()
-        )
-        trend_env = add_period_column(trend_env)  # Vectorized period creation
-        trend_env = trend_env.sort_values(["year", "quarter"])
-
-        fig_env = go.Figure()
-        palette = [
-            dark_theme.colors.purple,
-            dark_theme.colors.cyan,
-            dark_theme.colors.pink,
-            "#f472b6",
-            "#818cf8",
-            "#4ade80",
-            "#fbbf24",
-            "#fb923c",
-        ]
-        label_map = {
-            "co2_index": "CO2 Intensity",
-            "renewable_share": "Renewables %",
-            "energy_intensity": "Energy Intensity",
-            "water_efficiency": "Water Efficiency",
-            "waste_recycling_rate": "Recycling Rate",
-            "air_quality_index": "Air Quality",
-            "forest_coverage": "Forest Coverage",
-            "green_jobs": "Green Jobs",
-        }
-
-        for i, kpi in enumerate(env_kpis):
-            if kpi not in trend_env.columns:
-                continue
-            fig_env.add_trace(
-                go.Scatter(
-                    x=trend_env["period"],
-                    y=trend_env[kpi],
-                    mode="lines+markers",
-                    name=label_map.get(kpi, kpi),
-                    line={"color": palette[i % len(palette)], "width": 2},
-                    hovertemplate="<b>%{fullData.name}</b><br>%{x}<br>Value: %{y:.1f}<extra></extra>",
+                apply_dark_chart_layout(fig, height=350)
+                fig.update_layout(
+                    legend={
+                        "orientation": "h",
+                        "yanchor": "bottom",
+                        "y": 1.02,
+                        "xanchor": "right",
+                        "x": 1,
+                    },
                 )
+                st.plotly_chart(fig, width="stretch")
+
+            card_close()
+
+            # =========================================================================
+            # SECTION 7: KEY INSIGHTS
+            # =========================================================================
+            render_html("<div style='height: 8px;'></div>")
+            render_dark_section_title(
+                "💡 Key Insights", "Top improvements and areas needing attention"
+            )
+            render_html("<div style='height: 12px;'></div>")
+
+            _render_key_insights_section(snapshot, metrics, dark_theme, language)
+
+        with tab_econ:
+            # Economic Performance Pillar
+            render_dark_section_title(
+                "💼 Economic Performance", "GDP, Investment, and Economic Complexity"
+            )
+            _render_pillar_section_economic(df, metrics, year, quarter, region, dark_theme)
+
+        with tab_social:
+            # Labor & Skills + Social & Digital
+            labor_col, social_col = st.columns(2, gap="large")
+
+            with labor_col:
+                render_dark_section_title(
+                    "👥 Labor & Skills", "Employment and workforce development"
+                )
+                _render_pillar_section_labor(df, metrics, year, quarter, dark_theme)
+
+            with social_col:
+                render_dark_section_title(
+                    "🌐 Social & Digital", "Digital readiness and innovation"
+                )
+                _render_pillar_section_social(df, metrics, year, quarter, dark_theme)
+
+        with tab_env:
+            # Environmental & Sustainability Pillar
+            render_dark_section_title(
+                "🌿 Environmental & Sustainability", "Climate, energy, and resource efficiency"
+            )
+            _render_pillar_section_environmental(df, metrics, year, quarter, region, dark_theme)
+
+            render_html("<div style='height: 24px;'></div>")
+
+            # =========================================================================
+            # SECTION 5: ENVIRONMENTAL TRENDS (Enhanced)
+            # =========================================================================
+            render_html("<div id='section-environment' style='height: 8px;'></div>")
+            render_dark_section_title(
+                "🌿 Sustainability & Environmental Trends", "Multi-indicator performance"
+            )
+            render_html("<div style='height: 12px;'></div>")
+
+            card_open("Environmental KPIs", "Tracking sustainability metrics over time")
+
+            env_kpis = [
+                "co2_index",
+                "renewable_share",
+                "energy_intensity",
+                "water_efficiency",
+                "waste_recycling_rate",
+                "air_quality_index",
+                "forest_coverage",
+                "green_jobs",
+            ]
+
+            # Phase B3: Multi-select for series
+            selected_env_series = st.multiselect(
+                "Select Indicators",
+                options=env_kpis,
+                default=env_kpis[:5],
+                format_func=lambda x: x.replace("_", " ").title()
             )
 
-        apply_dark_chart_layout(fig_env, height=420)
-        fig_env.update_layout(
-            legend={
-                "orientation": "h",
-                "yanchor": "bottom",
-                "y": 1.02,
-                "xanchor": "center",
-                "x": 0.5,
-            },
-        )
-        st.plotly_chart(fig_env, width="stretch")
-        card_close()
+            if selected_env_series:
+                trend_env = (
+                    df.groupby(["year", "quarter"])
+                    .agg({k: "mean" for k in selected_env_series if k in df.columns})
+                    .reset_index()
+                )
+                trend_env = add_period_column(trend_env)  # Vectorized period creation
+                trend_env = trend_env.sort_values(["year", "quarter"])
 
-        # =========================================================================
-        # SECTION 5.5: YEAR-OVER-YEAR COMPARISON
-        # =========================================================================
-        render_html("<div id='section-yoy' style='height: 8px;'></div>")
-        render_dark_section_title(
-            "📈 Year-over-Year Comparison", "Key indicators compared to previous year"
-        )
-        render_html("<div style='height: 12px;'></div>")
+                fig_env = go.Figure()
+                palette = [
+                    dark_theme.colors.purple,
+                    dark_theme.colors.cyan,
+                    dark_theme.colors.pink,
+                    "#f472b6",
+                    "#818cf8",
+                    "#4ade80",
+                    "#fbbf24",
+                    "#fb923c",
+                ]
+                label_map = {
+                    "co2_index": "CO2 Intensity",
+                    "renewable_share": "Renewables %",
+                    "energy_intensity": "Energy Intensity",
+                    "water_efficiency": "Water Efficiency",
+                    "waste_recycling_rate": "Recycling Rate",
+                    "air_quality_index": "Air Quality",
+                    "forest_coverage": "Forest Coverage",
+                    "green_jobs": "Green Jobs",
+                }
 
-        _render_yoy_comparison_section(df, year, quarter, region, dark_theme)
+                for i, kpi in enumerate(selected_env_series):
+                    if kpi not in trend_env.columns:
+                        continue
+                    fig_env.add_trace(
+                        go.Scatter(
+                            x=trend_env["period"],
+                            y=trend_env[kpi],
+                            mode="lines+markers",
+                            name=label_map.get(kpi, kpi),
+                            line={"color": palette[i % len(palette)], "width": 2},
+                            hovertemplate="<b>%{fullData.name}</b><br>%{x}<br>Value: %{y:.1f}<extra></extra>",
+                        )
+                    )
 
-        render_html("<div style='height: 24px;'></div>")
+                apply_dark_chart_layout(fig_env, height=420)
+                fig_env.update_layout(
+                    legend={
+                        "orientation": "h",
+                        "yanchor": "bottom",
+                        "y": 1.02,
+                        "xanchor": "center",
+                        "x": 0.5,
+                    },
+                )
+                st.plotly_chart(fig_env, width="stretch")
+            else:
+                st.info("Select at least one indicator to view trends.")
+            
+            card_close()
 
-        # =========================================================================
-        # SECTION 6: DATA QUALITY & COMPLETENESS (PDF Design Spec)
-        # =========================================================================
-        render_html("<div id='section-data-quality' style='height: 8px;'></div>")
-        render_dark_section_title(
-            "✅ Data Quality & Completeness", "Overall data health and completeness metrics"
-        )
-        render_html("<div style='height: 12px;'></div>")
+        with tab_regional:
+            # =========================================================================
+            # SECTION 4: REGIONAL COMPARISON (PDF Design Spec)
+            # =========================================================================
+            render_html("<div id='section-regions' style='height: 8px;'></div>")
+            render_dark_section_title(
+                "🗺️ Regional Comparison", "Performance by region with geospatial view"
+            )
+            render_html("<div style='height: 12px;'></div>")
 
-        _render_data_quality_section(quality_metrics, quality_prev, metrics, df, catalog, dark_theme)
+            filter_params = FilterParams(
+                tenant_id=settings.default_tenant_id,
+                year=year,
+                quarter=quarter,
+                region=region if region != "all" else None,
+            )
+            _render_regional_comparison_section(df, filter_params, region, dark_theme)
 
-        render_html("<div style='height: 24px;'></div>")
+            # Dedicated Saudi map section (separate from bars/stats)
+            _render_saudi_map_section(df, filter_params, dark_theme, language)
 
-        # =========================================================================
-        # SECTION 7: KEY INSIGHTS (PDF Design Spec - Two Columns)
-        # =========================================================================
-        render_html("<div style='height: 8px;'></div>")
-        render_dark_section_title(
-            "💡 Key Insights", "Top improvements and areas needing attention"
-        )
-        render_html("<div style='height: 12px;'></div>")
+        with tab_dq:
+            # =========================================================================
+            # SECTION 6: DATA QUALITY & COMPLETENESS (PDF Design Spec)
+            # =========================================================================
+            render_html("<div id='section-data-quality' style='height: 8px;'></div>")
+            render_dark_section_title(
+                "✅ Data Quality & Completeness", "Overall data health and completeness metrics"
+            )
+            render_html("<div style='height: 12px;'></div>")
 
-        _render_key_insights_section(snapshot, metrics, dark_theme, language)
+            _render_data_quality_section(quality_metrics, quality_prev, metrics, df, catalog, dark_theme)
 
-        # =========================================================================
-        # ADVANCED ANALYTICS SECTION
-        # =========================================================================
-        render_html(
-            f"""
-            <div style="
-                background: linear-gradient(135deg, {dark_theme.colors.purple}15 0%, {dark_theme.colors.cyan}10 100%);
-                padding: 20px 24px;
-                border-radius: 12px;
-                border: 1px solid #2d3555;
-                margin: 20px 0;
-            ">
-                <h3 style="color: #f1f5f9; margin: 0 0 8px 0; font-size: 18px;">
-                    🧠 Advanced Analytics Suite
-                </h3>
-                <p style="color: #94a3b8; margin: 0; font-size: 13px;">
-                    ML-powered forecasting, anomaly detection, and AI recommendations
-                </p>
-            </div>
-        """
-        )
+        with tab_advanced:
+            # =========================================================================
+            # ADVANCED ANALYTICS SECTION
+            # =========================================================================
+            render_html(
+                f"""
+                <div style="
+                    background: linear-gradient(135deg, {dark_theme.colors.purple}15 0%, {dark_theme.colors.cyan}10 100%);
+                    padding: 20px 24px;
+                    border-radius: 12px;
+                    border: 1px solid #2d3555;
+                    margin: 20px 0;
+                ">
+                    <h3 style="color: #f1f5f9; margin: 0 0 8px 0; font-size: 18px;">
+                        🧠 Advanced Analytics Suite
+                    </h3>
+                    <p style="color: #94a3b8; margin: 0; font-size: 13px;">
+                        ML-powered forecasting, anomaly detection, and AI recommendations
+                    </p>
+                </div>
+            """
+            )
 
-        # Create layout with sidebar and content
-        sidebar_col, content_col = st.columns([0.28, 0.72], gap="medium")
+            # Create layout with sidebar and content
+            sidebar_col, content_col = st.columns([0.28, 0.72], gap="medium")
 
-        with sidebar_col:
-            from analytics_hub_platform.ui.dark_components import render_advanced_analytics_sidebar
+            with sidebar_col:
+                from analytics_hub_platform.ui.dark_components import render_advanced_analytics_sidebar
 
-            selected_section = render_advanced_analytics_sidebar()
+                selected_section = render_advanced_analytics_sidebar()
 
-        with content_col:
-            # Render the selected section
-            if selected_section == "forecast":
-                _render_ml_forecast_section(df, year, quarter, theme, language)
-            elif selected_section == "warning":
-                _render_anomaly_section(df, year, quarter, theme, language)
-            elif selected_section == "recommendations":
-                _render_llm_recommendations_section(snapshot, theme, language)
-            elif selected_section == "map":
-                _render_regional_map_section(df, year, quarter, theme, language)
+            with content_col:
+                # Render the selected section
+                if selected_section == "forecast":
+                    _render_ml_forecast_section(df, year, quarter, theme, language)
+                elif selected_section == "warning":
+                    _render_anomaly_section(df, year, quarter, theme, language)
+                elif selected_section == "recommendations":
+                    _render_llm_recommendations_section(snapshot, theme, language)
+                elif selected_section == "map":
+                    _render_regional_map_section(df, year, quarter, theme, language)
 
         render_html("<div style='height: 48px;'></div>")
 
@@ -1466,6 +1469,14 @@ def _render_hero_kpi_cards(
         ("data_quality", "Data Quality", dark_theme.colors.domain_data_quality, "✅"),
     ]
 
+    # Targets (Mocked for now, ideally from config)
+    targets = {
+        "gdp_growth": 3.5,
+        "unemployment_rate": 4.0,
+        "co2_index": 90.0,
+        "data_quality": 95.0,
+    }
+
     # 2x2 grid
     row1 = st.columns(2, gap="medium")
     row2 = st.columns(2, gap="medium")
@@ -1476,6 +1487,8 @@ def _render_hero_kpi_cards(
             sparkline_data = None
             has_alert = False
             alert_type = "info"
+            target_val = targets.get(kpi_id)
+            status_label = "On Track" # Default
 
             if kpi_id == "data_quality":
                 # Special case for data quality score
@@ -1484,7 +1497,11 @@ def _render_hero_kpi_cards(
                 if quality_prev and quality_prev.get("completeness") is not None:
                     prev_val = quality_prev.get("completeness")
                 delta = ((val - prev_val) / prev_val * 100) if prev_val else 0
-                status = "green" if val >= 80 else "amber" if val >= 60 else "red"
+                
+                if val >= 95: status_label = "On Track"
+                elif val >= 80: status_label = "Watch"
+                else: status_label = "Off Track"
+
                 # Alert for low data quality
                 if val < 60:
                     has_alert = True
@@ -1496,9 +1513,14 @@ def _render_hero_kpi_cards(
                 kpi = metrics.get(kpi_id, {})
                 val = kpi.get("value", 0) or 0
                 delta = kpi.get("change_percent", 0) or 0
-                status = kpi.get("status", "neutral")
+                status_code = kpi.get("status", "neutral")
+                
+                if status_code == "green": status_label = "On Track"
+                elif status_code == "amber": status_label = "Watch"
+                elif status_code == "red": status_label = "Off Track"
+                else: status_label = None
 
-                # Generate sparkline data from historical data
+                # Generate sparkline data if dataframe is available
                 if df is not None and not df.empty and kpi_id in df.columns:
                     # Get last 8 data points for sparkline
                     hist_data = df.sort_values(["year", "quarter"])
@@ -1506,27 +1528,19 @@ def _render_hero_kpi_cards(
                     if len(sparkline_vals) >= 2:
                         sparkline_data = sparkline_vals
 
-                # Check for alerts based on status
-                if status == "red":
-                    has_alert = True
-                    alert_type = "critical"
-                elif status == "amber":
-                    has_alert = True
-                    alert_type = "warning"
-
-            _render_hero_kpi_card(
-                label=label,
-                value=val,
+            render_enhanced_kpi_card(
+                title=label,
+                value=f"{val:.1f}%" if kpi_id != "co2_index" else f"{val:.1f}",
                 delta=delta,
-                status=status,
-                domain_color=domain_color,
-                icon=icon,
-                kpi_id=kpi_id,
-                dark_theme=dark_theme,
+                delta_suffix="%" if kpi_id != "co2_index" else "",
                 sparkline_data=sparkline_data,
-                has_alert=has_alert,
-                alert_type=alert_type,
+                alert_type=alert_type if has_alert else None,
+                icon=icon,
+                color=domain_color,
+                target=target_val,
+                status=status_label,
             )
+
 
 
 def _render_hero_kpi_card(
