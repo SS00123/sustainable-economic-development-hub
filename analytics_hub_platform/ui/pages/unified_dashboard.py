@@ -42,8 +42,8 @@ from analytics_hub_platform.ui.components.cards import (
     render_kpi_card,
 )
 from analytics_hub_platform.ui.html import render_html
+from analytics_hub_platform.ui.ui_components import apply_dark_chart_layout
 from analytics_hub_platform.ui.dark_components import (
-    apply_dark_chart_layout,
     card_close,
     card_open,
     render_mini_metric,
@@ -340,8 +340,8 @@ def render_unified_dashboard() -> None:
         # =========================================================================
         # TABS NAVIGATION (Phase B2)
         # =========================================================================
-        tab_overview, tab_econ, tab_social, tab_env, tab_regional, tab_dq, tab_advanced = st.tabs([
-            "📊 Overview", "💼 Economic", "👥 Social", "🌿 Environmental", "🗺️ Regional", "✅ Data Quality", "🧠 Advanced"
+        tab_overview, tab_econ, tab_social, tab_env, tab_regional, tab_dq = st.tabs([
+            "📊 Overview", "💼 Economic", "👥 Social", "🌿 Environmental", "🗺️ Regional", "✅ Data Quality"
         ])
 
         with tab_overview:
@@ -400,7 +400,9 @@ def render_unified_dashboard() -> None:
                 # Add trend line
                 if len(trend_agg) > 2:
                     x_numeric = np.arange(len(trend_agg))
-                    z = np.polyfit(x_numeric, trend_agg[selected_kpi].values, 1)
+                    z = np.polyfit(
+                        x_numeric, trend_agg[selected_kpi].to_numpy(dtype=float), 1
+                    )
                     p = np.poly1d(z)
                     fig.add_trace(
                         go.Scatter(
@@ -592,48 +594,6 @@ def render_unified_dashboard() -> None:
             render_html("<div style='height: 12px;'></div>")
 
             _render_data_quality_section(quality_metrics, quality_prev, metrics, df, catalog, dark_theme)
-
-        with tab_advanced:
-            # =========================================================================
-            # ADVANCED ANALYTICS SECTION
-            # =========================================================================
-            render_html(
-                f"""
-                <div style="
-                    background: linear-gradient(135deg, {dark_theme.colors.purple}15 0%, {dark_theme.colors.cyan}10 100%);
-                    padding: 20px 24px;
-                    border-radius: 12px;
-                    border: 1px solid #2d3555;
-                    margin: 20px 0;
-                ">
-                    <h3 style="color: #f1f5f9; margin: 0 0 8px 0; font-size: 18px;">
-                        🧠 Advanced Analytics Suite
-                    </h3>
-                    <p style="color: #94a3b8; margin: 0; font-size: 13px;">
-                        ML-powered forecasting, anomaly detection, and AI recommendations
-                    </p>
-                </div>
-            """
-            )
-
-            # Create layout with sidebar and content
-            sidebar_col, content_col = st.columns([0.28, 0.72], gap="medium")
-
-            with sidebar_col:
-                from analytics_hub_platform.ui.dark_components import render_advanced_analytics_sidebar
-
-                selected_section = render_advanced_analytics_sidebar()
-
-            with content_col:
-                # Render the selected section
-                if selected_section == "forecast":
-                    _render_ml_forecast_section(df, year, quarter, theme, language)
-                elif selected_section == "warning":
-                    _render_anomaly_section(df, year, quarter, theme, language)
-                elif selected_section == "recommendations":
-                    _render_llm_recommendations_section(snapshot, theme, language)
-                elif selected_section == "map":
-                    _render_regional_map_section(df, year, quarter, theme, language)
 
         render_html("<div style='height: 48px;'></div>")
 
@@ -2708,8 +2668,11 @@ def _calc_metric_from_df(
     if filters.region and filters.region != "all":
         current = current[current["region"] == filters.region]
 
-    prev_year = filters.year
-    prev_quarter = filters.quarter - 1
+    if filters.year is None or filters.quarter is None:
+        return {"value": 0, "delta": 0, "pct_change": 0}
+
+    prev_year: int = int(filters.year)
+    prev_quarter: int = filters.quarter - 1
     if prev_quarter == 0:
         prev_quarter = 4
         prev_year -= 1

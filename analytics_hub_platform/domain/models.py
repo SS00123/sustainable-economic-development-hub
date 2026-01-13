@@ -254,9 +254,9 @@ class FilterParams(BaseModel):
             raise ValueError("Quarter must be between 1 and 4")
         return v
 
-    def to_query_params(self) -> dict[str, Any]:
+    def to_query_params(self) -> dict[str, str | int]:
         """Convert to query parameters dictionary."""
-        params = {"tenant_id": self.tenant_id}
+        params: dict[str, str | int] = {"tenant_id": self.tenant_id}
         if self.year:
             params["year"] = self.year
         if self.quarter:

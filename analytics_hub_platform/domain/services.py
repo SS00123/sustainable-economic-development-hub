@@ -82,6 +82,8 @@ def get_executive_snapshot(
         current = current[current["region"] == filters.region]
 
     # Get previous period for comparison
+    # Note: year and quarter are validated as non-None by FilterParams
+    assert filters.year is not None and filters.quarter is not None
     prev_year = filters.year
     prev_quarter = filters.quarter - 1
     if prev_quarter == 0:

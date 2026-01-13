@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Phase 7: Advanced Analytics (forecasting, anomaly detection)
+- Phase 7: Advanced analytics capabilities (forecasting, anomaly detection) integrated into KPIs/Trends
 - Phase 8: Insight Engine (rules registry, explanations)
 - Phase 9: Maturity (release cadence, final verification)
 

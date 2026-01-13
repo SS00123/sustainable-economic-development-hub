@@ -240,12 +240,15 @@ def check_database_health() -> dict[str, Any]:
 
         # Get pool status (if pooled)
         pool = engine.pool
-        if hasattr(pool, "size"):
-            result["pool_size"] = pool.size()
-        if hasattr(pool, "checkedout"):
-            result["checked_out"] = pool.checkedout()
-        if hasattr(pool, "overflow"):
-            result["overflow"] = pool.overflow()
+        size_fn = getattr(pool, "size", None)
+        if callable(size_fn):
+            result["pool_size"] = size_fn()
+        checkedout_fn = getattr(pool, "checkedout", None)
+        if callable(checkedout_fn):
+            result["checked_out"] = checkedout_fn()
+        overflow_fn = getattr(pool, "overflow", None)
+        if callable(overflow_fn):
+            result["overflow"] = overflow_fn()
 
         result["status"] = "healthy"
         result["message"] = "Database connection successful"

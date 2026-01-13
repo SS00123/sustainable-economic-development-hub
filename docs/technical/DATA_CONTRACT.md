@@ -163,7 +163,8 @@ assert co2_total >= 0, "CO2 cannot be negative"
 ### Dashboard Location
 - Hero Section (Sustainability Index)
 - Key Insights Section
-- Advanced Analytics
+- KPIs (Forecasting)
+- Trends (Early Warning)
 
 ### Fields
 
@@ -173,16 +174,11 @@ assert co2_total >= 0, "CO2 cannot be negative"
 
 ### Calculation Method
 
-```python
-sustainability_index = (
-    0.35 * normalize(gdp_growth, economic_weight=1.0) +
-    0.35 * normalize(100 - unemployment_rate) +
-    0.30 * normalize(renewable_share)
-)
+Authoritative definitions for composite indicators live in:
+- `analytics_hub_platform/config/kpi_catalog.yaml` (definitions/thresholds if configured)
+- `analytics_hub_platform/domain/kpis/indicators.py` (calculation utilities)
 
-# Status thresholds
-status = "green" if sustainability_index >= 70 else "amber" if sustainability_index >= 40 else "red"
-```
+This section is informational only and should not be treated as a formal specification of weights/thresholds.
 
 ---
 

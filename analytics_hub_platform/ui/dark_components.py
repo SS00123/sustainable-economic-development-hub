@@ -44,8 +44,7 @@ def render_sidebar(active: str = "Dashboard") -> None:
         ("KPIs", "📈", "pages/02_KPIs.py"),
         ("Trends", "📊", "pages/03_Trends.py"),
         ("Data", "📋", "pages/04_Data.py"),
-        ("Advanced Analytics", "🧠", "pages/05_Advanced_Analytics.py"),
-        ("Settings", "⚙️", "pages/06_Settings.py"),
+        ("Settings", "⚙️", "pages/05_Settings.py"),
     ]
 
     # Inject premium sidebar styling
@@ -794,6 +793,11 @@ def apply_dark_chart_layout(fig: go.Figure, height: int = 300, show_grid: bool =
     """
     Apply premium dark theme styling to a Plotly figure.
 
+    DEPRECATED: This function is maintained for internal use within dark_components.py only.
+    New code should use the canonical version from:
+    - `analytics_hub_platform.app.styles.charts.apply_dark_chart_layout`, or
+    - `analytics_hub_platform.ui.ui_components.apply_dark_chart_layout` (facade)
+
     Args:
         fig: Plotly figure to style
         height: Chart height in pixels
@@ -1250,219 +1254,6 @@ def render_status_overview(green: int, amber: int, red: int, total: int | None =
         </div>
         """
     )
-
-
-def render_advanced_analytics_sidebar(active: str = "forecast") -> str:
-    """
-    Render a modern vertical sidebar for advanced analytics navigation.
-    Returns the selected section key.
-
-    Args:
-        active: Currently active section key (forecast, warning, recommendations, map)
-
-    Returns:
-        Selected section key
-    """
-    # Sections configuration
-    sections = [
-        ("forecast", "🔮", "KPI Forecasting", "ML-powered predictions"),
-        ("warning", "⚠️", "Early Warning", "Anomaly detection"),
-        ("recommendations", "🤖", "AI Recommendations", "Smart insights"),
-        ("map", "🗺️", "Regional Map", "Geographic view"),
-    ]
-
-    options = [s[0] for s in sections]
-    desc_map = {s[0]: s[3] for s in sections}
-
-    if "analytics_section" not in st.session_state:
-        st.session_state.analytics_section = active if active in options else options[0]
-
-    # Sidebar container styling
-    render_html(
-        """
-        <style>
-          /* Sidebar navigation container */
-          .analytics-sidebar-nav {
-            background: linear-gradient(145deg, rgba(27, 31, 54, 0.98), rgba(15, 17, 34, 0.98));
-            border: 1px solid rgba(168, 85, 247, 0.25);
-            border-radius: 16px;
-            padding: 16px 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-            position: sticky;
-            top: 60px;
-          }
-
-          .analytics-sidebar-title {
-            font-size: 11px;
-            font-weight: 700;
-            color: rgba(255, 255, 255, 0.45);
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            padding: 0 8px 12px 8px;
-            margin-bottom: 8px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-          }
-
-          .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 16px;
-            margin: 6px 0;
-            border-radius: 12px;
-            border: 1px solid transparent;
-            background: transparent;
-            cursor: pointer;
-            transition: all 220ms cubic-bezier(0.4, 0, 0.2, 1);
-          }
-
-          .nav-item:hover {
-            background: rgba(168, 85, 247, 0.12);
-            border-color: rgba(168, 85, 247, 0.25);
-            transform: translateX(4px);
-          }
-
-          .nav-item.active {
-            background: linear-gradient(135deg, rgba(168, 85, 247, 0.35), rgba(34, 211, 238, 0.20));
-            border-color: rgba(168, 85, 247, 0.55);
-            box-shadow: 0 4px 24px rgba(168, 85, 247, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.10);
-          }
-
-          .nav-item .nav-icon {
-            font-size: 18px;
-            width: 28px;
-            text-align: center;
-          }
-
-          .nav-item .nav-content {
-            flex: 1;
-          }
-
-          .nav-item .nav-label {
-            font-size: 13px;
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.78);
-            letter-spacing: 0.2px;
-          }
-
-          .nav-item.active .nav-label {
-            color: rgba(255, 255, 255, 0.98);
-            font-weight: 700;
-          }
-
-          .nav-item .nav-desc {
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.45);
-            margin-top: 2px;
-          }
-
-          .nav-item.active .nav-desc {
-            color: rgba(255, 255, 255, 0.65);
-          }
-
-          .nav-indicator {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: transparent;
-          }
-
-          .nav-item.active .nav-indicator {
-            background: #22d3ee;
-            box-shadow: 0 0 12px #22d3ee;
-          }
-
-          /* Style the sidebar navigation buttons */
-          .analytics-sidebar-nav button[kind="secondary"] {
-            background: transparent !important;
-            border: 1px solid transparent !important;
-            color: rgba(255, 255, 255, 0.78) !important;
-            text-align: left !important;
-            padding: 14px 16px !important;
-            margin: 4px 0 !important;
-            border-radius: 12px !important;
-            font-size: 13px !important;
-            font-weight: 500 !important;
-            transition: all 220ms cubic-bezier(0.4, 0, 0.2, 1) !important;
-          }
-
-          .analytics-sidebar-nav button[kind="secondary"]:hover {
-            background: rgba(168, 85, 247, 0.12) !important;
-            border-color: rgba(168, 85, 247, 0.25) !important;
-            transform: translateX(4px);
-          }
-
-          .analytics-sidebar-nav button[kind="primary"] {
-            background: linear-gradient(135deg, rgba(168, 85, 247, 0.35), rgba(34, 211, 238, 0.20)) !important;
-            border: 1px solid rgba(168, 85, 247, 0.55) !important;
-            color: rgba(255, 255, 255, 0.98) !important;
-            text-align: left !important;
-            padding: 14px 16px !important;
-            margin: 4px 0 !important;
-            border-radius: 12px !important;
-            font-size: 13px !important;
-            font-weight: 700 !important;
-            box-shadow: 0 4px 24px rgba(168, 85, 247, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.10) !important;
-          }
-
-          /* Alternative: target by data-testid for Streamlit buttons */
-          .analytics-sidebar-nav [data-testid="stButton"] button {
-            background: transparent !important;
-            border: 1px solid transparent !important;
-            color: rgba(255, 255, 255, 0.78) !important;
-            text-align: left !important;
-            justify-content: flex-start !important;
-            padding: 14px 16px !important;
-            margin: 4px 0 !important;
-            border-radius: 12px !important;
-            font-size: 13px !important;
-            font-weight: 500 !important;
-            transition: all 220ms cubic-bezier(0.4, 0, 0.2, 1) !important;
-          }
-
-          .analytics-sidebar-nav [data-testid="stButton"] button:hover {
-            background: rgba(168, 85, 247, 0.12) !important;
-            border-color: rgba(168, 85, 247, 0.25) !important;
-          }
-
-          .analytics-sidebar-nav [data-testid="stButton"] button[kind="primary"],
-          .analytics-sidebar-nav [data-testid="stButton"]:has(button[data-active="true"]) button {
-            background: linear-gradient(135deg, rgba(168, 85, 247, 0.35), rgba(34, 211, 238, 0.20)) !important;
-            border: 1px solid rgba(168, 85, 247, 0.55) !important;
-            color: rgba(255, 255, 255, 0.98) !important;
-            font-weight: 700 !important;
-            box-shadow: 0 4px 24px rgba(168, 85, 247, 0.25) !important;
-          }
-        </style>
-        """
-    )
-
-    # Render sidebar with buttons for navigation
-    render_html('<div class="analytics-sidebar-nav">')
-    render_html(
-        '<div class="analytics-sidebar-title">Analytics Modules</div>'
-    )
-
-    selected = st.session_state.analytics_section
-
-    for key, icon, label, _desc in sections:
-        is_active = key == selected
-        if st.button(
-            f"{icon}  {label}",
-            key=f"nav_{key}",
-            width="stretch",
-            type="primary" if is_active else "secondary",
-        ):
-            st.session_state.analytics_section = key
-            selected = key
-            st.rerun()
-
-    render_html("</div>")
-
-    # Show description for selected section
-    st.caption(f"📍 {desc_map.get(selected, '')}")
-
-    return selected
 
 
 # =============================================================================

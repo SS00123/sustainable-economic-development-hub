@@ -4,7 +4,7 @@
 
 **Primary Client:** Ministry of Economy and Planning (Saudi Arabia)
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://your-app-url.streamlit.app)
+
 
 ---
 
@@ -89,7 +89,7 @@ The Sustainable Economic Development Analytics Hub is a comprehensive analytics 
 | 📑 **Export** | PDF reports, PowerPoint, Excel workbooks |
 | 🔒 **Role-Based Access** | Executive, Director, and Analyst views |
 | 🤖 **ML Forecasting** | KPI predictions with confidence intervals |
-| ♿ **WCAG 2.1 AA** | Full accessibility compliance |
+| ♿ **Accessibility** | Accessibility considerations (contrast, focus states, readable charts) |
 
 ---
 
@@ -106,12 +106,15 @@ analytics_hub_platform/
 │   └── config.toml             # Streamlit theme configuration
 ├── analytics_hub_platform/
 │   ├── api/                    # FastAPI routers
+│   ├── app/                    # Reusable UI components/styles (canonical)
 │   ├── config/                 # Configuration & KPI catalog
 │   ├── domain/                 # Business logic & ML services
+│   ├── data/                   # Facade layer for repository/data access (canonical)
+│   ├── infra/                  # Facade layer for infra helpers (canonical)
 │   ├── infrastructure/         # Database, auth, rate limiting
 │   ├── ui/                     # Streamlit UI components
 │   ├── utils/                  # Utilities & accessibility
-│   └── locale/                 # Localization strings
+│   └── locales/                # Localization strings
 ├── tests/                      # Test suite (580+ tests)
 │   └── e2e/                    # Playwright E2E tests
 └── scripts/                    # Deployment & utility scripts
@@ -163,6 +166,8 @@ pip install -e ".[dev,async,migrations]"
 | `JWT_SECRET_KEY` | JWT secret (required in production) | - |
 | `RATE_LIMIT_EXPORTS` | Max exports per minute | `10` |
 | `ML_RANDOM_STATE` | Random seed for ML | `42` |
+
+See `docs/CONFIGURATION.md` and `.env.example` for a maintainable, auditable setup.
 
 ### Streamlit Secrets (Cloud Deployment)
 

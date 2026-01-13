@@ -46,7 +46,8 @@ from analytics_hub_platform.ui.ui_components import (
     section_header,
     spacer,
 )
-from analytics_hub_platform.ui.theme import colors
+from analytics_hub_platform.ui.theme import colors, get_chart_layout_config
+from analytics_hub_platform.utils.dataframe_adapter import add_period_column
 
 
 def get_catalog() -> dict:
@@ -86,8 +87,11 @@ def enrich_metrics(
         if filters.region and filters.region != "all":
             current = current[current["region"] == filters.region]
 
-        prev_year = filters.year
-        prev_quarter = filters.quarter - 1
+        if filters.year is None or filters.quarter is None:
+            continue
+
+        prev_year: int = int(filters.year)
+        prev_quarter: int = filters.quarter - 1
         if prev_quarter == 0:
             prev_quarter = 4
             prev_year -= 1
@@ -433,6 +437,119 @@ with main_col:
                 label = kpi.get("display_name", kpi_id.replace("_", " ").title())
                 display_val = format_kpi_value(kpi_id, val)
                 metric_card(label, display_val, delta=change, status=status)
+
+        spacer("lg")
+
+        # KPI Forecasting Section
+        section_header("KPI Forecasting", "ML-powered predictions for key indicators", "🔮")
+
+        try:
+            from analytics_hub_platform.domain.ml_services import KPIForecaster
+
+            forecast_kpis = [
+                "sustainability_index", "gdp_growth",
+                "non_oil_gdp_share", "unemployment_rate",
+                "co2_index", "renewable_share"
+            ]
+            available_forecast_kpis = [k for k in forecast_kpis if k in df.columns]
+
+            if available_forecast_kpis:
+                col1, col2, col3 = st.columns([2, 1, 1])
+                with col1:
+                    selected_forecast_kpi = st.selectbox(
+                        "Select KPI to Forecast",
+                        available_forecast_kpis,
+                        format_func=lambda x: metrics.get(x, {}).get("display_name", x.replace("_", " ").title()),
+                        key="forecast_kpi",
+                    )
+                with col2:
+                    periods = st.slider("Quarters Ahead", 2, 12, 8, key="periods")
+                with col3:
+                    model_type = st.selectbox(
+                        "Model",
+                        ["gradient_boosting", "random_forest"],
+                        format_func=lambda x: x.replace("_", " ").title(),
+                        key="model",
+                    )
+
+                hist_df = (
+                    df.groupby(["year", "quarter"])
+                    .agg({selected_forecast_kpi: "mean"})
+                    .reset_index()
+                )
+                hist_df = hist_df.rename(columns={selected_forecast_kpi: "value"}).dropna()
+                hist_df = hist_df.sort_values(["year", "quarter"])
+
+                if len(hist_df) >= 8:
+                    with st.spinner("Generating forecast..."):
+                        forecaster = KPIForecaster(model_type=model_type)
+                        forecaster.fit(hist_df)
+                        predictions = forecaster.predict(quarters_ahead=periods)
+
+                    # Visualization
+                    fig = go.Figure()
+
+                    hist_df = add_period_column(hist_df)
+                    fig.add_trace(
+                        go.Scatter(
+                            x=hist_df["period"],
+                            y=hist_df["value"],
+                            mode="lines+markers",
+                            name="Historical",
+                            line={"color": colors.purple, "width": 2},
+                            marker={"size": 6},
+                        )
+                    )
+
+                    forecast_periods = [f"Q{p['quarter']} {p['year']}" for p in predictions]
+                    forecast_values = [p["predicted_value"] for p in predictions]
+                    forecast_lower = [p["confidence_lower"] for p in predictions]
+                    forecast_upper = [p["confidence_upper"] for p in predictions]
+
+                    fig.add_trace(
+                        go.Scatter(
+                            x=forecast_periods,
+                            y=forecast_values,
+                            mode="lines+markers",
+                            name="Forecast",
+                            line={"color": colors.cyan, "width": 2, "dash": "dash"},
+                            marker={"size": 6, "symbol": "diamond"},
+                        )
+                    )
+
+                    fig.add_trace(
+                        go.Scatter(
+                            x=forecast_periods + forecast_periods[::-1],
+                            y=forecast_upper + forecast_lower[::-1],
+                            fill="toself",
+                            fillcolor="rgba(16, 185, 129, 0.1)",
+                            line={"color": "rgba(0,0,0,0)"},
+                            name="95% Confidence",
+                        )
+                    )
+
+                    config = get_chart_layout_config()
+                    config["height"] = 400
+                    fig.update_layout(**config)
+                    st.plotly_chart(fig, use_container_width=True)
+
+                    with st.expander("📋 View Forecast Details"):
+                        forecast_df = pd.DataFrame(predictions)
+                        forecast_df = add_period_column(forecast_df)
+                        st.dataframe(
+                            forecast_df[["period", "predicted_value", "confidence_lower", "confidence_upper"]].round(2),
+                            use_container_width=True,
+                            hide_index=True,
+                        )
+                else:
+                    st.warning("⚠️ Not enough historical data (need at least 8 quarters)")
+            else:
+                st.info("No KPI data available for forecasting")
+
+        except ImportError:
+             st.warning("⚠️ Forecasting module not available")
+        except Exception as e:
+            st.warning(f"⚠️ Forecasting unavailable: {str(e)}")
 
     except Exception as e:
         st.error(f"Error loading KPI data: {str(e)}")

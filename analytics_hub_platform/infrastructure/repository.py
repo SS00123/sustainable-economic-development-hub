@@ -417,7 +417,9 @@ class Repository:
     # AGGREGATION METHODS
     # ============================================
 
-    def get_national_aggregates(self, tenant_id: str, year: int, quarter: int) -> dict[str, float]:
+    def get_national_aggregates(
+        self, tenant_id: str, year: int, quarter: int
+    ) -> dict[str, float | None]:
         """
         Get nationally aggregated indicator values.
 
@@ -427,7 +429,7 @@ class Repository:
             quarter: Quarter (1-4)
 
         Returns:
-            Dictionary of indicator names to aggregated values
+            Dictionary of indicator names to aggregated values (None for missing)
         """
         df = self.get_regional_data(tenant_id, year, quarter)
 
@@ -436,10 +438,12 @@ class Repository:
 
         # Aggregate using mean for most indicators
         numeric_cols = df.select_dtypes(include=["float64", "int64"]).columns
-        aggregates = df[numeric_cols].mean().to_dict()
+        raw_aggregates = df[numeric_cols].mean().to_dict()
 
         # Clean up NaN values
-        aggregates = {k: round(v, 2) if pd.notna(v) else None for k, v in aggregates.items()}
+        aggregates: dict[str, float | None] = {
+            str(k): round(v, 2) if pd.notna(v) else None for k, v in raw_aggregates.items()
+        }
 
         return aggregates
 

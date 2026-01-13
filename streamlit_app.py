@@ -8,8 +8,9 @@ Multi-page structure:
 - KPIs
 - Trends
 - Data
-- Advanced Analytics
 - Settings
+
+Note: Advanced Analytics capabilities are integrated into Dashboard/KPIs/Trends.
 
 Run with: streamlit run streamlit_app.py
 """

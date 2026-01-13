@@ -151,15 +151,18 @@ class TrendAnalyzer:
 
         # Sort and create time index
         df = df.sort_values(["year", "quarter"]).reset_index(drop=True)
-        values = df["value"].values
+        values = df["value"].to_numpy(dtype=float)
         time_idx = np.arange(len(values))
 
-        # Linear regression
-        slope, intercept, r_value, p_value, std_err = scipy_stats.linregress(
-            time_idx, values
-        )
+        # Use index-based access to avoid tuple unpacking type issues
+        _result = scipy_stats.linregress(time_idx, values)
+        slope: float = float(_result[0])  # type: ignore[index]
+        intercept: float = float(_result[1])  # type: ignore[index]
+        r_value: float = float(_result[2])  # type: ignore[index]
+        p_value: float = float(_result[3])  # type: ignore[index]
+        std_err: float = float(_result[4])  # type: ignore[index]
 
-        r_squared = r_value ** 2
+        r_squared = r_value**2
 
         # Determine direction
         if p_value > self.significance_level:
@@ -392,7 +395,7 @@ class ChangePointDetector:
             return []
 
         df = df.sort_values(["year", "quarter"]).reset_index(drop=True)
-        values = df["value"].values
+        values = df["value"].to_numpy(dtype=float)
         n = len(values)
 
         change_points = []
@@ -424,12 +427,15 @@ class ChangePointDetector:
                         quarter=int(row["quarter"]),
                         index=i,
                         type=ChangePointType.LEVEL_SHIFT,
-                        magnitude=round(magnitude, 4),
-                        before_mean=round(before_mean, 4),
-                        after_mean=round(after_mean, 4),
-                        confidence=round(confidence, 4),
+                        magnitude=round(float(magnitude), 4),
+                        before_mean=round(float(before_mean), 4),
+                        after_mean=round(float(after_mean), 4),
+                        confidence=round(float(confidence), 4),
                         description=self._describe_change(
-                            before_mean, after_mean, row["year"], row["quarter"]
+                            float(before_mean),
+                            float(after_mean),
+                            row["year"],
+                            row["quarter"],
                         ),
                     )
                 )
@@ -512,7 +518,7 @@ class PatternRecognizer:
             return self._insufficient_data_result()
 
         df = df.sort_values(["year", "quarter"]).reset_index(drop=True)
-        values = df["value"].values
+        values = df["value"].to_numpy(dtype=float) # type: ignore
 
         # Run all analyzers
         trend = self.trend_analyzer.analyze(df)
@@ -650,12 +656,14 @@ class LinearForecaster:
             raise ValueError("Need at least 2 data points")
 
         df = df.sort_values(["year", "quarter"]).reset_index(drop=True)
-        values = df["value"].values
+        values = df["value"].to_numpy(dtype=float)
         time_idx = np.arange(len(values))
 
-        self.slope, self.intercept, _, _, self.std_error = scipy_stats.linregress(
-            time_idx, values
-        )
+        # Use index-based access to avoid tuple unpacking type issues
+        _result = scipy_stats.linregress(time_idx, values)
+        self.slope = float(_result[0])  # type: ignore[index]
+        self.intercept = float(_result[1])  # type: ignore[index]
+        self.std_error = float(_result[4])  # type: ignore[index]
 
         last_row = df.iloc[-1]
         self._last_year = int(last_row["year"])
@@ -719,7 +727,7 @@ class ExponentialSmoothingForecaster:
             raise ValueError("Need at least 2 data points")
 
         df = df.sort_values(["year", "quarter"]).reset_index(drop=True)
-        values = df["value"].values
+        values = df["value"].to_numpy(dtype=float)
 
         # Initialize with first value
         smoothed = values[0]

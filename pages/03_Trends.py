@@ -29,21 +29,16 @@ from analytics_hub_platform.infrastructure.settings import get_settings
 from analytics_hub_platform.ui.dark_components import card_close, card_open, render_sidebar
 from analytics_hub_platform.ui.theme import get_dark_css, get_dark_theme
 from analytics_hub_platform.ui.html import render_html
-from analytics_hub_platform.ui.theme import colors, get_chart_layout_config
+from analytics_hub_platform.ui.theme import colors
 from analytics_hub_platform.ui.ui_components import (
+    apply_chart_theme,
     initialize_page_session_state,
     render_page_header,
     section_header,
     spacer,
 )
 from analytics_hub_platform.utils.dataframe_adapter import add_period_column
-
-
-def apply_chart_theme(fig: go.Figure, height: int = 400) -> None:
-    """Apply dark theme to Plotly chart."""
-    config = get_chart_layout_config()
-    config["height"] = height
-    fig.update_layout(**config)
+from analytics_hub_platform.domain.ml_services import AnomalyDetector, AnomalySeverity
 
 
 # Initialize
@@ -64,11 +59,7 @@ with side_col:
 
 with main_col:
     # Header
-    render_page_header(
-        "Trend Analysis",
-        "Historical performance and time-series analysis",
-        "📊"
-    )
+    render_page_header("Trend Analysis", "Historical performance and time-series analysis", "📊")
 
     # Filters
     col_f1, col_f2 = st.columns([1, 3])
@@ -76,9 +67,20 @@ with main_col:
         region = st.selectbox(
             "Region",
             [
-                "all", "Riyadh", "Makkah", "Eastern Province", "Madinah", "Qassim",
-                "Asir", "Tabuk", "Hail", "Northern Borders", "Jazan", "Najran",
-                "Al Bahah", "Al Jawf",
+                "all",
+                "Riyadh",
+                "Makkah",
+                "Eastern Province",
+                "Madinah",
+                "Qassim",
+                "Asir",
+                "Tabuk",
+                "Hail",
+                "Northern Borders",
+                "Jazan",
+                "Najran",
+                "Al Bahah",
+                "Al Jawf",
             ],
             index=0,
             key="trend_filter_region",
@@ -149,7 +151,9 @@ with main_col:
                 # Add trend line
                 if len(trend_agg) > 2:
                     x_numeric = np.arange(len(trend_agg))
-                    z = np.polyfit(x_numeric, trend_agg[selected_kpi].values, 1)
+                    z = np.polyfit(
+                        x_numeric, trend_agg[selected_kpi].to_numpy(dtype=float), 1
+                    )
                     p = np.poly1d(z)
                     fig.add_trace(
                         go.Scatter(
@@ -163,6 +167,106 @@ with main_col:
 
                 apply_chart_theme(fig, height=350)
                 st.plotly_chart(fig, use_container_width=True)
+
+        spacer("lg")
+
+        # Section 1.5: Early Warning System
+        section_header("Early Warning System", "Anomaly detection for critical KPI deviations", "⚠️")
+
+        try:
+            detector = AnomalyDetector(zscore_threshold=2.5, critical_threshold=3.5)
+
+            anomaly_kpis = [
+                "sustainability_index",
+                "gdp_growth",
+                "unemployment_rate",
+                "co2_index",
+            ]
+            available_anomaly_kpis = [k for k in anomaly_kpis if k in df.columns]
+
+            all_anomalies = []
+            for kpi in available_anomaly_kpis:
+                kpi_df = df.groupby(["year", "quarter"]).agg({kpi: "mean"}).reset_index()
+                kpi_df = kpi_df.rename(columns={kpi: "value"}).dropna()
+                kpi_df = kpi_df.sort_values(["year", "quarter"])
+
+                if len(kpi_df) >= 4:
+                    higher_is_better = kpi not in ["unemployment_rate", "co2_index"]
+                    anomalies = detector.detect_anomalies(kpi_df, kpi, "national", higher_is_better)
+                    all_anomalies.extend(anomalies)
+
+            critical = [a for a in all_anomalies if a.severity == AnomalySeverity.CRITICAL]
+            warnings = [a for a in all_anomalies if a.severity == AnomalySeverity.WARNING]
+
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("🔴 Critical Alerts", len(critical))
+            with col2:
+                st.metric("🟡 Warnings", len(warnings))
+            with col3:
+                st.metric("📊 KPIs Monitored", len(available_anomaly_kpis))
+
+            spacer("md")
+
+            if not all_anomalies:
+                render_html(
+                    f"""
+                    <div style="
+                        background: linear-gradient(135deg, {colors.green}15 0%, {colors.green}05 100%);
+                        border: 1px solid {colors.green}30;
+                        border-radius: 12px;
+                        padding: 16px 20px;
+                        margin: 12px 0;
+                    ">
+                        <p style="margin: 0; color: {colors.text_primary}; font-size: 14px;">
+                            All Systems Normal - No significant anomalies detected.
+                        </p>
+                    </div>
+                """
+                )
+            else:
+                for anomaly in sorted(
+                    all_anomalies, key=lambda x: (x.severity.value, -x.year, -x.quarter)
+                )[:5]:  # Show top 5
+                    severity_color = (
+                        colors.red if anomaly.severity == AnomalySeverity.CRITICAL else colors.amber
+                    )
+                    severity_icon = "🔴" if anomaly.severity == AnomalySeverity.CRITICAL else "🟡"
+                    severity_label = (
+                        "CRITICAL" if anomaly.severity == AnomalySeverity.CRITICAL else "WARNING"
+                    )
+
+                    render_html(
+                        f"""
+                        <div style="
+                            background: {colors.bg_card};
+                            border-left: 4px solid {severity_color};
+                            padding: 16px 20px;
+                            margin: 12px 0;
+                            border-radius: 0 12px 12px 0;
+                        ">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 18px;">{severity_icon}</span>
+                                    <span style="font-weight: 700; font-size: 15px; color: {colors.text_primary};">{anomaly.kpi_id.replace("_", " ").title()}</span>
+                                    <span style="
+                                        background: {severity_color};
+                                        color: white;
+                                        padding: 2px 8px;
+                                        border-radius: 4px;
+                                        font-size: 10px;
+                                        font-weight: 600;
+                                    ">{severity_label}</span>
+                                </div>
+                                <span style="color: {colors.text_muted}; font-size: 13px; font-weight: 500;">Q{anomaly.quarter} {anomaly.year}</span>
+                            </div>
+                            <p style="margin: 8px 0 12px 0; color: {colors.text_secondary}; font-size: 14px; line-height: 1.5;">{anomaly.description}</p>
+                        </div>
+                        """
+                    )
+
+        except Exception as e:
+            st.warning(f"⚠️ Anomaly detection unavailable: {str(e)}")
 
         spacer("lg")
 
@@ -247,6 +351,79 @@ with main_col:
 
         card_close()
 
+        spacer("md")
+
+        try:
+            from analytics_hub_platform.ui.components.saudi_map import render_saudi_map
+
+            card_open(
+                "Geographic Visualization", f"Interactive Regional KPI Map - Q{quarter} {year}"
+            )
+
+            if len(regional_df) > 0:
+                map_kpis = ["sustainability_index", "gdp_growth", "unemployment_rate", "co2_index"]
+                available_map_kpis = [k for k in map_kpis if k in regional_df.columns]
+
+                if available_map_kpis:
+                    selected_map_kpi = st.selectbox(
+                        "Select KPI for Map",
+                        available_map_kpis,
+                        format_func=lambda x: x.replace("_", " ").title(),
+                        key="map_kpi",
+                    )
+
+                    region_mapping = {
+                        "Riyadh": "riyadh",
+                        "Makkah": "makkah",
+                        "Eastern Province": "eastern",
+                        "Madinah": "madinah",
+                        "Qassim": "qassim",
+                        "Asir": "asir",
+                        "Tabuk": "tabuk",
+                        "Hail": "hail",
+                        "Northern Borders": "northern_borders",
+                        "Jazan": "jazan",
+                        "Najran": "najran",
+                        "Al Bahah": "bahah",
+                        "Al Jawf": "jawf",
+                    }
+
+                    if "region" in regional_df.columns:
+                        regional_map_agg = (
+                            regional_df.groupby("region")
+                            .agg({selected_map_kpi: "mean"})
+                            .reset_index()
+                        )
+                        regional_map_agg["region_id"] = regional_map_agg["region"].map(
+                            region_mapping
+                        )
+                        regional_map_agg = regional_map_agg.rename(
+                            columns={selected_map_kpi: "value"}
+                        )
+                        regional_map_agg = regional_map_agg.dropna(subset=["region_id", "value"])
+
+                        if len(regional_map_agg) > 0:
+                            fig = render_saudi_map(
+                                region_data=regional_map_agg,
+                                value_column="value",
+                                title=f"{selected_map_kpi.replace('_', ' ').title()} - Q{quarter} {year}",
+                                language=st.session_state.get("language", "en"),
+                            )
+                            st.plotly_chart(fig, use_container_width=True)
+                        else:
+                            st.info("No regional data available for map")
+                else:
+                    st.info("No KPI data available for map")
+            else:
+                st.info("No data for selected period")
+
+            card_close()
+
+        except ImportError:
+            pass
+        except Exception as e:
+            st.warning(f"⚠️ Map unavailable: {str(e)}")
+
         spacer("lg")
 
         # Section 3: Environmental Multi-Indicator Trends
@@ -257,8 +434,14 @@ with main_col:
         card_open("Environmental KPIs", "Tracking sustainability metrics")
 
         env_kpis = [
-            "co2_index", "renewable_share", "energy_intensity", "water_efficiency",
-            "waste_recycling_rate", "air_quality_index", "forest_coverage", "green_jobs",
+            "co2_index",
+            "renewable_share",
+            "energy_intensity",
+            "water_efficiency",
+            "waste_recycling_rate",
+            "air_quality_index",
+            "forest_coverage",
+            "green_jobs",
         ]
 
         trend_env = (
@@ -303,4 +486,5 @@ with main_col:
     except Exception as e:
         st.error(f"Error loading trend data: {str(e)}")
         import traceback
+
         st.code(traceback.format_exc())

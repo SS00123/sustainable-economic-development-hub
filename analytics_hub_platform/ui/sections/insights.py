@@ -11,8 +11,8 @@ import streamlit as st
 
 from analytics_hub_platform.domain.models import FilterParams
 from analytics_hub_platform.domain.services import get_regional_comparison
+from analytics_hub_platform.ui.ui_components import apply_dark_chart_layout
 from analytics_hub_platform.ui.dark_components import (
-    apply_dark_chart_layout,
     card_close,
     card_open,
 )
