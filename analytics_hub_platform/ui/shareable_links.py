@@ -14,7 +14,6 @@ import json
 import urllib.parse
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
-from typing import Any
 
 import streamlit as st
 

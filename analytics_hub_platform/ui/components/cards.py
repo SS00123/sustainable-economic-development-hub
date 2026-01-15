@@ -9,7 +9,7 @@ as the single source of truth for styling.
 
 import streamlit as st
 
-from analytics_hub_platform.config.theme import get_theme
+from analytics_hub_platform.ui.theme import get_theme
 from analytics_hub_platform.ui.html import render_html
 
 

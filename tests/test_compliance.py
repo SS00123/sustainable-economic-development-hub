@@ -6,7 +6,6 @@ Tests KPI register validation, governance checks, and compliance auditing.
 
 from datetime import datetime, timezone
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 
@@ -57,7 +56,7 @@ class TestComplianceIssue:
             severity=ComplianceSeverity.ERROR,
             message="Missing required field",
         )
-        
+
         assert issue.code == "KPI-001"
         assert issue.category == ComplianceCategory.KPI_METADATA
         assert issue.severity == ComplianceSeverity.ERROR
@@ -75,7 +74,7 @@ class TestComplianceIssue:
             details={"field": "owner"},
             recommendation="Assign an owner",
         )
-        
+
         assert issue.kpi_id == "ECON-001"
         assert issue.details["field"] == "owner"
         assert issue.recommendation == "Assign an owner"
@@ -89,9 +88,9 @@ class TestComplianceIssue:
             message="Invalid format",
             kpi_id="ENV-001",
         )
-        
+
         d = issue.to_dict()
-        
+
         assert d["code"] == "KPI-002"
         assert d["category"] == "kpi_metadata"
         assert d["severity"] == "error"
@@ -111,7 +110,7 @@ class TestComplianceReport:
             issues=[],
             score=90.0,
         )
-        
+
         assert report.total_checks == 100
         assert report.passed_checks == 90
         assert report.score == 90.0
@@ -139,7 +138,7 @@ class TestComplianceReport:
             ],
             score=96.0,
         )
-        
+
         assert report.is_compliant is True
 
     def test_report_not_compliant_with_error(self):
@@ -159,7 +158,7 @@ class TestComplianceReport:
             ],
             score=90.0,
         )
-        
+
         assert report.is_compliant is False
 
     def test_report_not_compliant_with_critical(self):
@@ -179,7 +178,7 @@ class TestComplianceReport:
             ],
             score=98.0,
         )
-        
+
         assert report.is_compliant is False
         assert len(report.critical_issues) == 1
 
@@ -195,9 +194,9 @@ class TestComplianceReport:
             score=90.0,
             summary={"by_category": {"kpi_metadata": 1}},
         )
-        
+
         d = report.to_dict()
-        
+
         assert d["total_checks"] == 10
         assert d["score"] == 90.0
         assert "timestamp" in d
@@ -266,7 +265,7 @@ class TestComplianceCheckerWithRealData:
     def test_run_all_checks(self, checker):
         """Test running all checks returns report."""
         report = checker.run_all_checks()
-        
+
         assert isinstance(report, ComplianceReport)
         assert report.total_checks > 0
         assert 0 <= report.score <= 100
@@ -274,14 +273,14 @@ class TestComplianceCheckerWithRealData:
     def test_report_has_timestamp(self, checker):
         """Test report has valid timestamp."""
         report = checker.run_all_checks()
-        
+
         assert report.timestamp is not None
         assert isinstance(report.timestamp, datetime)
 
     def test_report_summary_structure(self, checker):
         """Test report summary has expected structure."""
         report = checker.run_all_checks()
-        
+
         assert "by_category" in report.summary
         assert "by_severity" in report.summary
 
@@ -293,18 +292,18 @@ class TestComplianceCheckerMissingFile:
         """Test missing KPI register generates critical issue."""
         fake_path = tmp_path / "nonexistent.yaml"
         checker = ComplianceChecker(fake_path)
-        
+
         result = checker.check_kpi_register_exists()
-        
+
         assert result is False
 
     def test_missing_file_in_full_report(self, tmp_path):
         """Test full report with missing file."""
         fake_path = tmp_path / "nonexistent.yaml"
         checker = ComplianceChecker(fake_path)
-        
+
         report = checker.run_all_checks()
-        
+
         # Should have critical issue
         assert len(report.critical_issues) > 0
         assert report.is_compliant is False
@@ -328,27 +327,27 @@ class TestConvenienceFunctions:
     def test_run_compliance_audit(self, ensure_register_exists):
         """Test run_compliance_audit function."""
         report = run_compliance_audit()
-        
+
         assert isinstance(report, ComplianceReport)
         assert report.total_checks > 0
 
     def test_get_compliance_score(self, ensure_register_exists):
         """Test get_compliance_score function."""
         score = get_compliance_score()
-        
+
         assert isinstance(score, float)
         assert 0 <= score <= 100
 
     def test_is_fully_compliant_returns_bool(self, ensure_register_exists):
         """Test is_fully_compliant returns boolean."""
         result = is_fully_compliant()
-        
+
         assert isinstance(result, bool)
 
     def test_check_kpi_compliance(self, ensure_register_exists):
         """Test check_kpi_compliance function."""
         issues = check_kpi_compliance("ECON-001")
-        
+
         assert isinstance(issues, list)
         # May or may not have issues
 
@@ -362,7 +361,7 @@ class TestComplianceCheckerValidation:
         content = """
 metadata:
   version: "1.0.0"
-  
+
 pillars:
   economic:
     name: "Economic"
@@ -391,7 +390,7 @@ pillars:
         """Test valid register passes all checks."""
         checker = ComplianceChecker(sample_register)
         report = checker.run_all_checks()
-        
+
         # Should have high score
         assert report.score >= 80
 
@@ -413,10 +412,10 @@ pillars:
 """
         path = tmp_path / "test_register.yaml"
         path.write_text(content, encoding="utf-8")
-        
+
         checker = ComplianceChecker(path)
         report = checker.run_all_checks()
-        
+
         # Should have issue for missing Arabic
         arabic_issues = [i for i in report.issues if "Arabic" in i.message]
         assert len(arabic_issues) > 0
@@ -439,10 +438,10 @@ pillars:
 """
         path = tmp_path / "test_register.yaml"
         path.write_text(content, encoding="utf-8")
-        
+
         checker = ComplianceChecker(path)
         report = checker.run_all_checks()
-        
+
         # Should have issue for invalid frequency
         freq_issues = [i for i in report.issues if "frequency" in i.message.lower()]
         assert len(freq_issues) > 0
@@ -465,10 +464,10 @@ pillars:
 """
         path = tmp_path / "test_register.yaml"
         path.write_text(content, encoding="utf-8")
-        
+
         checker = ComplianceChecker(path)
         report = checker.run_all_checks()
-        
+
         # Should have issue for invalid unit
         unit_issues = [i for i in report.issues if "unit" in i.message.lower()]
         assert len(unit_issues) > 0
@@ -491,10 +490,10 @@ pillars:
 """
         path = tmp_path / "test_register.yaml"
         path.write_text(content, encoding="utf-8")
-        
+
         checker = ComplianceChecker(path)
         report = checker.run_all_checks()
-        
+
         # Should have issue for bad ID format
         id_issues = [i for i in report.issues if "pattern" in i.message.lower()]
         assert len(id_issues) > 0

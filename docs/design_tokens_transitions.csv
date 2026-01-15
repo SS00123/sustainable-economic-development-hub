@@ -1,0 +1,5 @@
+token_name,value,usage,notes
+fast,150ms ease,Fast transition,Quick feedback
+normal,200ms ease,Normal transition,Standard interaction
+slow,300ms ease,Slow transition,Deliberate motion
+smooth,280ms cubic-bezier(0.4, 0, 0.2, 1),Smooth transition,Material easing

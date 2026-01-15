@@ -22,10 +22,8 @@ classifiers = [
 ]
 
 dependencies = [
-    # Web frameworks
+    # Web framework (Streamlit UI)
     "streamlit>=1.28.0,<2.0.0",
-    "fastapi>=0.104.0,<1.0.0",
-    "uvicorn>=0.24.0,<1.0.0",
     
     # Data processing
     "pandas>=2.0.0,<3.0.0",
@@ -60,6 +58,12 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# FastAPI REST API (optional - for programmatic access)
+api = [
+    "fastapi>=0.104.0,<1.0.0",
+    "uvicorn>=0.24.0,<1.0.0",
+]
+
 dev = [
     "pytest>=7.4.0,<9.0.0",
     "pytest-cov>=4.1.0,<6.0.0",
@@ -91,7 +95,7 @@ e2e = [
 
 # All optional dependencies
 all = [
-    "analytics-hub-platform[dev,async,migrations,e2e]",
+    "analytics-hub-platform[api,dev,async,migrations,e2e]",
 ]
 
 [project.scripts]

@@ -1,20 +1,19 @@
 import argparse
 import sys
 import os
-import re
 from pathlib import Path
 
 def check_phase_0():
     print("Running Phase 0 Checks...")
     errors = []
-    
+
     # 1. Check for non-ASCII filenames in pages/
     pages_dir = Path("pages")
     if pages_dir.exists():
         for p in pages_dir.glob("*.py"):
             if not p.name.isascii():
                 errors.append(f"Non-ASCII filename found: {p.name}")
-    
+
     # 2. Check for datetime.UTC usage (Python 3.11+ only)
     # We'll scan all .py files
     for root, dirs, files in os.walk("."):
@@ -51,13 +50,13 @@ def check_phase_0():
         for e in errors:
             print(f"ERROR: {e}")
         return False
-    
+
     print("Phase 0 Checks Passed!")
     return True
 
 def check_phase_1():
     print("Running Phase 1 Checks...")
-    
+
     # 1. Check for datetime.UTC again (strict check)
     errors = []
     for root, dirs, files in os.walk("."):
@@ -72,7 +71,7 @@ def check_phase_1():
                     if "datetime.UTC" in content:
                         errors.append(f"Found 'datetime.UTC' in {path}")
                 except: pass
-    
+
     if errors:
         for e in errors: print(f"ERROR: {e}")
         return False
@@ -103,7 +102,7 @@ def check_phase_2():
     # dark_theme.py should NOT exist
     if (Path("analytics_hub_platform/ui/dark_theme.py").exists()):
         errors.append("analytics_hub_platform/ui/dark_theme.py still exists! It should be consolidated into theme.py")
-    
+
     # theme.py SHOULD exist
     if not (Path("analytics_hub_platform/ui/theme.py").exists()):
         errors.append("analytics_hub_platform/ui/theme.py is missing!")
@@ -140,7 +139,7 @@ def check_phase_3():
     # 1. Production Packaging
     if not Path("Dockerfile").exists():
         errors.append("Dockerfile is missing!")
-    
+
     config_toml = Path(".streamlit/config.toml")
     if not config_toml.exists():
         errors.append(".streamlit/config.toml is missing!")

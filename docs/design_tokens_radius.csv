@@ -1,0 +1,12 @@
+token_name,value,usage,notes
+xs,4px,Extra small radius,Minimal rounding
+sm,6px,Small radius,Subtle rounding
+md,8px,Medium radius,Standard rounding
+lg,12px,Large radius,Prominent rounding
+xl,16px,Extra large radius,Strong rounding
+xxl,20px,Extra extra large radius,Maximum rounding
+full,9999px,Full radius (pill),Circular shape
+card,16px,Card radius,Component default
+button,8px,Button radius,Component default
+input,8px,Input radius,Component default
+badge,20px,Badge radius,Component default

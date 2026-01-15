@@ -16,7 +16,6 @@ Comprehensive tests covering:
 import numpy as np
 import pandas as pd
 import pytest
-from datetime import timezone
 
 # Import modules under test
 from analytics_hub_platform.domain.advanced_analytics import (
@@ -856,7 +855,7 @@ class TestIntegration:
             for p in forecast.consensus_forecast
             if p["quarter"] == peak_quarter
         ]
-        non_peak_preds = [
+        _non_peak_preds = [  # noqa: F841 Available for future assertions
             p["predicted_value"]
             for p in forecast.consensus_forecast
             if p["quarter"] != peak_quarter

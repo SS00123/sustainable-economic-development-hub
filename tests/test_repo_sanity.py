@@ -1,7 +1,4 @@
-import os
-import pytest
 from pathlib import Path
-from datetime import datetime, timezone
 
 def test_ascii_filenames():
     """Ensure all page filenames are ASCII."""
@@ -17,11 +14,11 @@ def test_no_datetime_utc():
     for path in root_dir.rglob("*.py"):
         if "venv" in str(path) or "__pycache__" in str(path):
             continue
-        
+
         # Skip this test file itself and the verification script
         if path.name in ["test_repo_sanity.py", "verify_repo.py"]:
             continue
-            
+
         try:
             content = path.read_text(encoding="utf-8")
             assert "datetime" + ".UTC" not in content, f"Found 'datetime' + '.UTC' in {path}. Use 'datetime.now(timezone.utc)' instead."

@@ -12,7 +12,6 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from analytics_hub_platform.config.theme import get_theme
 from analytics_hub_platform.ui.theme import get_dark_theme
 
 # Region data with accurate coordinates and relative sizes
@@ -239,7 +238,7 @@ def render_saudi_map(
     # Prepare data lookup
     region_values = {}
     region_status = {}
-    region_tiers = {}
+    _region_tiers = {}  # noqa: F841 Reserved for tier-based coloring
     for _, row in region_data.iterrows():
         region_id = row.get("region_id", row.get("region", ""))
         if region_id:
@@ -492,7 +491,7 @@ def render_saudi_map_with_overlay(
     Returns:
         Tuple of (Plotly figure, dict with national stats)
     """
-    dark_theme = get_dark_theme()
+    _dark_theme = get_dark_theme()  # noqa: F841 Reserved for themed map
 
     # Calculate national statistics
     values = region_data[value_column].dropna().tolist() if value_column in region_data else []

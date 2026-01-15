@@ -17,7 +17,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 def test_db():
     """Create a test database for the session."""
     from analytics_hub_platform.infrastructure.db_init import initialize_database
-    
+
     # Initialize with test data
     initialize_database()
     yield
@@ -28,7 +28,7 @@ def test_db():
 def sample_filter_params():
     """Sample filter parameters for testing."""
     from analytics_hub_platform.domain.models import FilterParams
-    
+
     return FilterParams(
         tenant_id="ministry_economy",
         year=2026,
@@ -42,9 +42,9 @@ def sample_dataframe():
     """Sample DataFrame for testing."""
     import pandas as pd
     import numpy as np
-    
+
     np.random.seed(42)
-    
+
     return pd.DataFrame({
         "year": [2025, 2025, 2026, 2026] * 3,
         "quarter": [3, 4, 3, 4] * 3,

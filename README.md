@@ -20,6 +20,7 @@
 - [Testing](#testing)
 - [Architecture](#architecture)
 - [Development](#development)
+- [Cleanup Status](#cleanup-status)
 - [Changelog](#changelog)
 - [Author](#author)
 
@@ -98,29 +99,92 @@ The Sustainable Economic Development Analytics Hub is a comprehensive analytics 
 ```
 analytics_hub_platform/
 ├── streamlit_app.py            # Main Streamlit entry point
-├── main_api.py                 # FastAPI entry point
 ├── pyproject.toml              # Project configuration
-├── requirements.txt            # Python dependencies
+├── requirements.txt            # Production dependencies (Streamlit)
 ├── alembic/                    # Database migrations
 ├── .streamlit/
 │   └── config.toml             # Streamlit theme configuration
+├── pages/                      # Streamlit pages (multipage app)
+│   ├── 01_Dashboard.py         # Executive dashboard + AI recommendations
+│   ├── 02_KPIs.py              # KPI details + ML forecasting
+│   ├── 03_Trends.py            # Time-series + anomaly detection
+│   ├── 04_Data.py              # Data quality + management
+│   ├── 05_Settings.py          # User preferences
+│   ├── 06_Help.py              # In-app documentation/help
+│   └── 07_Diagnostics.py       # System diagnostics
 ├── analytics_hub_platform/
-│   ├── api/                    # FastAPI routers
-│   ├── app/                    # Reusable UI components/styles (canonical)
+│   ├── api/                    # FastAPI routers (optional)
+│   ├── app/                    # Canonical Streamlit UI layer
+│   │   ├── components/         # Reusable components (preferred import surface)
+│   │   ├── pages/              # Page helpers used by Streamlit pages/
+│   │   └── styles/             # Styling tokens + chart theming
 │   ├── config/                 # Configuration & KPI catalog
 │   ├── domain/                 # Business logic & ML services
-│   ├── data/                   # Facade layer for repository/data access (canonical)
-│   ├── infra/                  # Facade layer for infra helpers (canonical)
-│   ├── infrastructure/         # Database, auth, rate limiting
+│   │   ├── advanced_analytics.py  # Pattern recognition, forecasting
+│   │   ├── ml_services.py         # KPI forecasting, anomaly detection
+│   │   ├── llm_service.py         # AI recommendations
+│   │   └── services.py            # Core business services
+│   ├── data/                   # Data access layer
+│   ├── infrastructure/         # Database, auth, caching, logging
 │   ├── ui/                     # Streamlit UI components
+│   │   ├── components/         # Reusable UI widgets
+│   │   ├── pages/              # Page renderers
+│   │   ├── dark_components.py   # Legacy monolith (being retired via app/components)
+│   │   └── theme.py            # Dark theme & styling
 │   ├── utils/                  # Utilities & accessibility
-│   └── locales/                # Localization strings
-├── tests/                      # Test suite (580+ tests)
-│   └── e2e/                    # Playwright E2E tests
+│   └── locales/                # Localization (en, ar)
+├── tests/                      # Test suite (370+ tests)
+│   ├── test_smoke.py           # Critical path smoke tests
+│   └── ...
 └── scripts/                    # Deployment & utility scripts
 ```
 
+### Navigation & Feature Mapping
+
+Advanced Analytics capabilities are integrated into the main pages:
+
+| Feature | Location | Module |
+|---------|----------|--------|
+| **AI Recommendations** | Dashboard page | `domain/llm_service.py` |
+| **KPI Forecasting** | KPIs page | `domain/ml_services.py` |
+| **Anomaly Detection** | Trends page | `domain/ml_services.py` |
+| **Pattern Recognition** | Trends page | `domain/advanced_analytics.py` |
+| **Early Warning System** | Trends page | `domain/ml_services.py` |
+
 ---
+
+## Cleanup Status
+
+**✅ PHASE 6 COMPLETE — Dead Code Removal Done**
+
+- Date: 2026-01-14
+- Baseline: `python -m compileall . -q` and `pytest -q` are green (`370 passed, 1 skipped`)
+
+### Canonical Component Structure
+All UI helpers are now sourced from `analytics_hub_platform.app.components`:
+
+| Component | Canonical Module |
+|-----------|-----------------|
+| Dark theme injection | `app/components/theme.py` |
+| Section titles | `app/components/section.py` |
+| Card wrappers | `app/components/card_wrappers.py` |
+| KPI renderers | `app/components/kpi_renderers.py` |
+| Header components | `app/components/header_components.py` |
+| Chart helpers | `app/components/chart_helpers.py` |
+| Chart cards | `app/components/legacy_chart_cards.py` |
+| KPI SVG helpers | `app/components/legacy_kpi_svg.py` |
+
+### Dead Code Removed (~3349 lines total)
+| File | Lines |
+|------|-------|
+| `ui/dark_components.py` | 1502 |
+| `ui/pages/*.py` (6 view files) | ~1130 |
+| `ui/layout.py` | 652 |
+| `app/components/legacy_dark.py` | ~65 |
+
+### Import Surface
+- Callers should import from `analytics_hub_platform.app.components`
+- The `ui/` package is now minimal (filters, theme, html utilities, unified_dashboard)
 
 ## Installation
 
@@ -150,6 +214,9 @@ pip install -r requirements.txt
 
 # Install with optional dependencies
 pip install -e ".[dev,async,migrations]"
+
+# Install with FastAPI support (for REST API)
+pip install -e ".[api]"
 ```
 
 ---
@@ -335,18 +402,8 @@ pytest --ignore=tests/e2e
 
 ### Test Summary
 
-| Category | Tests |
-|----------|-------|
-| Unit Tests | 580+ |
-| ML Tests | 23 |
-| API Tests | 30 |
-| Auth Tests | 25 |
-| Rate Limiting Tests | 21 |
-| Async DB Tests | 17 |
-| UI Component Tests | 33 |
-| Model Persistence Tests | 30 |
-| Accessibility Tests | 54 |
-| E2E Tests (Playwright) | 16 |
+- Current suite status (2026-01-14): `370 passed, 1 skipped`
+- CI-style quick check: `python -m compileall . -q && pytest -q`
 
 ### E2E Tests
 
@@ -401,6 +458,12 @@ pytest tests/e2e/ -v --headed
 
 ## Development
 
+The platform includes a dedicated **Design System** page to serve as a living style guide and governance reference.
+This page visualizes all active design tokens (colors, typography, spacing) and showcases the canonical UI component library.
+
+- **Location**: `http://localhost:8501/Design_System` (when running locally)
+- **Source**: `pages/99_Design_System.py`
+
 ### Code Quality
 
 ```bash
@@ -433,12 +496,9 @@ alembic downgrade -1
 # Streamlit Dashboard
 streamlit run streamlit_app.py
 
-# FastAPI Backend
-uvicorn main_api:app --reload --port 8000
-
-# API Documentation
-# http://localhost:8000/docs (Swagger)
-# http://localhost:8000/redoc (ReDoc)
+# FastAPI (optional)
+# The repo contains FastAPI routers under analytics_hub_platform/api/.
+# Install extras: pip install -e ".[api]" (then wire an ASGI app for your deployment)
 ```
 
 ---

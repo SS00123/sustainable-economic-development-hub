@@ -11,7 +11,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from analytics_hub_platform.ui.dark_components import create_sparkline_svg
+from analytics_hub_platform.app.components import create_sparkline_svg
 from analytics_hub_platform.ui.html import render_html
 
 if TYPE_CHECKING:
@@ -37,7 +37,7 @@ def render_hero_sustainability_gauge(
     if sustainability_prev and sustainability_prev.get("status") != "no_data":
         previous_value = sustainability_prev.get("index")
 
-    delta = ((index_value - previous_value) / previous_value * 100) if previous_value else 0
+    _delta = ((index_value - previous_value) / previous_value * 100) if previous_value else 0  # noqa: F841
 
     # Determine glow color based on value
     if index_value >= 70:

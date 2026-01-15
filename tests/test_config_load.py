@@ -1,4 +1,3 @@
-import pytest
 import os
 from analytics_hub_platform.config.config import DatabaseConfig, SecurityConfig
 

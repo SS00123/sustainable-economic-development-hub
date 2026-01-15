@@ -11,8 +11,6 @@ Comprehensive tests for:
 - Convenience functions
 """
 
-import pytest
-from datetime import datetime, timezone
 
 from analytics_hub_platform.domain.maturity_model import (
     # Enums
@@ -1208,10 +1206,10 @@ class TestMaturityModelIntegration:
         assert roadmap.assessment_id == assessment.id
 
         # 4. Get quick wins
-        quick_wins = generator.get_quick_wins(roadmap)
+        _quick_wins = generator.get_quick_wins(roadmap)  # noqa: F841
 
         # 5. Get critical path
-        critical_path = generator.get_critical_path(roadmap)
+        _critical_path = generator.get_critical_path(roadmap)  # noqa: F841
 
         # 6. Create historical benchmark for future comparison
         historical = service.create_historical_benchmark(assessment)

@@ -9,14 +9,12 @@ Provides functionality for:
 - SQLite insertion with batch tracking
 """
 
-import hashlib
 import io
 import uuid
 from datetime import datetime, timezone
-from typing import Any
 
 import pandas as pd
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 
 from analytics_hub_platform.infrastructure.db_init import (
     get_engine,
@@ -610,7 +608,7 @@ def generate_upload_template() -> pd.DataFrame:
     Returns:
         DataFrame with correct columns and sample data
     """
-    columns = REQUIRED_COLUMNS + INDICATOR_COLUMNS + ["source_system", "data_quality_score"]
+    _columns = REQUIRED_COLUMNS + INDICATOR_COLUMNS + ["source_system", "data_quality_score"]  # noqa: F841
 
     # Create sample row
     sample_data = {

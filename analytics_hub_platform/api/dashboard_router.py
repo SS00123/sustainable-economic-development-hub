@@ -26,7 +26,7 @@ from analytics_hub_platform.domain.services import (
     get_sustainability_summary,
 )
 from fastapi import Depends
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 # =============================================================================
@@ -270,7 +270,7 @@ def create_dashboard_router() -> APIRouter:
         Get hero section data including sustainability gauge and KPI cards.
         """
         df = repo.get_all_indicators(tenant_id)
-        config = get_config()
+        _config = get_config()  # Reserved for future use
 
         # Use default period if not specified
         if year is None or quarter is None:

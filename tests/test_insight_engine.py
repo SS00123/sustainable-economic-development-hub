@@ -13,7 +13,6 @@ Comprehensive tests covering:
 import numpy as np
 import pandas as pd
 import pytest
-from datetime import datetime, timezone, timedelta
 
 # Import modules under test
 from analytics_hub_platform.domain.insight_engine import (
@@ -42,12 +41,9 @@ from analytics_hub_platform.domain.alert_system import (
     ThresholdEvaluator,
     AlertManager,
     create_default_rules,
-    get_alert_manager,
     add_alert_rule,
     check_alerts,
     get_active_alerts,
-    acknowledge_alert,
-    resolve_alert,
 )
 from analytics_hub_platform.domain.advanced_analytics import (
     TrendDirection,

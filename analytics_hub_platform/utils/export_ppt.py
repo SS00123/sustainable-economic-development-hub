@@ -26,7 +26,7 @@ except ImportError:
     RGBColor = Any  # type: ignore
 
 from analytics_hub_platform.config.branding import BRANDING
-from analytics_hub_platform.config.theme import get_theme
+from analytics_hub_platform.ui.theme import get_theme
 
 
 def hex_to_rgb(hex_color: str) -> Any:

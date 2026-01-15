@@ -13,9 +13,7 @@ Displays:
 from pathlib import Path
 
 import pandas as pd
-import plotly.graph_objects as go
 import streamlit as st
-from analytics_hub_platform.ui.html import render_html
 import yaml
 
 # Page configuration
@@ -27,26 +25,29 @@ st.set_page_config(
 )
 
 # Import application modules
+from analytics_hub_platform.ui.page_init import initialize_page
 from analytics_hub_platform.domain.indicators import calculate_change
 from analytics_hub_platform.domain.models import FilterParams
 from analytics_hub_platform.domain.services import (
     get_executive_snapshot,
     get_sustainability_summary,
 )
-from analytics_hub_platform.infrastructure.db_init import initialize_database
 from analytics_hub_platform.infrastructure.repository import get_repository
 from analytics_hub_platform.infrastructure.settings import get_settings
-from analytics_hub_platform.ui.dark_components import render_sidebar
-from analytics_hub_platform.ui.theme import get_dark_css, get_dark_theme
-from analytics_hub_platform.ui.html import render_html
-from analytics_hub_platform.ui.ui_components import (
-    initialize_page_session_state,
+from analytics_hub_platform.app.components import (
+    render_sidebar,
     metric_card,
     render_page_header,
     section_header,
     spacer,
 )
-from analytics_hub_platform.ui.theme import colors, get_chart_layout_config
+from analytics_hub_platform.app.components.gauge_charts import render_sustainability_gauge
+from analytics_hub_platform.app.components.forecast_charts import (
+    render_forecast_chart,
+    render_forecast_details,
+)
+from analytics_hub_platform.app.styles.tokens import colors
+from analytics_hub_platform.ui.theme import get_dark_theme
 from analytics_hub_platform.utils.dataframe_adapter import add_period_column
 
 
@@ -191,14 +192,8 @@ def format_kpi_value(kpi_id: str, val: float) -> str:
         return f"{val:.1f}"
 
 
-# Initialize
-initialize_page_session_state()
-if not st.session_state.get("initialized"):
-    initialize_database()
-    st.session_state["initialized"] = True
-
-# Apply dark theme using safe renderer
-render_html(get_dark_css())
+# Initialize page (session state, database, theme)
+initialize_page()
 dark_theme = get_dark_theme()
 
 # Layout
@@ -288,66 +283,12 @@ with main_col:
         index_value = sustainability.get("index", 0) or 0
         status = sustainability.get("status", "unknown")
 
-        fig = go.Figure(
-            go.Indicator(
-                mode="gauge+number+delta",
-                value=index_value,
-                number={"suffix": "/100", "font": {"size": 48, "color": "#fff"}},
-                delta={"reference": 70, "increasing": {"color": colors.green}},
-                domain={"x": [0, 1], "y": [0, 1]},
-                gauge={
-                    "axis": {
-                        "range": [0, 100],
-                        "tickwidth": 2,
-                        "tickcolor": "#374151",
-                        "dtick": 10,
-                        "tickfont": {"size": 12, "color": colors.text_muted},
-                    },
-                    "bar": {"color": colors.purple, "thickness": 0.75},
-                    "bgcolor": colors.bg_card,
-                    "borderwidth": 0,
-                    "steps": [
-                        {"range": [0, 50], "color": "rgba(239, 68, 68, 0.3)"},
-                        {"range": [50, 70], "color": "rgba(245, 158, 11, 0.3)"},
-                        {"range": [70, 100], "color": "rgba(34, 197, 94, 0.3)"},
-                    ],
-                    "threshold": {
-                        "line": {"color": colors.green, "width": 4},
-                        "thickness": 0.85,
-                        "value": 70,
-                    },
-                },
-            )
-        )
-
-        fig.update_layout(
-            height=350,
-            margin={"l": 40, "r": 40, "t": 40, "b": 40},
-            paper_bgcolor="rgba(0,0,0,0)",
-        )
-
+        # Use extracted component for sustainability gauge
         with st.container():
-            st.plotly_chart(fig, use_container_width=True)
-
-            status_color = (
-                colors.green if status == "green"
-                else colors.amber if status == "amber"
-                else colors.red
-            )
-            status_text = (
-                "On Track" if status == "green"
-                else "At Risk" if status == "amber"
-                else "Critical"
-            )
-            render_html(
-                f"""
-                <div style="text-align: center; margin-top: 16px;">
-                    <span style="background: {status_color}30; color: {status_color}; padding: 8px 20px;
-                                border-radius: 8px; font-size: 15px; font-weight: 600;">
-                        {status_text} • Target: 70/100
-                    </span>
-                </div>
-                """
+            render_sustainability_gauge(
+                value=index_value,
+                target=70,
+                status=status,
             )
 
         spacer("lg")
@@ -486,61 +427,18 @@ with main_col:
                         forecaster.fit(hist_df)
                         predictions = forecaster.predict(quarters_ahead=periods)
 
-                    # Visualization
-                    fig = go.Figure()
-
+                    # Use extracted component for forecast visualization
                     hist_df = add_period_column(hist_df)
-                    fig.add_trace(
-                        go.Scatter(
-                            x=hist_df["period"],
-                            y=hist_df["value"],
-                            mode="lines+markers",
-                            name="Historical",
-                            line={"color": colors.purple, "width": 2},
-                            marker={"size": 6},
-                        )
+                    render_forecast_chart(
+                        historical_df=hist_df,
+                        predictions=predictions,
+                        x_column="period",
+                        y_column="value",
+                        historical_color=colors.accent_purple,
+                        forecast_color=colors.accent_primary,
                     )
 
-                    forecast_periods = [f"Q{p['quarter']} {p['year']}" for p in predictions]
-                    forecast_values = [p["predicted_value"] for p in predictions]
-                    forecast_lower = [p["confidence_lower"] for p in predictions]
-                    forecast_upper = [p["confidence_upper"] for p in predictions]
-
-                    fig.add_trace(
-                        go.Scatter(
-                            x=forecast_periods,
-                            y=forecast_values,
-                            mode="lines+markers",
-                            name="Forecast",
-                            line={"color": colors.cyan, "width": 2, "dash": "dash"},
-                            marker={"size": 6, "symbol": "diamond"},
-                        )
-                    )
-
-                    fig.add_trace(
-                        go.Scatter(
-                            x=forecast_periods + forecast_periods[::-1],
-                            y=forecast_upper + forecast_lower[::-1],
-                            fill="toself",
-                            fillcolor="rgba(16, 185, 129, 0.1)",
-                            line={"color": "rgba(0,0,0,0)"},
-                            name="95% Confidence",
-                        )
-                    )
-
-                    config = get_chart_layout_config()
-                    config["height"] = 400
-                    fig.update_layout(**config)
-                    st.plotly_chart(fig, use_container_width=True)
-
-                    with st.expander("📋 View Forecast Details"):
-                        forecast_df = pd.DataFrame(predictions)
-                        forecast_df = add_period_column(forecast_df)
-                        st.dataframe(
-                            forecast_df[["period", "predicted_value", "confidence_lower", "confidence_upper"]].round(2),
-                            use_container_width=True,
-                            hide_index=True,
-                        )
+                    render_forecast_details(predictions)
                 else:
                     st.warning("⚠️ Not enough historical data (need at least 8 quarters)")
             else:

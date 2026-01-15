@@ -8,14 +8,11 @@ Tests:
 - Preset management
 """
 
-import pytest
 import base64
-import json
 
 from analytics_hub_platform.ui.shareable_links import (
     ViewState,
     SavedView,
-    PresetManager,
     generate_share_url,
     generate_compact_share_url,
     DEFAULT_PRESETS,

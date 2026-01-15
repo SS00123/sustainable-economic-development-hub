@@ -8,7 +8,7 @@ This replaces fragmented theme definitions across multiple files.
 
 Usage:
     from analytics_hub_platform.ui.theme import theme, colors, spacing, typography
-    
+
     # Or get the full theme object
     from analytics_hub_platform.ui.theme import get_theme
     t = get_theme()
@@ -26,7 +26,7 @@ from typing import Tuple
 class Colors:
     """
     Complete color palette for the dark premium theme.
-    
+
     Organized by category for easy discovery and consistent usage.
     """
 
@@ -228,7 +228,7 @@ class Transitions:
 class Theme:
     """
     Complete theme configuration combining all token categories.
-    
+
     Usage:
         theme = get_theme()
         bg = theme.colors.bg_main
@@ -247,7 +247,7 @@ class Theme:
 def get_theme() -> Theme:
     """
     Get the singleton theme instance.
-    
+
     Returns:
         Theme object with all design tokens
     """
@@ -293,7 +293,7 @@ shadows = _get_shadows()
 def hex_to_rgba(hex_color: str, alpha: float) -> str:
     """
     Convert hex color to rgba format.
-    
+
     Args:
         hex_color: Hex color string (e.g., '#3B82F6')
         alpha: Alpha value between 0 and 1
@@ -317,7 +317,7 @@ def get_gradient(
 ) -> str:
     """
     Generate a linear gradient string.
-    
+
     Args:
         start: Start color (defaults to purple)
         end: End color (defaults to cyan)
@@ -335,7 +335,7 @@ def get_gradient(
 def get_chart_layout_config() -> dict:
     """
     Get standard Plotly chart layout configuration for dark theme.
-    
+
     Returns:
         Dictionary of Plotly layout settings
     """

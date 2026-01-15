@@ -12,16 +12,10 @@ import pandas as pd
 
 from analytics_hub_platform.config.config import REGIONS
 from analytics_hub_platform.domain.models import FilterParams
+from analytics_hub_platform.infrastructure.exceptions import ValidationError
 
-
-class ValidationError(Exception):
-    """Custom validation error with field information."""
-
-    def __init__(self, message: str, field: str | None = None, code: str = "VALIDATION_ERROR"):
-        self.message = message
-        self.field = field
-        self.code = code
-        super().__init__(self.message)
+# Re-export ValidationError for backwards compatibility
+__all__ = ["ValidationError", "ValidationResult", "validate_indicator_data"]
 
 
 class ValidationResult:

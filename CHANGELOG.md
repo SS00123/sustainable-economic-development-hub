@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Phase 8: Insight Engine (rules registry, explanations)
 - Phase 9: Maturity (release cadence, final verification)
 
+### Changed
+- Streamlit navigation: Data Management merged into the Data page (Management tab)
+- In-app documentation moved to the Help page (`pages/06_Help.py`)
+
+### Removed
+- Legacy standalone pages removed from navigation: `pages/08_Data_Management.py`, `pages/09_Documentation.py`
+
 ---
 
 ## [1.5.0] - 2026-01-05
@@ -200,7 +207,7 @@ No breaking changes. New optional dependencies:
 
 ## Links
 
-- [Documentation](pages/09_Documentation.py)
+- [Help](pages/06_Help.py)
 - [Operations Runbook](OPS_RUNBOOK.md)
 - [Performance Budgets](PERFORMANCE_BUDGETS.md)
 - [Data Contract](DATA_CONTRACT.md)

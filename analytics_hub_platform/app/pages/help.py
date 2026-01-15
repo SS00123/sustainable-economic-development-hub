@@ -1,32 +1,21 @@
-"""
-About & Documentation Page
-Sustainable Economic Development Analytics Hub
+"""Help & documentation renderers.
 
-Provides:
-- About the Dashboard
-- Methodology
-- Data Sources
-- Glossary
+Moved from the legacy Streamlit documentation page to keep `pages/` thin.
 """
+
+from __future__ import annotations
 
 import streamlit as st
 
-# Page configuration
-st.set_page_config(
-    page_title="About | Analytics Hub",
-    page_icon="ℹ️",
-    layout="wide",
-)
 
-
-def render_about_section():
-    """Render the About section."""
+def render_about_section() -> None:
     st.header("ℹ️ About This Dashboard")
 
-    st.markdown("""
+    st.markdown(
+        """
     ### Sustainable Economic Development Analytics Hub
 
-    This dashboard provides comprehensive analytics and visualization of Saudi Arabia's 
+    This dashboard provides comprehensive analytics and visualization of Saudi Arabia's
     progress toward sustainable economic development goals under **Vision 2030**.
 
     #### Purpose
@@ -48,34 +37,39 @@ def render_about_section():
     - Analysts for detailed data exploration
     - Directors for regional performance monitoring
     - External stakeholders for transparency reporting
-    """)
+    """
+    )
 
     st.divider()
 
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown("""
+        st.markdown(
+            """
         #### Version Information
         - **Version:** 1.0.0
         - **Last Updated:** January 2026
         - **Data Refresh:** Quarterly
-        """)
+        """
+        )
 
     with col2:
-        st.markdown("""
+        st.markdown(
+            """
         #### Contact
         - **Owner:** Ministry of Economy and Planning
         - **Support:** analytics-support@mep.gov.sa
-        - **Documentation:** [Internal Wiki](#)
-        """)
+        - **Documentation:** Internal wiki
+        """
+        )
 
 
-def render_methodology_section():
-    """Render the Methodology section."""
+def render_methodology_section() -> None:
     st.header("📐 Methodology")
 
-    st.markdown("""
+    st.markdown(
+        """
     ### Data Collection & Processing
 
     #### Collection Frequency
@@ -99,38 +93,11 @@ def render_methodology_section():
     The composite Sustainability Index is calculated as a weighted average:
 
     ```
-    Sustainability Index = 
+    Sustainability Index =
         35% × Economic Score +
         35% × Social Score +
         30% × Environmental Score
     ```
-
-    **Component Scoring:**
-    - **Economic Score**: Normalized GDP growth (scaled from -20% to +30% range)
-    - **Social Score**: Inverse unemployment rate (lower is better)
-    - **Environmental Score**: Renewable energy share percentage
-
-    #### Status Thresholds
-    | Status | Index Range | Color |
-    |--------|-------------|-------|
-    | Excellent | ≥ 70 | 🟢 Green |
-    | Moderate | 40-69 | 🟡 Amber |
-    | Needs Attention | < 40 | 🔴 Red |
-
-    #### Trend Calculations
-    - **Quarter-over-Quarter (QoQ)**: Current quarter vs. previous quarter
-    - **Year-over-Year (YoY)**: Current quarter vs. same quarter last year
-    - **CAGR**: Compound Annual Growth Rate over available history
-
-    ---
-
-    ### Regional Aggregation
-
-    National-level figures are calculated using:
-    - **GDP Total**: Sum of regional values
-    - **Rates/Indices**: Population-weighted averages
-    - **Green Jobs**: Sum of regional values
-    - **Environmental Metrics**: Area-weighted averages where applicable
 
     ---
 
@@ -143,14 +110,15 @@ def render_methodology_section():
     | Validity | Values within defined ranges | ≥ 99% |
     | Consistency | No duplicate records | 100% |
     | Outliers | Z-score within bounds | < 5% flagged |
-    """)
+    """
+    )
 
 
-def render_sources_section():
-    """Render the Data Sources section."""
+def render_sources_section() -> None:
     st.header("📚 Data Sources")
 
-    st.markdown("""
+    st.markdown(
+        """
     ### Primary Data Sources
 
     The dashboard integrates data from the following authoritative sources:
@@ -167,35 +135,11 @@ def render_sources_section():
     | Ministry of Labor and Social Development | MLSD | Green jobs, labor market statistics | Quarterly |
     | King Abdulaziz City for Science and Technology | KACST | Innovation indices, R&D metrics | Annual |
     | Ministry of Communications and IT | MCIT | Digital readiness, ICT adoption | Quarterly |
-
-    ---
-
-    ### Vision 2030 Alignment
-
-    Indicators are mapped to Vision 2030 programs and targets:
-
-    | Program | Key Indicators | Dashboard Section |
-    |---------|----------------|-------------------|
-    | National Transformation Program | GDP diversification, efficiency | Economic Pillar |
-    | Human Capability Development | Skills, employment, education | Social Pillar |
-    | Quality of Life | Living standards, well-being | Social Pillar |
-    | Saudi Green Initiative | Emissions, renewable energy, forestry | Environmental Pillar |
-    | Financial Sector Development | Financial inclusion, investment | Economic Pillar |
-
-    ---
-
-    ### Data Lineage
-
-    Each data point includes metadata for traceability:
-    - **Source System**: Origin system identifier
-    - **Load Timestamp**: When data was ingested
-    - **Batch ID**: Processing batch for audit trail
-    - **Quality Score**: Automated quality assessment
-    """)
+    """
+    )
 
 
-def render_glossary_section():
-    """Render the Glossary section."""
+def render_glossary_section() -> None:
     st.header("📖 Glossary")
 
     glossary = {
@@ -216,9 +160,7 @@ def render_glossary_section():
         "YoY": "Year-over-Year - A comparison metric between the current period and the same period in the previous year.",
     }
 
-    # Search filter
     search = st.text_input("🔍 Search terms", "")
-
     st.markdown("---")
 
     for term, definition in sorted(glossary.items()):
@@ -228,78 +170,64 @@ def render_glossary_section():
             st.markdown("")
 
 
-def render_faq_section():
-    """Render frequently asked questions."""
+def render_faq_section() -> None:
     st.header("❓ Frequently Asked Questions")
 
     with st.expander("How often is the dashboard updated?"):
-        st.markdown("""
-        The dashboard refreshes data quarterly for most indicators. 
+        st.markdown(
+            """
+        The dashboard refreshes data quarterly for most indicators.
         Some real-time indicators (energy, economic) update monthly.
         The refresh timestamp is shown on the Diagnostics page.
-        """)
+        """
+        )
 
     with st.expander("What does the Sustainability Index represent?"):
-        st.markdown("""
-        The Sustainability Index is a composite score (0-100) that combines:
-        - 35% Economic performance (GDP growth)
-        - 35% Social progress (employment, education)
-        - 30% Environmental sustainability (renewable energy, emissions)
-        
-        Higher scores indicate better overall sustainable development progress.
-        """)
+        st.markdown(
+            """
+        The Sustainability Index is a composite score (0-100) combining economic, social,
+        and environmental performance indicators.
+        """
+        )
 
     with st.expander("How can I export data from the dashboard?"):
-        st.markdown("""
+        st.markdown(
+            """
         Several export options are available:
         - **CSV**: Download raw data tables for analysis
         - **PNG**: Save chart visualizations as images
         - **PDF**: Generate Executive Brief reports
-        
-        Access export options from the Export panel on each page.
-        """)
+        """
+        )
 
     with st.expander("How do I share a specific view with colleagues?"):
-        st.markdown("""
+        st.markdown(
+            """
         1. Configure your desired filters and settings
-        2. Click the "Share" button or use the Share panel
-        3. Copy the generated URL
-        4. Send the URL to colleagues - it will restore your exact view
-        
-        You can also save views as named presets for quick access.
-        """)
-
-    with st.expander("What do the status colors mean?"):
-        st.markdown("""
-        | Color | Status | Meaning |
-        |-------|--------|---------|
-        | 🟢 Green | On Track | Meeting or exceeding targets |
-        | 🟡 Amber | Caution | Progress but below target |
-        | 🔴 Red | Attention | Significantly below target |
-        
-        Thresholds are defined in the Methodology section.
-        """)
+        2. Use the Share panel to copy a URL that restores the view
+        """
+        )
 
     with st.expander("Who should I contact for data issues?"):
-        st.markdown("""
-        - **Data Quality Issues**: Use the Data Management page to report
+        st.markdown(
+            """
         - **Technical Support**: analytics-support@mep.gov.sa
         - **Feature Requests**: Submit via internal ticketing system
-        """)
+        """
+        )
 
 
-def main():
-    """Main page renderer."""
-    st.title("📖 Documentation")
-
-    # Navigation tabs
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "ℹ️ About",
-        "📐 Methodology",
-        "📚 Sources",
-        "📖 Glossary",
-        "❓ FAQ",
-    ])
+def render_help_page() -> None:
+    """Main help page renderer."""
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(
+        [
+            "ℹ️ About",
+            "📐 Methodology",
+            "📚 Sources",
+            "📖 Glossary",
+            "❓ FAQ",
+        ]
+    )
 
     with tab1:
         render_about_section()
@@ -315,9 +243,3 @@ def main():
 
     with tab5:
         render_faq_section()
-
-
-if __name__ == "__main__":
-    main()
-else:
-    main()

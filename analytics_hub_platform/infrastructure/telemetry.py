@@ -15,7 +15,7 @@ import logging
 import os
 import time
 import uuid
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
@@ -105,7 +105,7 @@ class TelemetryEvent:
 class TelemetryCollector:
     """
     Collects and dispatches telemetry events.
-    
+
     Thread-safe, singleton pattern for Streamlit apps.
     """
 

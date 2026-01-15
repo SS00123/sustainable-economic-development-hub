@@ -20,33 +20,24 @@ st.set_page_config(
 )
 
 # Import application modules
-from analytics_hub_platform.infrastructure.db_init import initialize_database
-from analytics_hub_platform.ui.dark_components import render_sidebar
-from analytics_hub_platform.ui.theme import get_dark_css
-from analytics_hub_platform.ui.html import render_html
-from analytics_hub_platform.ui.theme import colors
-from analytics_hub_platform.ui.ui_components import (
-    initialize_page_session_state,
+from analytics_hub_platform.ui.page_init import initialize_page
+from analytics_hub_platform.app.components import (
+    render_sidebar,
     render_page_header,
     section_header,
     spacer,
 )
+from analytics_hub_platform.app.components.info_panels import render_theme_info_box
 
 
-# Initialize
-initialize_page_session_state()
+# Initialize page (session state, database, theme)
+initialize_page()
 
 # Settings-specific defaults
 if "sustainability_target" not in st.session_state:
     st.session_state["sustainability_target"] = 70
 if "gdp_target" not in st.session_state:
     st.session_state["gdp_target"] = 5.0
-if not st.session_state.get("initialized"):
-    initialize_database()
-    st.session_state["initialized"] = True
-
-# Apply dark theme using safe renderer
-render_html(get_dark_css())
 
 # Layout
 side_col, main_col = st.columns([0.2, 0.8], gap="large")
@@ -86,23 +77,11 @@ with main_col:
 
         with col2:
             # Dark theme is the production theme - display as read-only info
-            render_html(f"""
-                <div style="
-                    background: linear-gradient(135deg, {colors.purple}25, {colors.cyan}15);
-                    border: 1px solid {colors.purple}50;
-                    border-radius: 8px;
-                    padding: 16px;
-                    margin-top: 8px;
-                ">
-                    <div style="font-size: 12px; color: {colors.text_muted}; margin-bottom: 4px;">Theme</div>
-                    <div style="font-size: 16px; font-weight: 600; color: {colors.text_primary};">
-                        🌙 Dark Theme
-                    </div>
-                    <div style="font-size: 11px; color: {colors.text_subtle}; margin-top: 4px;">
-                        Professional dark theme optimized for executive dashboards
-                    </div>
-                </div>
-            """)
+            render_theme_info_box(
+                theme_name="Dark Theme",
+                theme_icon="🌙",
+                description="Professional dark theme optimized for executive dashboards",
+            )
 
     spacer("lg")
 

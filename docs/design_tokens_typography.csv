@@ -1,0 +1,21 @@
+token_name,value,usage,notes
+family_base,"'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",Base font family,Primary typeface
+family_arabic,"'Segoe UI', 'Tahoma', 'Arial', sans-serif",Arabic font family,RTL language support
+family_mono,"'JetBrains Mono', 'Consolas', 'Monaco', monospace",Monospace font family,Code and data
+hero,48px,Hero numbers and gauges,Display size
+h1,32px,Page titles,Heading level 1
+h2,24px,Section headers,Heading level 2
+h3,18px,Card titles,Heading level 3
+h4,16px,Sub-section titles,Heading level 4
+body,14px,Body text,Default text size
+caption,12px,Captions and labels,Small labels
+small,11px,Small text,Metadata
+tiny,10px,Tiny labels,Microcopy
+weight_regular,400,Regular weight,Normal text
+weight_medium,500,Medium weight,Emphasis
+weight_semibold,600,Semibold weight,Strong emphasis
+weight_bold,700,Bold weight,Headings
+weight_extrabold,800,Extrabold weight,Hero text
+line_tight,1.25,Tight line height,Compact layouts
+line_normal,1.5,Normal line height,Body text
+line_relaxed,1.75,Relaxed line height,Prose content

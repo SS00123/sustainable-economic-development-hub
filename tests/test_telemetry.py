@@ -5,11 +5,7 @@ Tests event capture, timing utilities, and telemetry backends.
 """
 
 import json
-import logging
-import os
 import time
-from datetime import datetime, timezone
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -35,7 +31,7 @@ class TestTelemetryEvent:
         event = TelemetryEvent(
             event_type="page_view",
         )
-        
+
         assert event.event_type == "page_view"
         assert event.timestamp is not None
         assert event.session_id == ""
@@ -53,7 +49,7 @@ class TestTelemetryEvent:
             duration_ms=150.5,
             correlation_id="corr-789",
         )
-        
+
         assert event.session_id == "session-123"
         assert event.user_id == "user-456"
         assert event.page == "dashboard"
@@ -68,9 +64,9 @@ class TestTelemetryEvent:
             page="kpis",
             properties={"filter": "year", "value": 2024},
         )
-        
+
         d = event.to_dict()
-        
+
         assert d["event_type"] == "filter_change"
         assert d["properties"]["filter"] == "year"
         assert d["session_id"] == "sess-1"
@@ -82,10 +78,10 @@ class TestTelemetryEvent:
             event_type="page_view",
             page="kpis",
         )
-        
+
         json_str = event.to_json()
         parsed = json.loads(json_str)
-        
+
         assert parsed["event_type"] == "page_view"
         assert parsed["page"] == "kpis"
 
@@ -136,24 +132,24 @@ class TestTelemetryCollectorSingleton:
         """Test that TelemetryCollector is a singleton."""
         # Reset singleton
         TelemetryCollector._instance = None
-        
+
         collector1 = TelemetryCollector()
         collector2 = TelemetryCollector()
-        
+
         assert collector1 is collector2
-        
+
         # Cleanup
         TelemetryCollector._instance = None
 
     def test_get_telemetry_collector_returns_instance(self):
         """Test get_telemetry_collector returns collector."""
         TelemetryCollector._instance = None
-        
+
         collector = get_telemetry_collector()
-        
+
         assert collector is not None
         assert isinstance(collector, TelemetryCollector)
-        
+
         TelemetryCollector._instance = None
 
 
@@ -164,13 +160,13 @@ class TestTelemetryCollectorDisabled:
     def disabled_collector(self):
         """Create a disabled telemetry collector."""
         TelemetryCollector._instance = None
-        
+
         # Create collector and manually disable
         collector = TelemetryCollector()
         collector._enabled = False
-        
+
         yield collector
-        
+
         TelemetryCollector._instance = None
 
     def test_disabled_collector_track_no_error(self, disabled_collector):
@@ -190,7 +186,7 @@ class TestTelemetryCollectorMocked:
         mock_session.__contains__ = lambda self, x: False
         mock_session.__setitem__ = MagicMock()
         mock_session.__getitem__ = MagicMock(return_value="test")
-        
+
         with patch("analytics_hub_platform.infrastructure.telemetry.st") as mock:
             mock.session_state = mock_session
             yield mock
@@ -199,13 +195,13 @@ class TestTelemetryCollectorMocked:
     def enabled_collector(self, mock_st):
         """Create an enabled telemetry collector with log backend."""
         TelemetryCollector._instance = None
-        
+
         collector = TelemetryCollector()
         collector._enabled = True
         collector._backend = TelemetryBackend.LOG
-        
+
         yield collector
-        
+
         TelemetryCollector._instance = None
 
     def test_track_page_view(self, enabled_collector):
@@ -266,7 +262,7 @@ class TestTimingContext:
         mock_session = MagicMock()
         mock_session.get.return_value = "test_session"
         mock_session.__contains__ = lambda self, x: False
-        
+
         with patch("analytics_hub_platform.infrastructure.telemetry.st") as mock:
             mock.session_state = mock_session
             yield mock
@@ -285,15 +281,15 @@ class TestTimingContext:
         """Test that timing context measures elapsed time."""
         with TimingContext("test_operation", mock_collector) as ctx:
             time.sleep(0.05)  # Sleep 50ms
-        
+
         # Duration should be recorded
         assert ctx.duration_ms >= 40  # At least 40ms
 
     def test_timing_context_no_exception(self, mock_collector):
         """Test timing context handles normal flow."""
-        with TimingContext("operation", mock_collector) as ctx:
+        with TimingContext("operation", mock_collector) as _ctx:  # noqa: F841
             x = 1 + 1
-        
+
         # Should complete without exception
         assert x == 2
 
@@ -313,7 +309,7 @@ class TestTimedDecorator:
         mock_session = MagicMock()
         mock_session.get.return_value = "test_session"
         mock_session.__contains__ = lambda self, x: False
-        
+
         with patch("analytics_hub_platform.infrastructure.telemetry.st") as mock:
             mock.session_state = mock_session
             yield mock
@@ -331,16 +327,16 @@ class TestTimedDecorator:
     def test_timed_decorator(self, setup_collector):
         """Test @timed decorator measures function time."""
         call_count = 0
-        
+
         @timed("sample_operation")
         def sample_function():
             nonlocal call_count
             call_count += 1
             time.sleep(0.02)  # 20ms
             return "result"
-        
+
         result = sample_function()
-        
+
         assert result == "result"
         assert call_count == 1
 
@@ -349,9 +345,9 @@ class TestTimedDecorator:
         @timed("add_operation")
         def add_numbers(a, b):
             return a + b
-        
+
         result = add_numbers(3, 5)
-        
+
         assert result == 8
 
     def test_timed_decorator_with_kwargs(self, setup_collector):
@@ -359,9 +355,9 @@ class TestTimedDecorator:
         @timed("greet_operation")
         def greet(name, greeting="Hello"):
             return f"{greeting}, {name}!"
-        
+
         result = greet("World", greeting="Hi")
-        
+
         assert result == "Hi, World!"
 
     def test_timed_decorator_preserves_exception(self, setup_collector):
@@ -369,7 +365,7 @@ class TestTimedDecorator:
         @timed("failing_operation")
         def failing_function():
             raise RuntimeError("Intentional failure")
-        
+
         with pytest.raises(RuntimeError, match="Intentional failure"):
             failing_function()
 
@@ -384,7 +380,7 @@ class TestInitTelemetry:
         mock_session.get.return_value = "unknown"
         mock_session.__contains__ = lambda self, x: x == "page_view_tracked"
         mock_session.page_view_tracked = set()
-        
+
         with patch("analytics_hub_platform.infrastructure.telemetry.st") as mock:
             mock.session_state = mock_session
             yield mock
@@ -392,11 +388,11 @@ class TestInitTelemetry:
     def test_init_telemetry_creates_collector(self, mock_st):
         """Test that init_telemetry creates a collector."""
         TelemetryCollector._instance = None
-        
+
         init_telemetry()
         collector = get_telemetry_collector()
         assert collector is not None
-        
+
         TelemetryCollector._instance = None
 
 
@@ -407,7 +403,7 @@ class TestGetTelemetryStats:
     def mock_st(self):
         """Mock streamlit session state."""
         mock_session = {"telemetry_session_id": "test-123"}
-        
+
         with patch("analytics_hub_platform.infrastructure.telemetry.st") as mock:
             mock.session_state = mock_session
             yield mock
@@ -415,14 +411,14 @@ class TestGetTelemetryStats:
     def test_get_stats_returns_dict(self, mock_st):
         """Test that get_telemetry_stats returns a dictionary."""
         TelemetryCollector._instance = None
-        
+
         stats = get_telemetry_stats()
-        
+
         assert isinstance(stats, dict)
         assert "enabled" in stats
         assert "backend" in stats
         assert "session_id" in stats
-        
+
         TelemetryCollector._instance = None
 
 
@@ -436,7 +432,7 @@ class TestFileBackendIntegration:
         mock_session.get.return_value = "test_session"
         mock_session.__contains__ = lambda self, x: True  # Has session_id
         mock_session.__getitem__ = MagicMock(return_value="test-session-id")
-        
+
         with patch("analytics_hub_platform.infrastructure.telemetry.st") as mock:
             mock.session_state = mock_session
             yield mock
@@ -444,41 +440,41 @@ class TestFileBackendIntegration:
     def test_file_backend_config(self, tmp_path, mock_st):
         """Test that file backend can be configured."""
         TelemetryCollector._instance = None
-        
+
         collector = TelemetryCollector()
         collector._enabled = True
         collector._backend = TelemetryBackend.FILE
         collector._file_path = tmp_path / "telemetry.jsonl"
-        
+
         # Track an event - should not raise
         collector.track(EventType.PAGE_VIEW, page="test")
-        
+
         TelemetryCollector._instance = None
 
     def test_log_backend_config(self, mock_st):
         """Test that log backend can be configured."""
         TelemetryCollector._instance = None
-        
+
         collector = TelemetryCollector()
         collector._enabled = True
         collector._backend = TelemetryBackend.LOG
-        
+
         # Track an event - should not raise
         collector.track(EventType.PAGE_VIEW, page="test")
-        
+
         TelemetryCollector._instance = None
 
     def test_none_backend_no_dispatch(self, mock_st):
         """Test that NONE backend doesn't dispatch."""
         TelemetryCollector._instance = None
-        
+
         collector = TelemetryCollector()
         collector._enabled = True
         collector._backend = TelemetryBackend.NONE
-        
+
         # Track an event - should not raise
         collector.track(EventType.PAGE_VIEW, page="test")
-        
+
         TelemetryCollector._instance = None
 
 
@@ -491,7 +487,7 @@ class TestEventTypeMappings:
         mock_session = MagicMock()
         mock_session.get.return_value = "test_session"
         mock_session.__contains__ = lambda self, x: False
-        
+
         with patch("analytics_hub_platform.infrastructure.telemetry.st") as mock:
             mock.session_state = mock_session
             yield mock
@@ -502,10 +498,10 @@ class TestEventTypeMappings:
         collector = TelemetryCollector()
         collector._enabled = True
         collector._backend = TelemetryBackend.NONE
-        
+
         # Should not raise
         collector.track_export("data", "csv")
-        
+
         TelemetryCollector._instance = None
 
     def test_export_png_mapping(self, mock_st):
@@ -514,9 +510,9 @@ class TestEventTypeMappings:
         collector = TelemetryCollector()
         collector._enabled = True
         collector._backend = TelemetryBackend.NONE
-        
+
         collector.track_export("chart", "png")
-        
+
         TelemetryCollector._instance = None
 
     def test_export_pdf_mapping(self, mock_st):
@@ -525,7 +521,7 @@ class TestEventTypeMappings:
         collector = TelemetryCollector()
         collector._enabled = True
         collector._backend = TelemetryBackend.NONE
-        
+
         collector.track_export("report", "pdf")
-        
+
         TelemetryCollector._instance = None

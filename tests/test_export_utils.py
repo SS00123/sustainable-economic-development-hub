@@ -10,7 +10,6 @@ Tests:
 
 import pytest
 import pandas as pd
-from datetime import datetime
 
 from analytics_hub_platform.utils.export_utils import (
     export_dataframe_to_csv,
@@ -242,7 +241,7 @@ class TestPNGExport:
     def test_png_export_handles_none_chart(self):
         """Test that PNG export handles None gracefully."""
         from analytics_hub_platform.utils.export_utils import export_plotly_to_png
-        
+
         result = export_plotly_to_png(None)
         # Should return None without crashing
         assert result is None

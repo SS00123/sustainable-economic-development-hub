@@ -1,0 +1,14 @@
+token_name,value,usage,notes
+xs,4px,0.5x base,Micro spacing
+sm,8px,1x base (foundation),Base unit
+md,16px,2x base,Standard spacing
+lg,24px,3x base,Section spacing
+xl,32px,4x base,Page spacing
+xxl,48px,6x base,Hero spacing
+page_margin,32px,Page margin,Layout constant
+section_gap,32px,Section gap,Layout constant
+card_gap,24px,Card gap,Layout constant
+card_padding,20px,Card padding,Component constant
+row_gap,20px,Row gap,Component constant
+gutter,16px,Gutter,Component constant
+inline_gap,8px,Inline gap,Component constant

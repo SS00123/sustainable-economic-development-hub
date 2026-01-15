@@ -10,7 +10,7 @@ Provides advanced analytics capabilities:
 """
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
@@ -157,10 +157,10 @@ class TrendAnalyzer:
         # Use index-based access to avoid tuple unpacking type issues
         _result = scipy_stats.linregress(time_idx, values)
         slope: float = float(_result[0])  # type: ignore[index]
-        intercept: float = float(_result[1])  # type: ignore[index]
+        _intercept: float = float(_result[1])  # type: ignore[index]  # noqa: F841
         r_value: float = float(_result[2])  # type: ignore[index]
         p_value: float = float(_result[3])  # type: ignore[index]
-        std_err: float = float(_result[4])  # type: ignore[index]
+        _std_err: float = float(_result[4])  # type: ignore[index]  # noqa: F841
 
         r_squared = r_value**2
 

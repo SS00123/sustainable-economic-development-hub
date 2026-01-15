@@ -42,7 +42,7 @@ app_modules = [
     "analytics_hub_platform.domain.services",
     "analytics_hub_platform.domain.indicators",
     "analytics_hub_platform.ui.theme",
-    "analytics_hub_platform.ui.dark_components",
+    "analytics_hub_platform.app.components",
     "analytics_hub_platform.ui.pages.unified_dashboard",
 ]
 

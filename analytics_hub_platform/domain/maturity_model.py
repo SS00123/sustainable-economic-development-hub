@@ -5,7 +5,7 @@ Sustainable Economic Development Analytics Hub
 Provides capability maturity assessment for KPI tracking and analytics practices.
 Based on CMMI-style maturity levels adapted for government analytics:
 - Level 1: Initial - Ad-hoc, reactive
-- Level 2: Developing - Documented, repeatable  
+- Level 2: Developing - Documented, repeatable
 - Level 3: Defined - Standardized, proactive
 - Level 4: Managed - Measured, controlled
 - Level 5: Optimizing - Continuous improvement
@@ -24,8 +24,6 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
-import numpy as np
-import pandas as pd
 
 logger = logging.getLogger(__name__)
 

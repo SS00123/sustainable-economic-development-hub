@@ -9,10 +9,7 @@ Displays:
 - Volatility and variance analysis
 """
 
-import numpy as np
-import plotly.graph_objects as go
 import streamlit as st
-from analytics_hub_platform.ui.html import render_html
 
 # Page configuration
 st.set_page_config(
@@ -23,32 +20,34 @@ st.set_page_config(
 )
 
 # Import application modules
-from analytics_hub_platform.infrastructure.db_init import initialize_database
+from analytics_hub_platform.ui.page_init import initialize_page
 from analytics_hub_platform.infrastructure.repository import get_repository
 from analytics_hub_platform.infrastructure.settings import get_settings
-from analytics_hub_platform.ui.dark_components import card_close, card_open, render_sidebar
-from analytics_hub_platform.ui.theme import get_dark_css, get_dark_theme
-from analytics_hub_platform.ui.html import render_html
-from analytics_hub_platform.ui.theme import colors
-from analytics_hub_platform.ui.ui_components import (
-    apply_chart_theme,
-    initialize_page_session_state,
+from analytics_hub_platform.app.components import (
+    card_container,
+    render_sidebar,
     render_page_header,
     section_header,
     spacer,
 )
+from analytics_hub_platform.app.components.trend_charts import (
+    render_trend_line_chart,
+    render_multi_series_chart,
+)
+from analytics_hub_platform.app.components.anomaly_display import (
+    render_anomaly_list,
+)
+from analytics_hub_platform.app.components.regional_charts import (
+    render_regional_comparison,
+)
+from analytics_hub_platform.app.styles.tokens import colors
+from analytics_hub_platform.ui.theme import get_dark_theme
 from analytics_hub_platform.utils.dataframe_adapter import add_period_column
 from analytics_hub_platform.domain.ml_services import AnomalyDetector, AnomalySeverity
 
 
-# Initialize
-initialize_page_session_state()
-if not st.session_state.get("initialized"):
-    initialize_database()
-    st.session_state["initialized"] = True
-
-# Apply dark theme using safe renderer
-render_html(get_dark_css())
+# Initialize page (session state, database, theme)
+initialize_page()
 dark_theme = get_dark_theme()
 
 # Layout
@@ -133,40 +132,16 @@ with main_col:
                 trend_agg = add_period_column(trend_agg)
                 trend_agg = trend_agg.sort_values(["year", "quarter"])
 
-                fig = go.Figure()
-                fig.add_trace(
-                    go.Scatter(
-                        x=trend_agg["period"],
-                        y=trend_agg[selected_kpi],
-                        mode="lines+markers",
-                        name=kpi_options[selected_kpi],
-                        line={"color": colors.purple, "width": 3},
-                        marker={"size": 10, "color": colors.purple},
-                        fill="tozeroy",
-                        fillcolor="rgba(168, 85, 247, 0.15)",
-                        hovertemplate="<b>%{x}</b><br>Value: %{y:.1f}<extra></extra>",
-                    )
+                # Use extracted component
+                render_trend_line_chart(
+                    df=trend_agg,
+                    x_column="period",
+                    y_column=selected_kpi,
+                    title=kpi_options[selected_kpi],
+                    show_trend_line=True,
+                    primary_color=colors.accent_purple,
+                    trend_color=colors.accent_primary,
                 )
-
-                # Add trend line
-                if len(trend_agg) > 2:
-                    x_numeric = np.arange(len(trend_agg))
-                    z = np.polyfit(
-                        x_numeric, trend_agg[selected_kpi].to_numpy(dtype=float), 1
-                    )
-                    p = np.poly1d(z)
-                    fig.add_trace(
-                        go.Scatter(
-                            x=trend_agg["period"],
-                            y=p(x_numeric),
-                            mode="lines",
-                            name="Trend",
-                            line={"color": colors.cyan, "width": 2, "dash": "dash"},
-                        )
-                    )
-
-                apply_chart_theme(fig, height=350)
-                st.plotly_chart(fig, use_container_width=True)
 
         spacer("lg")
 
@@ -208,62 +183,8 @@ with main_col:
 
             spacer("md")
 
-            if not all_anomalies:
-                render_html(
-                    f"""
-                    <div style="
-                        background: linear-gradient(135deg, {colors.green}15 0%, {colors.green}05 100%);
-                        border: 1px solid {colors.green}30;
-                        border-radius: 12px;
-                        padding: 16px 20px;
-                        margin: 12px 0;
-                    ">
-                        <p style="margin: 0; color: {colors.text_primary}; font-size: 14px;">
-                            All Systems Normal - No significant anomalies detected.
-                        </p>
-                    </div>
-                """
-                )
-            else:
-                for anomaly in sorted(
-                    all_anomalies, key=lambda x: (x.severity.value, -x.year, -x.quarter)
-                )[:5]:  # Show top 5
-                    severity_color = (
-                        colors.red if anomaly.severity == AnomalySeverity.CRITICAL else colors.amber
-                    )
-                    severity_icon = "🔴" if anomaly.severity == AnomalySeverity.CRITICAL else "🟡"
-                    severity_label = (
-                        "CRITICAL" if anomaly.severity == AnomalySeverity.CRITICAL else "WARNING"
-                    )
-
-                    render_html(
-                        f"""
-                        <div style="
-                            background: {colors.bg_card};
-                            border-left: 4px solid {severity_color};
-                            padding: 16px 20px;
-                            margin: 12px 0;
-                            border-radius: 0 12px 12px 0;
-                        ">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <span style="font-size: 18px;">{severity_icon}</span>
-                                    <span style="font-weight: 700; font-size: 15px; color: {colors.text_primary};">{anomaly.kpi_id.replace("_", " ").title()}</span>
-                                    <span style="
-                                        background: {severity_color};
-                                        color: white;
-                                        padding: 2px 8px;
-                                        border-radius: 4px;
-                                        font-size: 10px;
-                                        font-weight: 600;
-                                    ">{severity_label}</span>
-                                </div>
-                                <span style="color: {colors.text_muted}; font-size: 13px; font-weight: 500;">Q{anomaly.quarter} {anomaly.year}</span>
-                            </div>
-                            <p style="margin: 8px 0 12px 0; color: {colors.text_secondary}; font-size: 14px; line-height: 1.5;">{anomaly.description}</p>
-                        </div>
-                        """
-                    )
+            # Use extracted component for anomaly display
+            render_anomaly_list(all_anomalies, max_display=5, sort_by_severity=True)
 
         except Exception as e:
             st.warning(f"⚠️ Anomaly detection unavailable: {str(e)}")
@@ -276,148 +197,91 @@ with main_col:
         year = st.session_state.year
         quarter = st.session_state.quarter
 
-        card_open("Regional Performance", f"Sustainability Index by Region - Q{quarter} {year}")
-        regional_df = df[(df["year"] == year) & (df["quarter"] == quarter)].copy()
+        with card_container(
+            "Regional Performance", f"Sustainability Index by Region - Q{quarter} {year}"
+        ):
+            regional_df = df[(df["year"] == year) & (df["quarter"] == quarter)].copy()
 
-        if len(regional_df) > 0:
-            reg_col1, reg_col2 = st.columns([2, 1])
-
-            with reg_col1:
-                regional_agg = (
-                    regional_df.groupby("region")
-                    .agg({"sustainability_index": "mean"})
-                    .reset_index()
-                )
-                regional_agg = regional_agg.sort_values("sustainability_index", ascending=True)
-                national_avg = regional_agg["sustainability_index"].mean()
-
-                bar_colors = [
-                    colors.purple if v >= national_avg else colors.pink
-                    for v in regional_agg["sustainability_index"]
-                ]
-
-                fig = go.Figure()
-                fig.add_trace(
-                    go.Bar(
-                        y=regional_agg["region"],
-                        x=regional_agg["sustainability_index"],
-                        orientation="h",
-                        marker_color=bar_colors,
-                        text=[f"{v:.1f}" for v in regional_agg["sustainability_index"]],
-                        textposition="outside",
-                        textfont={"color": colors.text_muted},
-                    )
-                )
-                fig.add_vline(
-                    x=national_avg,
-                    line_dash="dash",
-                    line_color=colors.cyan,
-                    annotation_text=f"Avg: {national_avg:.1f}",
-                    annotation_font={"color": colors.text_muted},
-                )
-
-                apply_chart_theme(fig, height=450)
-                fig.update_layout(
-                    xaxis={"showgrid": True, "title": "Sustainability Index"},
-                    yaxis={"showgrid": False},
-                )
-                st.plotly_chart(fig, use_container_width=True)
-
-            with reg_col2:
-                render_html(
-                    f"""
-                    <div style="color: {colors.text_secondary}; font-size: 14px; font-weight: 600; margin-bottom: 16px;">
-                        📊 Regional Statistics
-                    </div>
-                    """
-                )
-
-                for label, value in [
-                    ("National Average", f"{national_avg:.1f}"),
-                    ("Highest", f"{regional_agg['sustainability_index'].max():.1f}"),
-                    ("Lowest", f"{regional_agg['sustainability_index'].min():.1f}"),
-                    ("Std Dev", f"{regional_agg['sustainability_index'].std():.1f}"),
-                ]:
-                    render_html(
-                        f"""
-                        <div style="background: {colors.bg_card}; padding: 12px; border-radius: 8px; margin-bottom: 8px;">
-                            <div style="font-size: 11px; color: {colors.text_muted};">{label}</div>
-                            <div style="font-size: 18px; font-weight: 700; color: {colors.text_primary};">{value}</div>
-                        </div>
-                        """
-                    )
-        else:
-            st.info("No regional data available")
-
-        card_close()
+            # Use extracted component for regional comparison
+            render_regional_comparison(
+                regional_df,
+                region_column="region",
+                value_column="sustainability_index",
+                title="Sustainability Index",
+            )
 
         spacer("md")
 
         try:
             from analytics_hub_platform.ui.components.saudi_map import render_saudi_map
 
-            card_open(
-                "Geographic Visualization", f"Interactive Regional KPI Map - Q{quarter} {year}"
-            )
+            with card_container(
+                "Geographic Visualization",
+                f"Interactive Regional KPI Map - Q{quarter} {year}",
+            ):
+                if len(regional_df) > 0:
+                    map_kpis = [
+                        "sustainability_index",
+                        "gdp_growth",
+                        "unemployment_rate",
+                        "co2_index",
+                    ]
+                    available_map_kpis = [k for k in map_kpis if k in regional_df.columns]
 
-            if len(regional_df) > 0:
-                map_kpis = ["sustainability_index", "gdp_growth", "unemployment_rate", "co2_index"]
-                available_map_kpis = [k for k in map_kpis if k in regional_df.columns]
-
-                if available_map_kpis:
-                    selected_map_kpi = st.selectbox(
-                        "Select KPI for Map",
-                        available_map_kpis,
-                        format_func=lambda x: x.replace("_", " ").title(),
-                        key="map_kpi",
-                    )
-
-                    region_mapping = {
-                        "Riyadh": "riyadh",
-                        "Makkah": "makkah",
-                        "Eastern Province": "eastern",
-                        "Madinah": "madinah",
-                        "Qassim": "qassim",
-                        "Asir": "asir",
-                        "Tabuk": "tabuk",
-                        "Hail": "hail",
-                        "Northern Borders": "northern_borders",
-                        "Jazan": "jazan",
-                        "Najran": "najran",
-                        "Al Bahah": "bahah",
-                        "Al Jawf": "jawf",
-                    }
-
-                    if "region" in regional_df.columns:
-                        regional_map_agg = (
-                            regional_df.groupby("region")
-                            .agg({selected_map_kpi: "mean"})
-                            .reset_index()
+                    if available_map_kpis:
+                        selected_map_kpi = st.selectbox(
+                            "Select KPI for Map",
+                            available_map_kpis,
+                            format_func=lambda x: x.replace("_", " ").title(),
+                            key="map_kpi",
                         )
-                        regional_map_agg["region_id"] = regional_map_agg["region"].map(
-                            region_mapping
-                        )
-                        regional_map_agg = regional_map_agg.rename(
-                            columns={selected_map_kpi: "value"}
-                        )
-                        regional_map_agg = regional_map_agg.dropna(subset=["region_id", "value"])
 
-                        if len(regional_map_agg) > 0:
-                            fig = render_saudi_map(
-                                region_data=regional_map_agg,
-                                value_column="value",
-                                title=f"{selected_map_kpi.replace('_', ' ').title()} - Q{quarter} {year}",
-                                language=st.session_state.get("language", "en"),
+                        region_mapping = {
+                            "Riyadh": "riyadh",
+                            "Makkah": "makkah",
+                            "Eastern Province": "eastern",
+                            "Madinah": "madinah",
+                            "Qassim": "qassim",
+                            "Asir": "asir",
+                            "Tabuk": "tabuk",
+                            "Hail": "hail",
+                            "Northern Borders": "northern_borders",
+                            "Jazan": "jazan",
+                            "Najran": "najran",
+                            "Al Bahah": "bahah",
+                            "Al Jawf": "jawf",
+                        }
+
+                        if "region" in regional_df.columns:
+                            regional_map_agg = (
+                                regional_df.groupby("region")
+                                .agg({selected_map_kpi: "mean"})
+                                .reset_index()
                             )
-                            st.plotly_chart(fig, use_container_width=True)
-                        else:
-                            st.info("No regional data available for map")
-                else:
-                    st.info("No KPI data available for map")
-            else:
-                st.info("No data for selected period")
+                            regional_map_agg["region_id"] = regional_map_agg["region"].map(
+                                region_mapping
+                            )
+                            regional_map_agg = regional_map_agg.rename(
+                                columns={selected_map_kpi: "value"}
+                            )
+                            regional_map_agg = regional_map_agg.dropna(
+                                subset=["region_id", "value"]
+                            )
 
-            card_close()
+                            if len(regional_map_agg) > 0:
+                                fig = render_saudi_map(
+                                    region_data=regional_map_agg,
+                                    value_column="value",
+                                    title=f"{selected_map_kpi.replace('_', ' ').title()} - Q{quarter} {year}",
+                                    language=st.session_state.get("language", "en"),
+                                )
+                                st.plotly_chart(fig, use_container_width=True)
+                            else:
+                                st.info("No regional data available for map")
+                    else:
+                        st.info("No KPI data available for map")
+                else:
+                    st.info("No data for selected period")
 
         except ImportError:
             pass
@@ -431,57 +295,46 @@ with main_col:
             "Environmental Trends", "Multi-indicator sustainability performance over time", "🌿"
         )
 
-        card_open("Environmental KPIs", "Tracking sustainability metrics")
+        with card_container("Environmental KPIs", "Tracking sustainability metrics"):
+            env_kpis = [
+                "co2_index",
+                "renewable_share",
+                "energy_intensity",
+                "water_efficiency",
+                "waste_recycling_rate",
+                "air_quality_index",
+                "forest_coverage",
+                "green_jobs",
+            ]
 
-        env_kpis = [
-            "co2_index",
-            "renewable_share",
-            "energy_intensity",
-            "water_efficiency",
-            "waste_recycling_rate",
-            "air_quality_index",
-            "forest_coverage",
-            "green_jobs",
-        ]
-
-        trend_env = (
-            df.groupby(["year", "quarter"])
-            .agg({k: "mean" for k in env_kpis if k in df.columns})
-            .reset_index()
-        )
-        trend_env = add_period_column(trend_env)
-        trend_env = trend_env.sort_values(["year", "quarter"])
-
-        fig_env = go.Figure()
-        chart_colors = list(colors.chart_palette)
-        label_map = {
-            "co2_index": "CO2 Intensity",
-            "renewable_share": "Renewables %",
-            "energy_intensity": "Energy Intensity",
-            "water_efficiency": "Water Efficiency",
-            "waste_recycling_rate": "Recycling Rate",
-            "air_quality_index": "Air Quality",
-            "forest_coverage": "Forest Coverage",
-            "green_jobs": "Green Jobs",
-        }
-
-        for i, kpi in enumerate(env_kpis):
-            if kpi not in trend_env.columns:
-                continue
-            fig_env.add_trace(
-                go.Scatter(
-                    x=trend_env["period"],
-                    y=trend_env[kpi],
-                    mode="lines+markers",
-                    name=label_map.get(kpi, kpi),
-                    line={"color": chart_colors[i % len(chart_colors)], "width": 2},
-                    hovertemplate="<b>%{fullData.name}</b><br>%{x}<br>Value: %{y:.1f}<extra></extra>",
-                )
+            trend_env = (
+                df.groupby(["year", "quarter"])
+                .agg({k: "mean" for k in env_kpis if k in df.columns})
+                .reset_index()
             )
+            trend_env = add_period_column(trend_env)
+            trend_env = trend_env.sort_values(["year", "quarter"])
 
-        apply_chart_theme(fig_env, height=420)
-        st.plotly_chart(fig_env, use_container_width=True)
-        card_close()
+            label_map = {
+                "co2_index": "CO2 Intensity",
+                "renewable_share": "Renewables %",
+                "energy_intensity": "Energy Intensity",
+                "water_efficiency": "Water Efficiency",
+                "waste_recycling_rate": "Recycling Rate",
+                "air_quality_index": "Air Quality",
+                "forest_coverage": "Forest Coverage",
+                "green_jobs": "Green Jobs",
+            }
+
+            # Use extracted component for multi-series chart
+            available_env_kpis = [k for k in env_kpis if k in trend_env.columns]
+            render_multi_series_chart(
+                df=trend_env,
+                x_column="period",
+                y_columns=available_env_kpis,
+                labels=label_map,
+                height=420,
+            )
 
     except Exception as e:
         st.error(f"Error loading trend data: {str(e)}")

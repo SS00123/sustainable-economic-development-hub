@@ -1,0 +1,38 @@
+token_name,value,usage,notes
+bg_deep,#0B1120,Deepest background (hero overlays),Background layer 1
+bg_main,#111827,Main canvas background,Background layer 2
+bg_card,#1E293B,Card background,Background layer 3
+bg_card_alt,#1E2340,Alternate card,Subtle differentiation
+bg_hover,#334155,Hover state,Interactive feedback
+text_primary,"rgba(255, 255, 255, 0.95)",Main body text,Primary text layer
+text_secondary,"rgba(255, 255, 255, 0.78)",Secondary text,Secondary text layer
+text_muted,"rgba(255, 255, 255, 0.55)",Labels and captions,Tertiary text layer
+text_subtle,"rgba(255, 255, 255, 0.35)",Hints and disabled,Quaternary text layer
+status_green,#10B981,Success foreground,Status indicator
+status_green_bg,"rgba(16, 185, 129, 0.15)",Success background,Status background
+status_amber,#F59E0B,Warning foreground,Status indicator
+status_amber_bg,"rgba(245, 158, 11, 0.15)",Warning background,Status background
+status_red,#EF4444,Danger/Risk foreground,Status indicator
+status_red_bg,"rgba(239, 68, 68, 0.15)",Danger/Risk background,Status background
+accent_primary,#06B6D4,Cyan - primary accent,Brand accent 1
+accent_secondary,#3B82F6,Blue - secondary accent,Brand accent 2
+accent_purple,#8B5CF6,Violet,Brand accent 3
+accent_pink,#EC4899,Pink,Brand accent 4
+domain_economic,#3B82F6,Economic pillar - Blue,Domain color
+domain_labor,#8B5CF6,Labor pillar - Violet,Domain color
+domain_social,#06B6D4,Social pillar - Cyan,Domain color
+domain_environmental,#10B981,Environmental pillar - Green,Domain color
+domain_data_quality,#64748B,Data quality - Slate,Domain color
+border,"rgba(255, 255, 255, 0.08)",Default border,Border layer 1
+border_light,"rgba(255, 255, 255, 0.12)",Light border,Border layer 2
+border_glow,"rgba(168, 85, 247, 0.3)",Glow border,Special effect
+chart_palette_0,#06B6D4,Chart color 1 - Cyan,Multi-series charts
+chart_palette_1,#3B82F6,Chart color 2 - Blue,Multi-series charts
+chart_palette_2,#10B981,Chart color 3 - Green,Multi-series charts
+chart_palette_3,#F59E0B,Chart color 4 - Amber,Multi-series charts
+chart_palette_4,#EF4444,Chart color 5 - Red,Multi-series charts
+chart_palette_5,#8B5CF6,Chart color 6 - Violet,Multi-series charts
+chart_palette_6,#EC4899,Chart color 7 - Pink,Multi-series charts
+chart_palette_7,#14B8A6,Chart color 8 - Teal,Multi-series charts
+chart_palette_8,#F472B6,Chart color 9 - Light pink,Multi-series charts
+chart_palette_9,#818CF8,Chart color 10 - Indigo,Multi-series charts

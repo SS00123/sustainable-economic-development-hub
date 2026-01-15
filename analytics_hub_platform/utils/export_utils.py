@@ -174,7 +174,7 @@ def get_png_download_button_html(
     if png_bytes:
         b64 = base64.b64encode(png_bytes).decode()
         return f'''
-        <a href="data:image/png;base64,{b64}" 
+        <a href="data:image/png;base64,{b64}"
            download="{filename}"
            style="
                display: inline-block;
@@ -444,7 +444,7 @@ def get_pdf_download_link(
     mime = "application/pdf" if pdf_bytes[:4] == b"%PDF" else "text/plain"
 
     return f'''
-    <a href="data:{mime};base64,{b64}" 
+    <a href="data:{mime};base64,{b64}"
        download="{filename}"
        style="
            display: inline-block;

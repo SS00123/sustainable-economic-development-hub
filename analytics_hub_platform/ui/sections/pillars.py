@@ -10,10 +10,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from analytics_hub_platform.ui.ui_components import apply_dark_chart_layout
-from analytics_hub_platform.ui.dark_components import (
-    card_close,
-    card_open,
-)
+from analytics_hub_platform.app.components import card_close, card_open
 from analytics_hub_platform.ui.theme import hex_to_rgba
 from analytics_hub_platform.ui.html import render_html
 from analytics_hub_platform.utils.dataframe_adapter import add_period_column

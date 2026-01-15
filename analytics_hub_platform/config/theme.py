@@ -1,11 +1,24 @@
 """
-Theme Configuration
+Theme Configuration (DEPRECATED)
 Sustainable Economic Development Analytics Hub
 Ministry of Economy and Planning
 
-Defines the visual theme for the analytics platform:
-colors, typography, spacing, and component styles.
+⚠️ DEPRECATED: This module is deprecated.
+   Please use analytics_hub_platform.ui.theme instead.
+
+   from analytics_hub_platform.ui.theme import get_theme, Theme, colors, spacing
+
+   This file is kept for backwards compatibility only and will be removed in a future version.
 """
+
+import warnings
+
+warnings.warn(
+    "analytics_hub_platform.config.theme is deprecated. "
+    "Use analytics_hub_platform.ui.theme instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 from dataclasses import dataclass, field
 from functools import lru_cache

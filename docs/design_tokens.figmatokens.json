@@ -1,0 +1,511 @@
+{
+  "colors": {
+    "bg": {
+      "deep": {
+        "value": "#0B1120",
+        "type": "color",
+        "description": "Deepest background (hero, overlays)"
+      },
+      "main": {
+        "value": "#111827",
+        "type": "color",
+        "description": "Main canvas background"
+      },
+      "card": {
+        "value": "#1E293B",
+        "type": "color",
+        "description": "Card background"
+      },
+      "card_alt": {
+        "value": "#1E2340",
+        "type": "color",
+        "description": "Alternate card (subtle differentiation)"
+      },
+      "hover": {
+        "value": "#334155",
+        "type": "color",
+        "description": "Hover state"
+      }
+    },
+    "text": {
+      "primary": {
+        "value": "rgba(255, 255, 255, 0.95)",
+        "type": "color",
+        "description": "Main body text"
+      },
+      "secondary": {
+        "value": "rgba(255, 255, 255, 0.78)",
+        "type": "color",
+        "description": "Secondary text"
+      },
+      "muted": {
+        "value": "rgba(255, 255, 255, 0.55)",
+        "type": "color",
+        "description": "Labels, captions"
+      },
+      "subtle": {
+        "value": "rgba(255, 255, 255, 0.35)",
+        "type": "color",
+        "description": "Hints, disabled"
+      }
+    },
+    "status": {
+      "green": {
+        "value": "#10B981",
+        "type": "color",
+        "description": "Success foreground"
+      },
+      "green_bg": {
+        "value": "rgba(16, 185, 129, 0.15)",
+        "type": "color",
+        "description": "Success background"
+      },
+      "amber": {
+        "value": "#F59E0B",
+        "type": "color",
+        "description": "Warning foreground"
+      },
+      "amber_bg": {
+        "value": "rgba(245, 158, 11, 0.15)",
+        "type": "color",
+        "description": "Warning background"
+      },
+      "red": {
+        "value": "#EF4444",
+        "type": "color",
+        "description": "Danger/Risk foreground"
+      },
+      "red_bg": {
+        "value": "rgba(239, 68, 68, 0.15)",
+        "type": "color",
+        "description": "Danger/Risk background"
+      }
+    },
+    "accent": {
+      "primary": {
+        "value": "#06B6D4",
+        "type": "color",
+        "description": "Cyan - primary accent"
+      },
+      "secondary": {
+        "value": "#3B82F6",
+        "type": "color",
+        "description": "Blue - secondary accent"
+      },
+      "purple": {
+        "value": "#8B5CF6",
+        "type": "color",
+        "description": "Violet"
+      },
+      "pink": {
+        "value": "#EC4899",
+        "type": "color",
+        "description": "Pink"
+      }
+    },
+    "domain": {
+      "economic": {
+        "value": "#3B82F6",
+        "type": "color",
+        "description": "Economic pillar - Blue"
+      },
+      "labor": {
+        "value": "#8B5CF6",
+        "type": "color",
+        "description": "Labor pillar - Violet"
+      },
+      "social": {
+        "value": "#06B6D4",
+        "type": "color",
+        "description": "Social pillar - Cyan"
+      },
+      "environmental": {
+        "value": "#10B981",
+        "type": "color",
+        "description": "Environmental pillar - Green"
+      },
+      "data_quality": {
+        "value": "#64748B",
+        "type": "color",
+        "description": "Data quality - Slate"
+      }
+    },
+    "border": {
+      "default": {
+        "value": "rgba(255, 255, 255, 0.08)",
+        "type": "color",
+        "description": "Default border"
+      },
+      "light": {
+        "value": "rgba(255, 255, 255, 0.12)",
+        "type": "color",
+        "description": "Light border"
+      },
+      "glow": {
+        "value": "rgba(168, 85, 247, 0.3)",
+        "type": "color",
+        "description": "Glow border"
+      }
+    },
+    "chart_palette": {
+      "0": {
+        "value": "#06B6D4",
+        "type": "color",
+        "description": "Chart color 1 - Cyan"
+      },
+      "1": {
+        "value": "#3B82F6",
+        "type": "color",
+        "description": "Chart color 2 - Blue"
+      },
+      "2": {
+        "value": "#10B981",
+        "type": "color",
+        "description": "Chart color 3 - Green"
+      },
+      "3": {
+        "value": "#F59E0B",
+        "type": "color",
+        "description": "Chart color 4 - Amber"
+      },
+      "4": {
+        "value": "#EF4444",
+        "type": "color",
+        "description": "Chart color 5 - Red"
+      },
+      "5": {
+        "value": "#8B5CF6",
+        "type": "color",
+        "description": "Chart color 6 - Violet"
+      },
+      "6": {
+        "value": "#EC4899",
+        "type": "color",
+        "description": "Chart color 7 - Pink"
+      },
+      "7": {
+        "value": "#14B8A6",
+        "type": "color",
+        "description": "Chart color 8 - Teal"
+      },
+      "8": {
+        "value": "#F472B6",
+        "type": "color",
+        "description": "Chart color 9 - Light pink"
+      },
+      "9": {
+        "value": "#818CF8",
+        "type": "color",
+        "description": "Chart color 10 - Indigo"
+      }
+    }
+  },
+  "typography": {
+    "fontFamily": {
+      "base": {
+        "value": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        "type": "fontFamilies",
+        "description": "Base font family"
+      },
+      "arabic": {
+        "value": "'Segoe UI', 'Tahoma', 'Arial', sans-serif",
+        "type": "fontFamilies",
+        "description": "Arabic font family"
+      },
+      "mono": {
+        "value": "'JetBrains Mono', 'Consolas', 'Monaco', monospace",
+        "type": "fontFamilies",
+        "description": "Monospace font family"
+      }
+    },
+    "fontSize": {
+      "hero": {
+        "value": "48",
+        "type": "fontSizes",
+        "description": "Hero numbers, gauges"
+      },
+      "h1": {
+        "value": "32",
+        "type": "fontSizes",
+        "description": "Page titles"
+      },
+      "h2": {
+        "value": "24",
+        "type": "fontSizes",
+        "description": "Section headers"
+      },
+      "h3": {
+        "value": "18",
+        "type": "fontSizes",
+        "description": "Card titles"
+      },
+      "h4": {
+        "value": "16",
+        "type": "fontSizes",
+        "description": "Sub-section titles"
+      },
+      "body": {
+        "value": "14",
+        "type": "fontSizes",
+        "description": "Body text"
+      },
+      "caption": {
+        "value": "12",
+        "type": "fontSizes",
+        "description": "Captions, labels"
+      },
+      "small": {
+        "value": "11",
+        "type": "fontSizes",
+        "description": "Small text"
+      },
+      "tiny": {
+        "value": "10",
+        "type": "fontSizes",
+        "description": "Tiny labels"
+      }
+    },
+    "fontWeight": {
+      "regular": {
+        "value": "400",
+        "type": "fontWeights",
+        "description": "Regular weight"
+      },
+      "medium": {
+        "value": "500",
+        "type": "fontWeights",
+        "description": "Medium weight"
+      },
+      "semibold": {
+        "value": "600",
+        "type": "fontWeights",
+        "description": "Semibold weight"
+      },
+      "bold": {
+        "value": "700",
+        "type": "fontWeights",
+        "description": "Bold weight"
+      },
+      "extrabold": {
+        "value": "800",
+        "type": "fontWeights",
+        "description": "Extrabold weight"
+      }
+    },
+    "lineHeight": {
+      "tight": {
+        "value": "1.25",
+        "type": "lineHeights",
+        "description": "Tight line height"
+      },
+      "normal": {
+        "value": "1.5",
+        "type": "lineHeights",
+        "description": "Normal line height"
+      },
+      "relaxed": {
+        "value": "1.75",
+        "type": "lineHeights",
+        "description": "Relaxed line height"
+      }
+    }
+  },
+  "spacing": {
+    "xs": {
+      "value": "4",
+      "type": "spacing",
+      "description": "0.5x base (4px)"
+    },
+    "sm": {
+      "value": "8",
+      "type": "spacing",
+      "description": "1x base (8px)"
+    },
+    "md": {
+      "value": "16",
+      "type": "spacing",
+      "description": "2x base (16px)"
+    },
+    "lg": {
+      "value": "24",
+      "type": "spacing",
+      "description": "3x base (24px)"
+    },
+    "xl": {
+      "value": "32",
+      "type": "spacing",
+      "description": "4x base (32px)"
+    },
+    "xxl": {
+      "value": "48",
+      "type": "spacing",
+      "description": "6x base (48px)"
+    },
+    "page_margin": {
+      "value": "32",
+      "type": "spacing",
+      "description": "Page margin"
+    },
+    "section_gap": {
+      "value": "32",
+      "type": "spacing",
+      "description": "Section gap"
+    },
+    "card_gap": {
+      "value": "24",
+      "type": "spacing",
+      "description": "Card gap"
+    },
+    "card_padding": {
+      "value": "20",
+      "type": "spacing",
+      "description": "Card padding"
+    },
+    "row_gap": {
+      "value": "20",
+      "type": "spacing",
+      "description": "Row gap"
+    },
+    "gutter": {
+      "value": "16",
+      "type": "spacing",
+      "description": "Gutter"
+    },
+    "inline_gap": {
+      "value": "8",
+      "type": "spacing",
+      "description": "Inline gap"
+    }
+  },
+  "radius": {
+    "xs": {
+      "value": "4",
+      "type": "borderRadius",
+      "description": "Extra small radius"
+    },
+    "sm": {
+      "value": "6",
+      "type": "borderRadius",
+      "description": "Small radius"
+    },
+    "md": {
+      "value": "8",
+      "type": "borderRadius",
+      "description": "Medium radius"
+    },
+    "lg": {
+      "value": "12",
+      "type": "borderRadius",
+      "description": "Large radius"
+    },
+    "xl": {
+      "value": "16",
+      "type": "borderRadius",
+      "description": "Extra large radius"
+    },
+    "xxl": {
+      "value": "20",
+      "type": "borderRadius",
+      "description": "Extra extra large radius"
+    },
+    "full": {
+      "value": "9999",
+      "type": "borderRadius",
+      "description": "Full radius (pill)"
+    },
+    "card": {
+      "value": "16",
+      "type": "borderRadius",
+      "description": "Card radius"
+    },
+    "button": {
+      "value": "8",
+      "type": "borderRadius",
+      "description": "Button radius"
+    },
+    "input": {
+      "value": "8",
+      "type": "borderRadius",
+      "description": "Input radius"
+    },
+    "badge": {
+      "value": "20",
+      "type": "borderRadius",
+      "description": "Badge radius"
+    }
+  },
+  "shadows": {
+    "card": {
+      "value": "0 4px 6px rgba(0, 0, 0, 0.1), 0 20px 50px rgba(0, 0, 0, 0.4)",
+      "type": "boxShadow",
+      "description": "Default card shadow"
+    },
+    "card_hover": {
+      "value": "0 8px 16px rgba(0, 0, 0, 0.15), 0 30px 60px rgba(0, 0, 0, 0.45)",
+      "type": "boxShadow",
+      "description": "Card hover shadow"
+    },
+    "card_sm": {
+      "value": "0 2px 4px rgba(0, 0, 0, 0.1), 0 10px 20px rgba(0, 0, 0, 0.3)",
+      "type": "boxShadow",
+      "description": "Small card shadow"
+    },
+    "card_subtle": {
+      "value": "0 4px 12px rgba(0, 0, 0, 0.25)",
+      "type": "boxShadow",
+      "description": "Subtle card shadow"
+    },
+    "glow_purple": {
+      "value": "0 0 40px rgba(168, 85, 247, 0.15)",
+      "type": "boxShadow",
+      "description": "Purple glow effect"
+    },
+    "glow_cyan": {
+      "value": "0 0 40px rgba(6, 182, 212, 0.15)",
+      "type": "boxShadow",
+      "description": "Cyan glow effect"
+    },
+    "glow_green": {
+      "value": "0 0 20px rgba(16, 185, 129, 0.3)",
+      "type": "boxShadow",
+      "description": "Green glow effect"
+    },
+    "glow_amber": {
+      "value": "0 0 20px rgba(245, 158, 11, 0.3)",
+      "type": "boxShadow",
+      "description": "Amber glow effect"
+    },
+    "glow_red": {
+      "value": "0 0 20px rgba(239, 68, 68, 0.3)",
+      "type": "boxShadow",
+      "description": "Red glow effect"
+    },
+    "inset_highlight": {
+      "value": "inset 0 1px 0 rgba(255, 255, 255, 0.08)",
+      "type": "boxShadow",
+      "description": "Inset highlight"
+    }
+  },
+  "transitions": {
+    "fast": {
+      "value": "150ms ease",
+      "type": "other",
+      "description": "Fast transition"
+    },
+    "normal": {
+      "value": "200ms ease",
+      "type": "other",
+      "description": "Normal transition"
+    },
+    "slow": {
+      "value": "300ms ease",
+      "type": "other",
+      "description": "Slow transition"
+    },
+    "smooth": {
+      "value": "280ms cubic-bezier(0.4, 0, 0.2, 1)",
+      "type": "other",
+      "description": "Smooth transition"
+    }
+  }
+}

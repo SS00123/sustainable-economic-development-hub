@@ -13,7 +13,6 @@ Single-page professional dashboard combining all views:
 Dark 3D theme with sidebar navigation and card-based layout.
 """
 
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -23,8 +22,7 @@ import plotly.graph_objects as go
 import streamlit as st
 import yaml
 
-from analytics_hub_platform.config.branding import BRANDING
-from analytics_hub_platform.config.theme import get_theme
+from analytics_hub_platform.ui.theme import get_theme
 from analytics_hub_platform.domain.indicators import calculate_change
 from analytics_hub_platform.domain.models import FilterParams
 from analytics_hub_platform.domain.services import (
@@ -43,32 +41,27 @@ from analytics_hub_platform.ui.components.cards import (
 )
 from analytics_hub_platform.ui.html import render_html
 from analytics_hub_platform.ui.ui_components import apply_dark_chart_layout
-from analytics_hub_platform.ui.dark_components import (
+from analytics_hub_platform.app.components import (
     card_close,
     card_open,
-    render_mini_metric,
+    create_progress_ring,
+    create_sparkline_svg,
+    render_enhanced_kpi_card,
+    render_section_title as render_dark_section_title,
     render_sidebar,
     render_status_overview,
-    create_sparkline_svg,
-    create_progress_ring,
-    create_alert_badge,
-    render_enhanced_kpi_card,
-    render_yoy_comparison,
-    add_target_line_to_chart,
     render_sticky_header,
-)
-from analytics_hub_platform.ui.dark_components import (
-    render_header as render_dark_header,
-)
-from analytics_hub_platform.ui.dark_components import (
-    render_section_title as render_dark_section_title,
+    # Dashboard enhancements
+    render_quick_actions_bar,
+    render_smart_alerts,
+    render_comparison_panel,
+    render_data_freshness_badge,
 )
 
 # Import dark theme components
 from analytics_hub_platform.ui.theme import get_dark_theme, hex_to_rgba
 from analytics_hub_platform.utils.dataframe_adapter import add_period_column
 from analytics_hub_platform.utils.kpi_utils import get_kpi_unit
-from analytics_hub_platform.utils.narratives import generate_executive_narrative
 
 
 def _hex_to_rgba(hex_color: str, alpha: float) -> str:
@@ -146,7 +139,7 @@ def render_unified_dashboard() -> None:
     """Render the unified professional dashboard with dark 3D theme."""
     dark_theme = get_dark_theme()
     # Also get legacy theme for compatibility with existing helper functions
-    theme = get_theme()
+    _theme = get_theme()  # noqa: F841 Reserved for legacy compat
 
     settings = get_settings()
 
@@ -304,6 +297,51 @@ def render_unified_dashboard() -> None:
             return
 
         # =========================================================================
+        # QUICK ACTIONS BAR
+        # =========================================================================
+        actions = render_quick_actions_bar(df, year, quarter, region)
+
+        # Handle refresh action
+        if actions.get("refresh"):
+            st.rerun()
+
+        # Show comparison panel if comparison mode is enabled
+        if actions.get("comparison_enabled") or st.session_state.get("comparison_mode"):
+            st.session_state["comparison_mode"] = True
+            # Get previous period metrics for comparison
+            try:
+                prev_dashboard_data = get_dashboard_data(
+                    tenant_id=settings.default_tenant_id,
+                    year=prev_year,
+                    quarter=prev_quarter,
+                    region=region_param,
+                    language=language,
+                )
+                prev_snapshot = prev_dashboard_data.get("snapshot", {})
+                prev_metrics = _enrich_metrics(
+                    prev_dashboard_data.get("df", df),
+                    prev_snapshot.get("metrics", {}),
+                    prev_filters,
+                    catalog,
+                )
+                render_comparison_panel(
+                    metrics,
+                    prev_metrics,
+                    current_label=f"Q{quarter} {year}",
+                    previous_label=f"Q{prev_quarter} {prev_year}",
+                )
+            except Exception:
+                # If previous data not available, show message
+                st.info("📊 Comparison data not available for previous period.")
+
+        render_html("<div style='height: 16px;'></div>")
+
+        # =========================================================================
+        # SMART ALERTS SECTION
+        # =========================================================================
+        render_smart_alerts(metrics)
+
+        # =========================================================================
         # HERO METRICS SECTION (Always Visible)
         # =========================================================================
         render_html("<div id='section-overview' style='height: 16px;'></div>")
@@ -330,10 +368,14 @@ def render_unified_dashboard() -> None:
 
         render_html("<div style='height: 24px;'></div>")
 
-        # Status overview row (compact)
-        card_open("Performance Overview", f"Q{quarter} {year} • {len(metrics)} KPIs tracked")
-        render_status_overview(green_count, amber_count, red_count)
-        card_close()
+        # Status overview row with data freshness badge (compact)
+        status_col, freshness_col = st.columns([0.85, 0.15])
+        with status_col:
+            card_open("Performance Overview", f"Q{quarter} {year} • {len(metrics)} KPIs tracked")
+            render_status_overview(green_count, amber_count, red_count)
+            card_close()
+        with freshness_col:
+            render_data_freshness_badge()
 
         render_html("<div style='height: 24px;'></div>")
 
@@ -559,7 +601,7 @@ def render_unified_dashboard() -> None:
                 st.plotly_chart(fig_env, width="stretch")
             else:
                 st.info("Select at least one indicator to view trends.")
-            
+
             card_close()
 
         with tab_regional:
@@ -1281,12 +1323,12 @@ def _render_hero_sustainability_gauge(
     - Glassmorphism card with accent lighting
     """
     index_value = sustainability.get("index", 0) or 0
-    status = sustainability.get("status", "unknown")
+    _status = sustainability.get("status", "unknown")  # noqa: F841
     previous_value = None
     if sustainability_prev and sustainability_prev.get("status") != "no_data":
         previous_value = sustainability_prev.get("index")
 
-    delta = ((index_value - previous_value) / previous_value * 100) if previous_value else 0
+    _delta = ((index_value - previous_value) / previous_value * 100) if previous_value else 0  # noqa: F841
 
     # Determine glow color based on value
     if index_value >= 70:
@@ -1457,7 +1499,7 @@ def _render_hero_kpi_cards(
                 if quality_prev and quality_prev.get("completeness") is not None:
                     prev_val = quality_prev.get("completeness")
                 delta = ((val - prev_val) / prev_val * 100) if prev_val else 0
-                
+
                 if val >= 95: status_label = "On Track"
                 elif val >= 80: status_label = "Watch"
                 else: status_label = "Off Track"
@@ -1474,7 +1516,7 @@ def _render_hero_kpi_cards(
                 val = kpi.get("value", 0) or 0
                 delta = kpi.get("change_percent", 0) or 0
                 status_code = kpi.get("status", "neutral")
-                
+
                 if status_code == "green": status_label = "On Track"
                 elif status_code == "amber": status_label = "Watch"
                 elif status_code == "red": status_label = "Off Track"
@@ -1536,7 +1578,7 @@ def _render_hero_kpi_card(
     # Invert for unemployment (lower is better)
     if kpi_id == "unemployment_rate":
         delta_color = dark_theme.colors.red if delta >= 0 else dark_theme.colors.green
-    delta_icon = "▲" if delta >= 0 else "▼"
+    _delta_icon = "▲" if delta >= 0 else "▼"  # noqa: F841
 
     status_color = dark_theme.colors.get_status_color(status)
 
@@ -1779,7 +1821,7 @@ def _render_pillar_kpi_card(kpi: dict, kpi_id: str, domain_color: str, dark_them
     """Render a KPI card for pillar sections with domain color accent."""
     val = kpi.get("value", 0) or 0
     change = kpi.get("change_percent", 0) or 0
-    status = kpi.get("status", "neutral")
+    _status = kpi.get("status", "neutral")  # noqa: F841 Reserved for status indicator
     label = kpi.get("name", kpi.get("display_name", kpi_id.replace("_", " ").title()))
     unit = get_kpi_unit(kpi_id)
 
@@ -1986,7 +2028,7 @@ def _render_data_quality_section(
     dark_theme,
 ) -> None:
     """Render Data Quality & Completeness section using real completeness data."""
-    domain_color = dark_theme.colors.domain_data_quality
+    _domain_color = dark_theme.colors.domain_data_quality  # noqa: F841
 
     # Main layout: Large score card + metadata + completeness chart
     score_col, details_col = st.columns([0.35, 0.65], gap="large")
@@ -2029,7 +2071,7 @@ def _render_data_quality_section(
         # Metadata panel
         card_open("Data Health Summary", "Key quality indicators")
 
-        records = quality_metrics.get("records_count", 0)
+        _records = quality_metrics.get("records_count", 0)  # noqa: F841
         last_update = quality_metrics.get("last_update")
         if not last_update and "load_timestamp" in df.columns:
             ts = df["load_timestamp"].dropna()
@@ -2039,7 +2081,7 @@ def _render_data_quality_section(
         total_indicators = len([k for k in catalog.get("kpis", []) if k.get("id")])
         source_count = df["source_system"].dropna().nunique() if "source_system" in df else 0
         complete_count = sum(1 for m in metrics.values() if m.get("value") is not None)
-        missing_count = sum(1 for m in metrics.values() if m.get("value") is None)
+        _missing_count = sum(1 for m in metrics.values() if m.get("value") is None)  # noqa: F841
 
         # Metadata grid
         meta_cols = st.columns(4, gap="small")
@@ -2418,7 +2460,7 @@ def _render_saudi_map_section(
 
     period_df = df[(df["year"] == filter_params.year) & (df["quarter"] == filter_params.quarter)]
     renewables_avg = period_df["renewable_share"].mean() if "renewable_share" in period_df else None
-    co2_avg = period_df["co2_index"].mean() if "co2_index" in period_df else None
+    _co2_avg = period_df["co2_index"].mean() if "co2_index" in period_df else None  # noqa: F841
     above_target = (map_df["value"] >= 70).sum()
 
     overlay_items = [

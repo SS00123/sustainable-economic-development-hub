@@ -15,7 +15,6 @@ Tests:
 from pathlib import Path
 import pytest
 import pandas as pd
-import io
 
 # Import the modules under test
 from analytics_hub_platform.infrastructure.data_ingestion import (
@@ -100,7 +99,7 @@ class TestFileParsing:
     def test_parse_csv_success(self, sample_good_csv):
         """Test parsing valid CSV file."""
         df, error = parse_upload_file(sample_good_csv, "test.csv")
-        
+
         assert df is not None
         assert error == ""
         assert len(df) == 8
@@ -110,7 +109,7 @@ class TestFileParsing:
     def test_parse_csv_bad_data(self, sample_bad_csv):
         """Test parsing CSV with problematic data (should still parse)."""
         df, error = parse_upload_file(sample_bad_csv, "test.csv")
-        
+
         assert df is not None
         assert error == ""
         assert len(df) > 0
@@ -118,7 +117,7 @@ class TestFileParsing:
     def test_parse_unsupported_format(self):
         """Test parsing unsupported file format."""
         df, error = parse_upload_file(b"test data", "test.txt")
-        
+
         assert df is None
         assert "Unsupported file type" in error
 
@@ -126,7 +125,7 @@ class TestFileParsing:
         """Test parsing invalid CSV content."""
         invalid_csv = b"\x00\x01\x02\x03"  # Binary garbage
         df, error = parse_upload_file(invalid_csv, "test.csv")
-        
+
         # Pandas may parse this as empty or fail
         # Either outcome is acceptable
         assert df is None or len(df) == 0 or error != ""
@@ -143,7 +142,7 @@ class TestSchemaValidation:
     def test_valid_schema(self, good_dataframe):
         """Test validation of complete schema."""
         result = validate_schema(good_dataframe)
-        
+
         assert result.is_valid is True
         assert len(result.errors) == 0
 
@@ -151,7 +150,7 @@ class TestSchemaValidation:
         """Test detection of missing required columns."""
         df, _ = parse_upload_file(sample_missing_columns_csv, "test.csv")
         result = validate_schema(df)
-        
+
         assert result.is_valid is False
         assert len(result.errors) > 0
         assert any("Missing required columns" in e for e in result.errors)
@@ -165,7 +164,7 @@ class TestSchemaValidation:
             "region": ["Riyadh"],
         })
         result = validate_schema(df)
-        
+
         # Should fail because no indicators
         assert result.is_valid is False or len(result.warnings) > 0
 
@@ -181,7 +180,7 @@ class TestDataTypeValidation:
     def test_valid_types(self, good_dataframe):
         """Test validation of correct data types."""
         result = validate_data_types(good_dataframe)
-        
+
         # Should pass without errors
         assert result.is_valid is True
 
@@ -194,7 +193,7 @@ class TestDataTypeValidation:
             "region": ["Riyadh"],
         })
         result = validate_data_types(df)
-        
+
         # Should have warnings about conversion
         assert len(result.warnings) > 0 or not result.is_valid
 
@@ -210,14 +209,14 @@ class TestRangeValidation:
     def test_valid_ranges(self, good_dataframe):
         """Test validation with all values in range."""
         result = validate_ranges(good_dataframe)
-        
+
         assert result.valid_row_count == len(good_dataframe)
         assert len(result.warnings) == 0
 
     def test_out_of_range_values(self, bad_dataframe):
         """Test detection of out-of-range values."""
         result = validate_ranges(bad_dataframe)
-        
+
         assert len(result.warnings) > 0
         assert result.valid_row_count < len(bad_dataframe)
 
@@ -231,7 +230,7 @@ class TestRangeValidation:
             "gdp_growth": [-25.0, 35.0],  # Both out of range [-20, 30]
         })
         result = validate_ranges(df)
-        
+
         assert len(result.warnings) > 0
         assert "gdp_growth" in str(result.warnings)
 
@@ -247,13 +246,13 @@ class TestRegionValidation:
     def test_valid_regions(self, good_dataframe):
         """Test validation with valid regions."""
         result = validate_regions(good_dataframe)
-        
+
         assert len(result.warnings) == 0
 
     def test_invalid_region(self, bad_dataframe):
         """Test detection of invalid regions."""
         result = validate_regions(bad_dataframe)
-        
+
         assert len(result.warnings) > 0
         assert "InvalidRegion" in str(result.warnings)
 
@@ -267,7 +266,7 @@ class TestRegionValidation:
             "gdp_growth": [3.5],
         })
         result = validate_regions(df)
-        
+
         assert len(result.warnings) == 0
 
 
@@ -282,7 +281,7 @@ class TestDuplicateDetection:
     def test_no_duplicates(self, good_dataframe):
         """Test with no duplicates."""
         result = validate_duplicates(good_dataframe)
-        
+
         assert len(result.warnings) == 0
         assert len(result.invalid_row_indices) == 0
 
@@ -296,7 +295,7 @@ class TestDuplicateDetection:
             "gdp_growth": [3.5, 4.0],
         })
         result = validate_duplicates(df)
-        
+
         assert len(result.warnings) > 0
         assert "duplicate" in str(result.warnings).lower()
 
@@ -313,7 +312,7 @@ class TestCombinedValidation:
         """Test full validation of good data."""
         df, _ = parse_upload_file(sample_good_csv, "test.csv")
         result = validate_upload(df)
-        
+
         assert result.is_valid is True
         assert len(result.errors) == 0
         assert result.valid_row_count == len(df)
@@ -322,7 +321,7 @@ class TestCombinedValidation:
         """Test full validation of bad data detects issues."""
         df, _ = parse_upload_file(sample_bad_csv, "test.csv")
         result = validate_upload(df)
-        
+
         # Should have warnings (may or may not be fatal errors)
         assert len(result.warnings) > 0 or len(result.errors) > 0
 
@@ -338,14 +337,14 @@ class TestTemplateGeneration:
     def test_generate_template(self):
         """Test template generation."""
         template = generate_upload_template()
-        
+
         assert template is not None
         assert len(template) == 1  # One sample row
-        
+
         # Check required columns present
         for col in REQUIRED_COLUMNS:
             assert col in template.columns
-        
+
         # Check some indicator columns present
         assert "gdp_growth" in template.columns
         assert "unemployment_rate" in template.columns
@@ -353,7 +352,7 @@ class TestTemplateGeneration:
     def test_template_sample_values_in_range(self):
         """Test that template sample values are within valid ranges."""
         template = generate_upload_template()
-        
+
         for col, (min_val, max_val) in FIELD_RANGES.items():
             if col in template.columns:
                 value = template[col].iloc[0]
