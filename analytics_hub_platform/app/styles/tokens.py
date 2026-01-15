@@ -1,7 +1,7 @@
 """
 Design Tokens - Single Source of Truth
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 This module defines the canonical design tokens for the application.
 All components and pages MUST reference these tokens - no inline styles.

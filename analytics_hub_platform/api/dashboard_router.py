@@ -1,7 +1,7 @@
 """
 Dashboard API Router
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Provides REST API endpoints for the React frontend dashboard.
 These endpoints match the frontend's expected API contract.

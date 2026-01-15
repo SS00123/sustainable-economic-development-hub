@@ -1,7 +1,7 @@
 """
 Security Utilities
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 This module provides:
 - Rate limiting for exports and API calls
@@ -351,28 +351,28 @@ def authenticate_user(
         "minister": User(
             id="user-001",
             tenant_id=settings.default_tenant_id,
-            email="minister@mep.gov.sa",
+            email="minister@sultan-analytics.com",
             name="His Excellency the Minister",
             role=UserRole.MINISTER,
         ),
         "director": User(
             id="user-002",
             tenant_id=settings.default_tenant_id,
-            email="director@mep.gov.sa",
+            email="director@sultan-analytics.com",
             name="Director of Analytics",
             role=UserRole.DIRECTOR,
         ),
         "analyst": User(
             id="user-003",
             tenant_id=settings.default_tenant_id,
-            email="analyst@mep.gov.sa",
+            email="analyst@sultan-analytics.com",
             name="Senior Data Analyst",
             role=UserRole.ANALYST,
         ),
         "admin": User(
             id="user-004",
             tenant_id=settings.default_tenant_id,
-            email="admin@mep.gov.sa",
+            email="admin@sultan-analytics.com",
             name="System Administrator",
             role=UserRole.ADMIN,
         ),
@@ -385,7 +385,7 @@ def authenticate_user(
     return User(
         id="user-default",
         tenant_id=settings.default_tenant_id,
-        email="viewer@mep.gov.sa",
+        email="viewer@sultan-analytics.com",
         name="Default Viewer",
         role=UserRole.VIEWER,
     )

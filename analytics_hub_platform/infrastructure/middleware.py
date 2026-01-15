@@ -1,7 +1,7 @@
 """
 API Middleware
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 FastAPI middleware for:
 - Request/response logging

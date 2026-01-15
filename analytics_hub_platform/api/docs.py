@@ -1,7 +1,7 @@
 """
 API Documentation Configuration
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 This module provides OpenAPI documentation configuration, examples,
 and tag definitions for the REST API.
@@ -210,7 +210,7 @@ OPENAPI_DESCRIPTION = """
 # Sustainable Economic Development Analytics Hub API
 
 REST API for accessing sustainability indicators, KPI data, and analytics
-for the Ministry of Economy and Planning, Kingdom of Saudi Arabia.
+for the Eng. Sultan Albuqami, Kingdom of Saudi Arabia.
 
 ## Overview
 
@@ -308,8 +308,8 @@ def get_openapi_config() -> dict[str, Any]:
             "url": "https://docs.analytics-hub.gov.sa",
         },
         "license_info": {
-            "name": "Proprietary - Ministry of Economy and Planning",
-            "url": "https://ministry.gov.sa/terms",
+            "name": "Proprietary - Eng. Sultan Albuqami",
+            "url": "https://sultan-hub.com/terms",
         },
         "servers": [
             {

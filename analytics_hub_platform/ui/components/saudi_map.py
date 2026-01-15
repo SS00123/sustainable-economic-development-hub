@@ -1,7 +1,7 @@
 """
 Saudi Arabia Map Component
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Modern interactive bubble map of Saudi Arabia regions
 for visualizing KPI performance geographically.

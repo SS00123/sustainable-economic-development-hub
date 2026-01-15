@@ -1,7 +1,7 @@
 """
 Environment-Aware Settings
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 This module provides environment-aware settings using Pydantic Settings.
 Settings can be loaded from environment variables, .env files, or Streamlit secrets.
@@ -121,7 +121,7 @@ class Settings(BaseSettings):
 
     # Default tenant
     default_tenant_id: str = "mep-sa-001"
-    default_tenant_name: str = "Ministry of Economy and Planning"
+    default_tenant_name: str = "Eng. Sultan Albuqami"
 
     # API
     api_host: str = "0.0.0.0"  # nosec B104 - Intentional for container deployment

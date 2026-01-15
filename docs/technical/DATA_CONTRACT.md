@@ -3,7 +3,7 @@
 
 **Version:** 1.0  
 **Last Updated:** 2026-01-05  
-**Owner:** Ministry of Economy and Planning  
+**Owner:** Eng. Sultan Albuqami  
 
 ---
 

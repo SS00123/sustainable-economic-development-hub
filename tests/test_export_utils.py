@@ -207,7 +207,7 @@ class TestSimpleTextReport:
         assert "Insight A" in content
         assert "RECOMMENDATIONS" in content
         assert "Do X" in content
-        assert "Ministry of Economy and Planning" in content
+        assert "Eng. Sultan Albuqami" in content
 
     def test_text_report_with_minimal_content(self):
         """Test text report with minimal content."""

@@ -1,7 +1,7 @@
 """
 Excel/CSV Importer
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Canonical implementation for loading and validating indicator data
 from Excel or CSV files.

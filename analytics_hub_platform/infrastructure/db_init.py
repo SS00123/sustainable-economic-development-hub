@@ -1,7 +1,7 @@
 """
 Database Initialization
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 This module handles:
 - Database schema creation
@@ -465,7 +465,7 @@ def generate_mock_users(tenant_id: str = "mep-sa-001") -> list:
         {
             "id": "user-001",
             "tenant_id": tenant_id,
-            "email": "minister@mep.gov.sa",
+            "email": "minister@sultan-analytics.com",
             "name": "His Excellency the Minister",
             "name_ar": "معالي الوزير",
             "role": "minister",
@@ -475,7 +475,7 @@ def generate_mock_users(tenant_id: str = "mep-sa-001") -> list:
         {
             "id": "user-002",
             "tenant_id": tenant_id,
-            "email": "director.analytics@mep.gov.sa",
+            "email": "director.analytics@sultan-analytics.com",
             "name": "Director of Analytics",
             "name_ar": "مدير التحليلات",
             "role": "director",
@@ -485,7 +485,7 @@ def generate_mock_users(tenant_id: str = "mep-sa-001") -> list:
         {
             "id": "user-003",
             "tenant_id": tenant_id,
-            "email": "senior.analyst@mep.gov.sa",
+            "email": "senior.analyst@sultan-analytics.com",
             "name": "Senior Data Analyst",
             "name_ar": "محلل بيانات أول",
             "role": "analyst",
@@ -495,7 +495,7 @@ def generate_mock_users(tenant_id: str = "mep-sa-001") -> list:
         {
             "id": "user-004",
             "tenant_id": tenant_id,
-            "email": "admin@mep.gov.sa",
+            "email": "admin@sultan-analytics.com",
             "name": "System Administrator",
             "name_ar": "مدير النظام",
             "role": "admin",

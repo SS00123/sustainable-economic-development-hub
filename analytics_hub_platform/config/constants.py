@@ -1,7 +1,7 @@
 """
 Constants Module
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Centralized constants and configuration values used across the platform.
 This module provides a single source of truth for commonly used values.

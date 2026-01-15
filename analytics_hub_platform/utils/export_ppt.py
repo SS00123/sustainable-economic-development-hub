@@ -1,7 +1,7 @@
 """
 PowerPoint Export Utility
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Generates professional PowerPoint presentations with KPI slides.
 """
@@ -101,7 +101,7 @@ def _add_title_slide(
     footer_box = slide.shapes.add_textbox(Inches(1), Inches(6.5), Inches(11.333), Inches(0.5))
     footer_frame = footer_box.text_frame
     footer_para = footer_frame.paragraphs[0]
-    footer_para.text = f"Ministry of Economy and Planning | {datetime.now().strftime('%B %Y')}"
+    footer_para.text = f"Eng. Sultan Albuqami | {datetime.now().strftime('%B %Y')}"
     footer_para.font.size = Pt(14)
     footer_para.font.color.rgb = RGBColor(200, 200, 200)
     footer_para.alignment = PP_ALIGN.CENTER

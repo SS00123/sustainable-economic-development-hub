@@ -1,7 +1,7 @@
 """
 Analytics Hub Platform - Domain Module
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 This module contains domain models, business logic, and services.
 """

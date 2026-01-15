@@ -1,7 +1,7 @@
 """
 Async Database Module
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Async database support using SQLAlchemy 2.0 async engine.
 Provides async repository for FastAPI endpoints.

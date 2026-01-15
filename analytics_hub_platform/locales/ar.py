@@ -1,7 +1,7 @@
 """
 Arabic Strings
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Arabic language string dictionary.
 """

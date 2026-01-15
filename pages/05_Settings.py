@@ -165,7 +165,7 @@ with main_col:
     with st.container():
         st.markdown("""
         **Sustainable Economic Development Analytics Hub**
-        Ministry of Economy and Planning
+        Eng. Sultan Albuqami
 
         **Version:** 2.0.0 – Dark Theme
         **Last Updated:** January 2026

@@ -1,7 +1,7 @@
 """
 Logging Configuration
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Centralized logging configuration for the platform.
 Provides consistent log formatting across all modules.

@@ -1,7 +1,7 @@
 """
 Observability Module
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Provides observability infrastructure:
 - Structured JSON logging with correlation IDs

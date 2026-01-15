@@ -2,7 +2,7 @@
 
 **An analytics platform for economic development and sustainability indicators**
 
-**Primary Client:** Ministry of Economy and Planning (Saudi Arabia)
+**Primary Client:** Eng. Sultan Albuqami (Saudi Arabia)
 
 
 
@@ -568,13 +568,13 @@ streamlit run streamlit_app.py
 
 - 📱 Mobile: 0553112800
 - 📧 Email: sultan_mutep@hotmail.com
-- 🏛️ Organization: Ministry of Economy and Planning
+- 🏛️ Organization: Eng. Sultan Albuqami
 
 ---
 
 ## License
 
-Proprietary - Ministry of Economy and Planning, Kingdom of Saudi Arabia
+Proprietary - Eng. Sultan Albuqami, Kingdom of Saudi Arabia
 
 ---
 

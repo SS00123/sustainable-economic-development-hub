@@ -1,7 +1,7 @@
 """
 Caching Utilities
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Thread-safe in-memory caching for frequently accessed data.
 Designed to be replaced with Redis or similar in production.

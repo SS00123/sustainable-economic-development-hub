@@ -1,7 +1,7 @@
 """
 Reusable Card Components
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 This module provides reusable card components that use the theme
 as the single source of truth for styling.

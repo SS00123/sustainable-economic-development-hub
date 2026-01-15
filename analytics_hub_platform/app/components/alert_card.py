@@ -72,21 +72,22 @@ def render_alert_card(
     render_html(
         f"""
         <div style="
-            background: {COLORS.bg_card};
-            border: 1px solid {color}40;
-            border-left: 4px solid {color};
-            border-radius: {RADIUS.md};
-            padding: {SPACING.md};
-            margin-bottom: {SPACING.sm};
-            box-shadow: {SHADOWS.sm};
+            background: linear-gradient(135deg, {COLORS.bg_card}, {color}08);
+            border: 1px solid {color}50;
+            border-left: 5px solid {color};
+            border-radius: {RADIUS.lg};
+            padding: {SPACING.lg};
+            margin-bottom: {SPACING.md};
+            box-shadow: {SHADOWS.sm}, 0 0 20px {color}15;
+            transition: all 200ms ease;
         ">
-            <div style="display: flex; align-items: flex-start; gap: {SPACING.sm};">
-                <span style="font-size: 18px;">{icon}</span>
+            <div style="display: flex; align-items: flex-start; gap: {SPACING.md};">
+                <span style="font-size: 22px; filter: drop-shadow(0 0 8px {color});">{icon}</span>
                 <div style="flex: 1;">
-                    <div style="font-size: {TYPOGRAPHY.body}; font-weight: 600; color: {COLORS.text_primary};">
+                    <div style="font-size: 15px; font-weight: 600; color: {COLORS.text_primary};">
                         {title}
                     </div>
-                    <div style="font-size: {TYPOGRAPHY.caption}; color: {COLORS.text_secondary}; margin-top: {SPACING.xs};">
+                    <div style="font-size: 14px; color: {COLORS.text_secondary}; margin-top: {SPACING.sm}; line-height: 1.5;">
                         {description}
                     </div>
                     {meta_html}
@@ -113,15 +114,15 @@ def render_alert_summary(
     items = []
     if critical > 0:
         items.append(
-            f'<span style="color: {COLORS.status_red}; font-weight: 600;">🔴 {critical} Critical</span>'
+            f'<span style="color: {COLORS.status_red}; font-weight: 600; padding: 6px 14px; background: {COLORS.status_red}20; border-radius: 20px; border: 1px solid {COLORS.status_red}40;">🔴 {critical} Critical</span>'
         )
     if warning > 0:
         items.append(
-            f'<span style="color: {COLORS.status_amber}; font-weight: 600;">🟡 {warning} Warning</span>'
+            f'<span style="color: {COLORS.status_amber}; font-weight: 600; padding: 6px 14px; background: {COLORS.status_amber}20; border-radius: 20px; border: 1px solid {COLORS.status_amber}40;">🟡 {warning} Warning</span>'
         )
     if normal > 0:
         items.append(
-            f'<span style="color: {COLORS.status_green}; font-weight: 600;">🟢 {normal} Normal</span>'
+            f'<span style="color: {COLORS.status_green}; font-weight: 600; padding: 6px 14px; background: {COLORS.status_green}20; border-radius: 20px; border: 1px solid {COLORS.status_green}40;">🟢 {normal} Normal</span>'
         )
 
     if not items:

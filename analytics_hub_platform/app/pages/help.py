@@ -58,8 +58,8 @@ def render_about_section() -> None:
         st.markdown(
             """
         #### Contact
-        - **Owner:** Ministry of Economy and Planning
-        - **Support:** analytics-support@mep.gov.sa
+        - **Owner:** Eng. Sultan Albuqami
+        - **Support:** sultan_mutep@hotmail.com
         - **Documentation:** Internal wiki
         """
         )
@@ -211,7 +211,7 @@ def render_faq_section() -> None:
     with st.expander("Who should I contact for data issues?"):
         st.markdown(
             """
-        - **Technical Support**: analytics-support@mep.gov.sa
+        - **Technical Support**: sultan_mutep@hotmail.com
         - **Feature Requests**: Submit via internal ticketing system
         """
         )

@@ -1,7 +1,7 @@
 """
 Domain Services
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 This module contains business services that orchestrate
 domain logic and data access for specific use cases.

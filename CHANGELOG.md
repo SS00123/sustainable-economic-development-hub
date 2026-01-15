@@ -199,7 +199,7 @@ No breaking changes. New optional dependencies:
 
 ## Contributors
 
-- Ministry of Economy and Planning - IT Division
+- Eng. Sultan Albuqami - IT Division
 - Data Analytics Team
 - Quality Assurance Team
 

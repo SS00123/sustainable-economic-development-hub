@@ -4,7 +4,7 @@
 
 **Version:** 1.0  
 **Last Updated:** January 2026  
-**Owner:** Ministry of Economy and Planning - IT Operations
+**Owner:** Eng. Sultan Albuqami - IT Operations
 
 ---
 
@@ -29,15 +29,15 @@
 
 | Environment | URL | Purpose |
 |-------------|-----|---------|
-| Production | https://analytics.mep.gov.sa | Production dashboard |
-| Staging | https://staging-analytics.mep.gov.sa | Pre-production testing |
+| Production | https://analytics.sultan-hub.com | Production dashboard |
+| Staging | https://staging-analytics.sultan-hub.com | Pre-production testing |
 | Development | http://localhost:8501 | Local development |
 
 ### Quick Commands
 
 ```bash
 # Check application health
-curl -s https://analytics.mep.gov.sa/healthz
+curl -s https://analytics.sultan-hub.com/healthz
 
 # View logs (Docker)
 docker logs analytics-hub-prod --tail 100 -f
@@ -53,9 +53,9 @@ python scripts/backup_db.py --output /backups/$(date +%Y%m%d).sql
 
 | Role | Name | Phone | Email |
 |------|------|-------|-------|
-| On-Call Engineer | Rotation | +966-XXX-XXXX | oncall@mep.gov.sa |
-| Database Admin | TBD | +966-XXX-XXXX | dba@mep.gov.sa |
-| Security Team | SOC | +966-XXX-XXXX | security@mep.gov.sa |
+| On-Call Engineer | Rotation | +966-XXX-XXXX | oncall@sultan-analytics.com |
+| Database Admin | TBD | +966-XXX-XXXX | dba@sultan-analytics.com |
+| Security Team | SOC | +966-XXX-XXXX | security@sultan-analytics.com |
 
 ---
 

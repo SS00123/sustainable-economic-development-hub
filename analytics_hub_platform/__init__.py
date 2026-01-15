@@ -1,7 +1,7 @@
 """
 Analytics Hub Platform
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Main package initialization.
 """

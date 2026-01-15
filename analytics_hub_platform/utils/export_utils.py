@@ -344,7 +344,7 @@ def generate_executive_brief_pdf(
     elements.append(Spacer(1, 30))
     elements.append(
         Paragraph(
-            "<i>Ministry of Economy and Planning - Confidential</i>",
+            "<i>Eng. Sultan Albuqami - Confidential</i>",
             ParagraphStyle("Footer", parent=normal_style, fontSize=8, textColor=colors.grey),
         )
     )
@@ -419,7 +419,7 @@ def generate_simple_text_report(
         lines.append("")
 
     lines.append("=" * 60)
-    lines.append("Ministry of Economy and Planning - Confidential")
+    lines.append("Eng. Sultan Albuqami - Confidential")
 
     return "\n".join(lines).encode("utf-8")
 

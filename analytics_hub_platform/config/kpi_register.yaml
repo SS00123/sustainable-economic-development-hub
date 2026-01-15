@@ -12,14 +12,14 @@
 #
 # Version: 1.0
 # Last Updated: 2026-01-05
-# Owner: Ministry of Economy and Planning
+# Owner: Eng. Sultan Albuqami
 # =============================================================================
 
 metadata:
   version: "1.0.0"
   last_updated: "2026-01-05"
-  owner: "Ministry of Economy and Planning"
-  contact: "data-governance@mep.gov.sa"
+  owner: "Eng. Sultan Albuqami"
+  contact: "data-governance@sultan-analytics.com"
   classification: "OFFICIAL"
   review_cycle: "Quarterly"
 
@@ -72,11 +72,11 @@ pillars:
           - condition: "value < 0"
             severity: "warning"
             message: "GDP growth is negative"
-            notify: ["economics-team@mep.gov.sa"]
+            notify: ["economics-team@sultan-analytics.com"]
           - condition: "value < -2"
             severity: "critical"
             message: "GDP contraction exceeds 2%"
-            notify: ["economics-team@mep.gov.sa", "leadership@mep.gov.sa"]
+            notify: ["economics-team@sultan-analytics.com", "leadership@sultan-analytics.com"]
             
         compliance:
           regulations: ["Vision 2030 Reporting", "IMF Article IV"]
@@ -124,7 +124,7 @@ pillars:
           - condition: "value < 50"
             severity: "warning"
             message: "Non-oil GDP share below 50%"
-            notify: ["diversification-team@mep.gov.sa"]
+            notify: ["diversification-team@sultan-analytics.com"]
             
         compliance:
           regulations: ["Vision 2030 Economic Pillar"]
@@ -172,11 +172,11 @@ pillars:
           - condition: "value > 10"
             severity: "warning"
             message: "Unemployment rate exceeds 10%"
-            notify: ["labor-team@mep.gov.sa"]
+            notify: ["labor-team@sultan-analytics.com"]
           - condition: "value > 12"
             severity: "critical"
             message: "Unemployment rate critical - exceeds 12%"
-            notify: ["labor-team@mep.gov.sa", "leadership@mep.gov.sa"]
+            notify: ["labor-team@sultan-analytics.com", "leadership@sultan-analytics.com"]
             
         compliance:
           regulations: ["ILO Reporting Standards", "Vision 2030 Labor"]
@@ -278,7 +278,7 @@ pillars:
           - condition: "value < 15"
             severity: "warning"
             message: "Renewable energy share below 15%"
-            notify: ["energy-team@mep.gov.sa"]
+            notify: ["energy-team@sultan-analytics.com"]
             
         compliance:
           regulations: ["Paris Agreement", "Saudi Green Initiative"]
@@ -326,11 +326,11 @@ pillars:
           - condition: "value > 18"
             severity: "warning"
             message: "Carbon emissions above target"
-            notify: ["climate-team@mep.gov.sa"]
+            notify: ["climate-team@sultan-analytics.com"]
           - condition: "value > 22"
             severity: "critical"
             message: "Carbon emissions critical level"
-            notify: ["climate-team@mep.gov.sa", "leadership@mep.gov.sa"]
+            notify: ["climate-team@sultan-analytics.com", "leadership@sultan-analytics.com"]
             
         compliance:
           regulations: ["UNFCCC Reporting", "Paris Agreement NDC"]
@@ -516,7 +516,7 @@ pillars:
           - condition: "value < 25"
             severity: "warning"
             message: "Female labor participation below 25%"
-            notify: ["labor-team@mep.gov.sa"]
+            notify: ["labor-team@sultan-analytics.com"]
             
         compliance:
           regulations: ["Vision 2030 Social Pillar", "ILO Reporting"]

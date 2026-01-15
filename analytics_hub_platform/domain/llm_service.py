@@ -1,7 +1,7 @@
 """
 LLM Service Module
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 This module provides LLM-based recommendation generation
 using OpenAI or Anthropic APIs with robust error handling.
@@ -119,7 +119,7 @@ class BaseLLMProvider(ABC):
     "risk_alerts": ["تنبيه 1", "تنبيه 2", ...]
 }"""
         else:
-            return """You are an expert economic advisor for the Ministry of Economy and Planning, Kingdom of Saudi Arabia.
+            return """You are an expert economic advisor for Eng. Sultan Albuqami, Kingdom of Saudi Arabia.
 Your task is to analyze KPI data and provide strategic recommendations aligned with Vision 2030.
 
 Provide your response in JSON format with the following structure:

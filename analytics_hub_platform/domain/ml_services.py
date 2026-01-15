@@ -1,7 +1,7 @@
 """
 ML Services Module
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 This module provides ML-based forecasting and anomaly detection
 services for KPI time-series analysis.

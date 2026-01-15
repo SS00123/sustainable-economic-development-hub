@@ -4,7 +4,7 @@
 
 **Version:** 1.0  
 **Effective Date:** January 2026  
-**Owner:** Ministry of Economy and Planning - Data Governance Office  
+**Owner:** Eng. Sultan Albuqami - Data Governance Office  
 **Classification:** OFFICIAL
 
 ---
@@ -552,4 +552,4 @@ Retention: Audit logs retained for 7 years
 
 ---
 
-*This document is maintained by the Data Governance Office. For questions, contact data-governance@mep.gov.sa*
+*This document is maintained by the Data Governance Office. For questions, contact data-governance@sultan-analytics.com*

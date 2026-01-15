@@ -1,7 +1,7 @@
 """
 HTML Rendering Utilities
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Safe HTML rendering with fallback for Streamlit version compatibility.
 Works with Streamlit 1.28+ (uses st.markdown fallback) and 1.33+ (uses st.html).

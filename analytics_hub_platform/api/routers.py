@@ -1,7 +1,7 @@
 """
 API Routers
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 FastAPI route definitions for REST API endpoints.
 """

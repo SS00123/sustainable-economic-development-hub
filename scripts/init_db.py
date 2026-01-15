@@ -2,7 +2,7 @@
 """
 Database Initialization Script
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Run this script to initialize the database with synthetic data.
 

@@ -1,7 +1,7 @@
 """
 Model Persistence Module
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 This module provides utilities for saving and loading ML models
 with versioning, metadata tracking, and integrity checks.

@@ -1,7 +1,7 @@
 """
 Accessibility Utility
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Accessibility features and WCAG compliance helpers.
 """

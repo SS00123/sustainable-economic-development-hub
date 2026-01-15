@@ -1,6 +1,6 @@
 # Sustainable Economic Development Analytics Hub
 # Development Requirements
-# Ministry of Economy and Planning
+# Eng. Sultan Albuqami
 # Author: Eng. Sultan Albuqami
 
 # Install production requirements first

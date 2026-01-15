@@ -1,7 +1,7 @@
 """
 Analytics Hub Platform - Infrastructure Module
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 This module contains infrastructure components:
 - Database initialization and access

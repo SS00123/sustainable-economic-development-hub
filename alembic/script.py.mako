@@ -6,7 +6,7 @@ Revises: ${down_revision | comma,n}
 Create Date: ${create_date}
 
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 """
 from typing import Sequence, Union
 

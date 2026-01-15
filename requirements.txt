@@ -1,6 +1,6 @@
 # Sustainable Economic Development Analytics Hub
 # Production Requirements - Minimal Streamlit Cloud Deployment
-# Ministry of Economy and Planning
+# Eng. Sultan Albuqami
 # Author: Eng. Sultan Albuqami
 
 # Core Framework (Streamlit ONLY - No FastAPI for UI)

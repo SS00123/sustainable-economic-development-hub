@@ -104,10 +104,10 @@ def render_kpi_card(
     card_html = f"""
     <div class="dark-card" style="min-height: {height - 20}px; position: relative; {accent_style}">
         {icon_html}
-        <div class="card-title" style="margin-bottom: 8px;">{title}</div>
-        <div style="display: flex; align-items: baseline; flex-wrap: wrap; margin-top: 8px;">
+        <div class="card-title" style="margin-bottom: 12px; font-size: 13px;">{title}</div>
+        <div style="display: flex; align-items: baseline; flex-wrap: wrap; margin-top: 10px;">
             <span class="card-value" style="
-                font-size: 36px;
+                font-size: 44px;
                 font-weight: 800;
                 background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.82));
                 -webkit-background-clip: text;
@@ -115,10 +115,10 @@ def render_kpi_card(
                 background-clip: text;
                 letter-spacing: -0.5px;
             ">{display_value}</span>
-            <span style="font-size: 14px; color: rgba(255,255,255,0.5); margin-left: 6px; font-weight: 500;">{unit}</span>
+            <span style="font-size: 16px; color: rgba(255,255,255,0.5); margin-left: 8px; font-weight: 500;">{unit}</span>
         </div>
         {delta_html}
-        <div class="card-sub" style="margin-top: 10px; font-size: 12px; line-height: 1.4;">{subtitle}</div>
+        <div class="card-sub" style="margin-top: 12px; font-size: 13px; line-height: 1.5;">{subtitle}</div>
     </div>
     """
     render_html(card_html)
@@ -278,15 +278,17 @@ def render_enhanced_kpi_card(
         status_html = f"""
         <div style="
             display: inline-block;
-            padding: 2px 8px;
-            border-radius: 12px;
-            background: {s_color}20;
-            border: 1px solid {s_color}40;
+            padding: 4px 12px;
+            border-radius: 16px;
+            background: {s_color}25;
+            border: 1px solid {s_color}50;
             color: {s_color};
-            font-size: 10px;
+            font-size: 12px;
             font-weight: 600;
             text-transform: uppercase;
-            margin-top: 6px;
+            margin-top: 8px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 16px {s_color}20;
         ">
             {status}
         </div>

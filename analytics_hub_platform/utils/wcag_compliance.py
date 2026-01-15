@@ -1,7 +1,7 @@
 """
 WCAG 2.1 AA Compliance Module
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 This module provides WCAG 2.1 Level AA compliant utilities for the Analytics Hub.
 Includes: accessible components, keyboard navigation, ARIA support, RTL handling.

@@ -1,7 +1,7 @@
 """
 DataFrame Adapter
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 This module provides adapter functions to convert between pandas DataFrames
 and domain models, keeping domain logic independent of DataFrame operations.

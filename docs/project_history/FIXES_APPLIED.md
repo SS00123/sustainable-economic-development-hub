@@ -274,7 +274,7 @@ The `analytics_hub_platform_backup_streamlit` folder was not modified. It still 
 **Engineer:** Sultan Albuqami  
 **Email:** sultan_mutep@hotmail.com  
 **Project:** Sustainable Economic Development Analytics Hub  
-**Organization:** Ministry of Economy and Planning, Kingdom of Saudi Arabia
+**Organization:** Eng. Sultan Albuqami, Kingdom of Saudi Arabia
 
 ---
 

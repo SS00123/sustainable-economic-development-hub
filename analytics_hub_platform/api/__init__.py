@@ -1,7 +1,7 @@
 """
 API Package
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 FastAPI-based REST API for data access.
 """

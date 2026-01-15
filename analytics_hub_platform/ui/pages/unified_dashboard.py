@@ -1,7 +1,7 @@
 """
 Unified Professional Dashboard
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Single-page professional dashboard combining all views:
 - Executive summary with KPIs
@@ -693,7 +693,7 @@ def render_unified_dashboard() -> None:
                                 Sustainable Economic Development
                             </div>
                             <div style="font-size: 12px; color: rgba(255,255,255,0.5);">
-                                Ministry of Economy and Planning
+                                Eng. Sultan Albuqami
                             </div>
                         </div>
                     </div>
@@ -733,7 +733,7 @@ def render_unified_dashboard() -> None:
                     gap: 12px;
                 ">
                     <span style="font-size: 11px; color: rgba(255,255,255,0.35);">
-                        © 2024-2026 Ministry of Economy and Planning. All rights reserved.
+                        © 2024-2026 Eng. Sultan Albuqami. All rights reserved.
                     </span>
                     <span style="font-size: 11px; color: rgba(255,255,255,0.35);">
                         Version 2.0.0 • Built with Streamlit
@@ -758,7 +758,7 @@ def _render_page_header(
     Includes:
     - Animated gradient background with mesh overlay
     - Main title: "Sustainable Economic Development Analytics Hub"
-    - Subtitle: "Ministry of Economy and Planning • Executive Dashboard"
+    - Subtitle: "Eng. Sultan Albuqami • Executive Dashboard"
     - Live indicator and data freshness
     """
     from datetime import datetime
@@ -864,7 +864,7 @@ def _render_page_header(
                     margin: 0 0 20px 0;
                     font-weight: 500;
                 ">
-                    Ministry of Economy and Planning • Executive Analytics Hub
+                    Eng. Sultan Albuqami • Executive Analytics Hub
                 </p>
 
                 <div style="

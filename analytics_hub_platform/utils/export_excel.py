@@ -1,7 +1,7 @@
 """
 Excel Export Utility
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Generates professional Excel workbooks with formatted data and charts.
 """
@@ -249,7 +249,7 @@ def generate_excel_workbook(
         ("Contact Email", BRANDING["author_email"]),
         ("Contact Phone", BRANDING["author_mobile"]),
         ("Platform", "Sustainable Economic Development Analytics Hub"),
-        ("Organization", "Ministry of Economy and Planning"),
+        ("Organization", "Eng. Sultan Albuqami"),
     ]
 
     ws_meta["A1"] = "Export Metadata"

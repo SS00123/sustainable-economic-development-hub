@@ -1,7 +1,7 @@
 """
 Input Validation Utilities
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Provides input validation decorators and sanitization functions.
 """

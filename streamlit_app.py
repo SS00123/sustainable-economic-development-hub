@@ -1,7 +1,7 @@
 """
 Streamlit Application Entry Point
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Multi-page structure:
 - Dashboard (Minister View)
@@ -24,12 +24,12 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed",
     menu_items={
-        "Get Help": "https://ministry.gov.sa/help",
+        "Get Help": "https://sultan-hub.com/help",
         "Report a bug": "mailto:sultan_mutep@hotmail.com",
         "About": """
         # Sustainable Economic Development Analytics Hub
 
-        **Ministry of Economy and Planning**
+        **Eng. Sultan Albuqami**
 
         Data-driven insights for sustainable development policy.
 

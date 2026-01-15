@@ -129,7 +129,7 @@ def render_page_header(
                     margin: 0 0 20px 0;
                     font-weight: 500;
                 ">
-                    Ministry of Economy and Planning • Executive Analytics Hub
+                    Eng. Sultan Albuqami • Executive Analytics Hub
                 </p>
 
                 <!-- Period and timestamp -->

@@ -1,7 +1,7 @@
 """
 Utils Package
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Utility functions for exports, help system, accessibility, and more.
 """

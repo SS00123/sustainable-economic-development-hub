@@ -1,7 +1,7 @@
 """
 PDF Export Utility
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Generates professional PDF reports with KPI summaries and charts.
 """
@@ -258,7 +258,7 @@ def generate_pdf_report(
     elements.append(Paragraph("—" * 60, footer_style))
     elements.append(
         Paragraph(
-            "Sustainable Economic Development Analytics Hub | Ministry of Economy and Planning",
+            "Sustainable Economic Development Analytics Hub | Eng. Sultan Albuqami",
             footer_style,
         )
     )

@@ -1,7 +1,7 @@
 """
 Analytics Hub Platform - UI Module
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 This module contains Streamlit UI components and pages.
 Callers should prefer importing from `analytics_hub_platform.app.components`.

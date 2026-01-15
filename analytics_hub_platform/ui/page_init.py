@@ -1,7 +1,7 @@
 """
 Page Initialization Utilities
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Provides centralized initialization for all Streamlit pages.
 This eliminates repeated boilerplate across page files.

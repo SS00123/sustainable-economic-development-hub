@@ -1,7 +1,7 @@
 """
 Analytics Hub Platform - UI Pages Module
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 The main dashboard renderer is unified_dashboard.render_unified_dashboard().
 Legacy view files (executive_view, director_view, etc.) were removed as dead code.

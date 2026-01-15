@@ -1,7 +1,7 @@
 """
 Analytics Hub Platform - Configuration Module
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 """
 
 from analytics_hub_platform.config.branding import Branding, get_branding

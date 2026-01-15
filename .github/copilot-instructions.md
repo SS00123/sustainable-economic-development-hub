@@ -2,7 +2,7 @@
 
 ## Architecture Overview
 
-This is a **Streamlit multi-page analytics platform** for Saudi Arabia's Ministry of Economy and Planning. The codebase follows a layered architecture:
+This is a **Streamlit multi-page analytics platform** for Saudi Arabia's Eng. Sultan Albuqami. The codebase follows a layered architecture:
 
 ```
 streamlit_app.py              → Entry point (run with: streamlit run streamlit_app.py)

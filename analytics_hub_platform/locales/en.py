@@ -1,7 +1,7 @@
 """
 English Strings
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 English language string dictionary.
 """
@@ -9,7 +9,7 @@ English language string dictionary.
 STRINGS_EN = {
     # Application
     "app_title": "Sustainable Economic Development Analytics Hub",
-    "app_subtitle": "Ministry of Economy and Planning",
+    "app_subtitle": "Eng. Sultan Albuqami",
     "app_description": "Data-driven insights for sustainable development policy",
     # Navigation
     "nav_home": "Home",
@@ -132,7 +132,7 @@ STRINGS_EN = {
     "help_faq": "FAQ",
     "help_contact": "Contact Support",
     # Footer
-    "footer_copyright": "© 2024 Ministry of Economy and Planning",
+    "footer_copyright": "© 2024 Eng. Sultan Albuqami",
     "footer_prepared_by": "Prepared by",
     "footer_version": "Version",
     # Regions

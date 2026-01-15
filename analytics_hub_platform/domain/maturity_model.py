@@ -901,7 +901,7 @@ class BenchmarkingService:
             dimension_scores=vision2030_scores,
             overall_score=4.2,
             description="Target maturity levels for Vision 2030 alignment",
-            source="Ministry of Economy and Planning",
+            source="Eng. Sultan Albuqami",
         ))
 
         # Government sector average

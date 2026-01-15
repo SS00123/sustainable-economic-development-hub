@@ -1,7 +1,7 @@
 """
 Alembic Environment Configuration
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 This module configures Alembic for database migrations.
 It integrates with the application's settings and models.

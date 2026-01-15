@@ -1,7 +1,7 @@
 """
 API Dependencies
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 FastAPI dependency injection for database, auth, and services.
 """

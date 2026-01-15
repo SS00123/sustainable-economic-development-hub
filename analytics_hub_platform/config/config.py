@@ -1,7 +1,7 @@
 """
 Application Configuration
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 This module contains the central configuration for the analytics platform.
 Configuration values can be overridden via environment variables.
@@ -130,9 +130,9 @@ class AppConfig:
     app_version: str = "1.0.0"
     environment: str = "development"
 
-    # Default tenant (Ministry of Economy and Planning)
+    # Default tenant (Eng. Sultan Albuqami)
     default_tenant_id: str = "mep-sa-001"
-    default_tenant_name: str = "Ministry of Economy and Planning"
+    default_tenant_name: str = "Eng. Sultan Albuqami"
 
     # Paths
     base_path: Path = field(default_factory=lambda: Path(__file__).parent.parent)
@@ -190,7 +190,7 @@ class AppConfig:
             environment=os.getenv("ENVIRONMENT", "development"),
             default_tenant_id=os.getenv("DEFAULT_TENANT_ID", "mep-sa-001"),
             default_tenant_name=os.getenv(
-                "DEFAULT_TENANT_NAME", "Ministry of Economy and Planning"
+                "DEFAULT_TENANT_NAME", "Eng. Sultan Albuqami"
             ),
             database=DatabaseConfig.from_env(),
             security=SecurityConfig.from_env(),

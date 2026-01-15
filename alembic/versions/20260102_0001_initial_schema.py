@@ -6,7 +6,7 @@ Revises:
 Create Date: 2026-01-02
 
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 This is the baseline migration that creates the initial database schema.
 It reflects the current state of the database as defined in db_init.py.

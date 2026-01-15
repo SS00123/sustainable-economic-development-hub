@@ -1,7 +1,7 @@
 """
 Domain Models
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 This module defines the core domain models used throughout the platform.
 Models are designed to be:
@@ -51,7 +51,7 @@ class Tenant(BaseModel):
     """
     Tenant model for multi-tenant support.
 
-    In the current PoC, there is one tenant (Ministry of Economy and Planning).
+    In the current PoC, there is one tenant (Eng. Sultan Albuqami).
     The architecture supports multiple tenants for future expansion to other
     ministries or government departments.
     """

@@ -1,7 +1,7 @@
 """
 Retry Utility
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Provides retry logic with exponential backoff for external service calls.
 """

@@ -1,7 +1,7 @@
 """
 Data Validators Utility
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Validation functions for data integrity and input validation.
 """

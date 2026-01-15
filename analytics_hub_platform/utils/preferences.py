@@ -1,7 +1,7 @@
 """
 User Preferences Utility
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 User preference management for personalization.
 """

@@ -1,7 +1,7 @@
 """
 Theme Configuration (DEPRECATED)
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 ⚠️ DEPRECATED: This module is deprecated.
    Please use analytics_hub_platform.ui.theme instead.

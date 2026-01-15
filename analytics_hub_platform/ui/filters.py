@@ -1,7 +1,7 @@
 """
 Global Filters
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 This module provides the global filter bar component used across all pages.
 Filters include year, quarter, region, and language selection.

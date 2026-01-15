@@ -1,7 +1,7 @@
 """
 JWT Authentication Module
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Provides JWT token creation, validation, and user authentication.
 """
@@ -218,7 +218,7 @@ def get_mock_users() -> dict[str, User]:
         "minister": User(
             id="user-001",
             tenant_id=settings.default_tenant_id,
-            email="minister@mep.gov.sa",
+            email="minister@sultan-analytics.com",
             name="His Excellency the Minister",
             name_ar="معالي الوزير",
             role=UserRole.MINISTER,
@@ -227,7 +227,7 @@ def get_mock_users() -> dict[str, User]:
         "executive": User(
             id="user-002",
             tenant_id=settings.default_tenant_id,
-            email="executive@mep.gov.sa",
+            email="executive@sultan-analytics.com",
             name="Deputy Minister",
             name_ar="نائب الوزير",
             role=UserRole.EXECUTIVE,
@@ -236,7 +236,7 @@ def get_mock_users() -> dict[str, User]:
         "director": User(
             id="user-003",
             tenant_id=settings.default_tenant_id,
-            email="director@mep.gov.sa",
+            email="director@sultan-analytics.com",
             name="Director of Analytics",
             name_ar="مدير التحليلات",
             role=UserRole.DIRECTOR,
@@ -245,7 +245,7 @@ def get_mock_users() -> dict[str, User]:
         "analyst": User(
             id="user-004",
             tenant_id=settings.default_tenant_id,
-            email="analyst@mep.gov.sa",
+            email="analyst@sultan-analytics.com",
             name="Senior Data Analyst",
             name_ar="محلل بيانات أول",
             role=UserRole.ANALYST,
@@ -254,7 +254,7 @@ def get_mock_users() -> dict[str, User]:
         "admin": User(
             id="user-005",
             tenant_id=settings.default_tenant_id,
-            email="admin@mep.gov.sa",
+            email="admin@sultan-analytics.com",
             name="System Administrator",
             name_ar="مسؤول النظام",
             role=UserRole.ADMIN,
@@ -263,7 +263,7 @@ def get_mock_users() -> dict[str, User]:
         "demo": User(
             id="user-demo",
             tenant_id=settings.default_tenant_id,
-            email="demo@ministry.gov.sa",
+            email="demo@sultan-hub.com",
             name="Demo User",
             name_ar="مستخدم تجريبي",
             role=UserRole.ANALYST,

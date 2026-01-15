@@ -1,7 +1,7 @@
 """
 Localization Strings Module
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 String dictionaries for English and Arabic localization.
 """

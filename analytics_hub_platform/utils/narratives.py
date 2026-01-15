@@ -1,7 +1,7 @@
 """
 Narrative Generation Utility
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Generates human-readable narratives and insights from data.
 """

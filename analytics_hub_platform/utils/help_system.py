@@ -1,7 +1,7 @@
 """
 Help System Utility
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Provides contextual help content, tooltips, and documentation.
 """

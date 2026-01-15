@@ -1,7 +1,7 @@
 """
 Data Repository
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 This module implements the Repository pattern for data access.
 It provides a clean interface between business logic and database operations.

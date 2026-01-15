@@ -33,7 +33,7 @@ def render_sustainability_gauge(
     value: float,
     target: float = 70,
     status: Literal["green", "amber", "red"] | str = "unknown",
-    height: int = 350,
+    height: int = 380,
     show_status_badge: bool = True,
 ) -> None:
     """Render a sustainability index gauge with target threshold.
@@ -49,8 +49,8 @@ def render_sustainability_gauge(
         go.Indicator(
             mode="gauge+number+delta",
             value=value,
-            number={"suffix": "/100", "font": {"size": 48, "color": "#fff"}},
-            delta={"reference": target, "increasing": {"color": colors.status_green}},
+            number={"suffix": "", "font": {"size": 64, "color": "#fff", "family": "Inter"}},
+            delta={"reference": target, "increasing": {"color": colors.status_green}, "font": {"size": 18}},
             domain={"x": [0, 1], "y": [0, 1]},
             gauge={
                 "axis": {
@@ -58,19 +58,19 @@ def render_sustainability_gauge(
                     "tickwidth": 2,
                     "tickcolor": "#374151",
                     "dtick": 10,
-                    "tickfont": {"size": 12, "color": colors.text_muted},
+                    "tickfont": {"size": 14, "color": colors.text_muted},
                 },
-                "bar": {"color": colors.accent_purple, "thickness": 0.75},
+                "bar": {"color": colors.accent_purple, "thickness": 0.78},
                 "bgcolor": colors.bg_card,
                 "borderwidth": 0,
                 "steps": [
-                    {"range": [0, 50], "color": f"{colors.status_red}30"},
-                    {"range": [50, 70], "color": f"{colors.status_amber}30"},
-                    {"range": [70, 100], "color": f"{colors.status_green}30"},
+                    {"range": [0, 50], "color": "rgba(239, 68, 68, 0.21)"},
+                    {"range": [50, 70], "color": "rgba(245, 158, 11, 0.21)"},
+                    {"range": [70, 100], "color": "rgba(16, 185, 129, 0.21)"},
                 ],
                 "threshold": {
-                    "line": {"color": colors.status_green, "width": 4},
-                    "thickness": 0.85,
+                    "line": {"color": colors.status_green, "width": 5},
+                    "thickness": 0.88,
                     "value": target,
                 },
             },
@@ -186,14 +186,16 @@ def render_status_badge(
     status_text = config["text"]
 
     render_html(f"""
-        <div style="text-align: center; margin-top: {spacing.md};">
+        <div style="text-align: center; margin-top: {spacing.lg};">
             <span style="
                 background: {status_color}30;
                 color: {status_color};
-                padding: {spacing.sm} {spacing.lg};
-                border-radius: {radius.md};
-                font-size: {typography.body};
+                padding: {spacing.md} {spacing.xl};
+                border-radius: {radius.lg};
+                font-size: 15px;
                 font-weight: {typography.weight_semibold};
+                border: 1px solid {status_color}50;
+                box-shadow: 0 0 20px {status_color}25;
             ">
                 {status_text} • Target: {target}/100
             </span>

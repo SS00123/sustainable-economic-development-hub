@@ -1,7 +1,7 @@
 """
 Custom Exceptions
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Centralized exception definitions for proper error handling.
 """

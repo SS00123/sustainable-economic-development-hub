@@ -1,7 +1,7 @@
 """
 Rate Limiting Module
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Production-ready rate limiting with:
 - Sliding window algorithm (more accurate than fixed window)

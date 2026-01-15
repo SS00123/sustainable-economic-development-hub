@@ -1,7 +1,7 @@
 """
 KPI Utility Functions
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Shared utilities for KPI display formatting.
 """

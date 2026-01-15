@@ -1,7 +1,7 @@
 """
 Consolidated Theme Configuration
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 Single source of truth for all theme tokens: colors, typography, spacing, shadows.
 This replaces fragmented theme definitions across multiple files.
@@ -150,21 +150,21 @@ class Typography:
     font_family: str = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
 
     # === Size Scale ===
-    size_hero: str = "48px"      # Hero numbers
-    size_h1: str = "32px"        # Page title
-    size_h2: str = "24px"        # Section headers
-    size_h3: str = "18px"        # Card titles
-    size_h4: str = "16px"        # Sub-section titles
-    size_body: str = "14px"      # Body text
-    size_caption: str = "12px"   # Captions
-    size_small: str = "11px"     # Small text
-    size_tiny: str = "10px"      # Tiny labels
+    size_hero: str = "56px"      # Hero numbers (increased)
+    size_h1: str = "36px"        # Page title (increased)
+    size_h2: str = "26px"        # Section headers (increased)
+    size_h3: str = "20px"        # Card titles (increased)
+    size_h4: str = "17px"        # Sub-section titles (increased)
+    size_body: str = "15px"      # Body text (increased)
+    size_caption: str = "13px"   # Captions (increased)
+    size_small: str = "12px"     # Small text (increased)
+    size_tiny: str = "11px"      # Tiny labels (increased)
 
     # === Size Aliases (for compatibility) ===
-    size_lg: str = "18px"
-    size_base: str = "14px"
-    size_sm: str = "12px"
-    kpi_value_size: str = "32px"
+    size_lg: str = "20px"
+    size_base: str = "15px"
+    size_sm: str = "13px"
+    kpi_value_size: str = "40px"
 
     # === Font Weights ===
     weight_regular: int = 400
@@ -178,20 +178,20 @@ class Typography:
 class Spacing:
     """Spacing scale for margins and padding."""
 
-    xs: str = "4px"
-    sm: str = "8px"
-    md: str = "16px"
-    lg: str = "24px"
-    xl: str = "32px"
-    xxl: str = "48px"
+    xs: str = "6px"
+    sm: str = "10px"
+    md: str = "18px"
+    lg: str = "28px"
+    xl: str = "40px"
+    xxl: str = "56px"
 
     # === Named spacing ===
-    page_margin: str = "32px"
-    section_gap: str = "32px"
-    card_gap: str = "24px"
-    card_padding: str = "24px"
-    row_gap: str = "20px"
-    gutter: str = "16px"
+    page_margin: str = "40px"
+    section_gap: str = "48px"
+    card_gap: str = "28px"
+    card_padding: str = "28px"
+    row_gap: str = "24px"
+    gutter: str = "20px"
 
 
 @dataclass(frozen=True)
@@ -568,19 +568,19 @@ def get_css() -> str:
       }}
 
       .dark-card .card-title {{
-        font-size: 11px;
+        font-size: 13px;
         font-weight: 600;
         color: var(--muted);
-        letter-spacing: 1px;
+        letter-spacing: 1.2px;
         text-transform: uppercase;
-        margin-bottom: 8px;
+        margin-bottom: 12px;
       }}
 
       .dark-card .card-value {{
-        font-size: 32px;
+        font-size: 42px;
         font-weight: 800;
         color: var(--white);
-        margin: 8px 0;
+        margin: 10px 0;
         letter-spacing: -0.5px;
         background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.85));
         -webkit-background-clip: text;
@@ -589,38 +589,38 @@ def get_css() -> str:
       }}
 
       .dark-card .card-sub {{
-        font-size: 12px;
+        font-size: 13px;
         color: var(--muted2);
-        margin-top: 4px;
-        line-height: 1.5;
+        margin-top: 8px;
+        line-height: 1.6;
       }}
 
       /* ===== Premium Delta Badges ===== */
       .delta {{
-        font-size: 11px;
+        font-size: 13px;
         font-weight: 600;
-        padding: 4px 12px;
-        border-radius: 20px;
+        padding: 6px 14px;
+        border-radius: 24px;
         border: 1px solid rgba(255,255,255,0.08);
         background: rgba(255,255,255,0.04);
         display: inline-flex;
-        gap: 5px;
+        gap: 6px;
         align-items: center;
         transition: all 200ms ease;
       }}
 
       .delta.positive {{
         color: {c.green};
-        border-color: rgba(16, 185, 129, 0.35);
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.08));
-        box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
+        border-color: rgba(16, 185, 129, 0.45);
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
+        box-shadow: 0 0 24px rgba(16, 185, 129, 0.15);
       }}
 
       .delta.negative {{
         color: {c.red};
-        border-color: rgba(239, 68, 68, 0.35);
-        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.08));
-        box-shadow: 0 0 20px rgba(239, 68, 68, 0.1);
+        border-color: rgba(239, 68, 68, 0.45);
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1));
+        box-shadow: 0 0 24px rgba(239, 68, 68, 0.15);
       }}
 
       /* ===== Premium Sidebar Container ===== */
@@ -1104,13 +1104,13 @@ def get_css() -> str:
       /* ===== Premium Metric Styling ===== */
       [data-testid="stMetricValue"] {{
         color: var(--white) !important;
-        font-size: 28px !important;
+        font-size: 36px !important;
         font-weight: 700 !important;
         letter-spacing: -0.3px !important;
       }}
       [data-testid="stMetricLabel"] {{
         color: var(--muted) !important;
-        font-size: 12px !important;
+        font-size: 13px !important;
         font-weight: 500 !important;
         text-transform: uppercase !important;
         letter-spacing: 0.5px !important;
@@ -1118,6 +1118,7 @@ def get_css() -> str:
       [data-testid="stMetricDelta"] {{
         color: var(--cyan) !important;
         font-weight: 600 !important;
+        font-size: 14px !important;
       }}
 
       /* ===== Plotly Charts Premium ===== */
@@ -1131,13 +1132,13 @@ def get_css() -> str:
 
       /* ===== Premium Section Headers ===== */
       .section-header {{
-        font-size: 18px;
+        font-size: 22px;
         font-weight: 700;
         color: var(--white);
-        margin: 28px 0 12px 0;
+        margin: 36px 0 16px 0;
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 14px;
         letter-spacing: -0.3px;
         position: relative;
       }}
@@ -1146,7 +1147,7 @@ def get_css() -> str:
         content: "";
         flex: 1;
         height: 2px;
-        margin-left: 16px;
+        margin-left: 18px;
         background: linear-gradient(90deg,
           rgba(168, 85, 247, 0.6),
           rgba(34, 211, 238, 0.4),
@@ -1156,9 +1157,9 @@ def get_css() -> str:
       }}
 
       .section-sub {{
-        font-size: 13px;
+        font-size: 14px;
         color: var(--muted2);
-        margin: -6px 0 20px 0;
+        margin: -8px 0 24px 0;
         padding-left: 2px;
       }}
 
@@ -1166,15 +1167,16 @@ def get_css() -> str:
       .status-pill {{
         display: inline-flex;
         align-items: center;
-        gap: 8px;
-        padding: 8px 18px;
-        border-radius: 12px;
+        gap: 10px;
+        padding: 10px 22px;
+        border-radius: 14px;
         font-weight: 600;
-        font-size: 13px;
+        font-size: 14px;
         margin: 4px;
         transition: all 200ms ease;
         position: relative;
         overflow: hidden;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
       }}
 
       .status-pill::before {{

@@ -1,7 +1,7 @@
 """
 Branding Configuration
 Sustainable Economic Development Analytics Hub
-Ministry of Economy and Planning
+Eng. Sultan Albuqami
 
 This module contains branding constants for the platform,
 including author information for reports and presentations.
@@ -26,9 +26,9 @@ class Branding:
     platform_short_name: str = "Analytics Hub"
     platform_version: str = "1.0.0"
 
-    # Primary client
-    client_name: str = "Ministry of Economy and Planning"
-    client_name_ar: str = "وزارة الاقتصاد والتخطيط"
+    # Primary client/owner
+    client_name: str = "Eng. Sultan Albuqami"
+    client_name_ar: str = "م. سلطان البقمي"
     client_country: str = "Kingdom of Saudi Arabia"
     client_country_ar: str = "المملكة العربية السعودية"
 
@@ -44,8 +44,8 @@ class Branding:
     logo_dark_path: str | None = None
 
     # Footer text
-    footer_text: str = "© 2024 Ministry of Economy and Planning. All rights reserved."
-    footer_text_ar: str = "© 2024 وزارة الاقتصاد والتخطيط. جميع الحقوق محفوظة."
+    footer_text: str = "© 2024-2026 Eng. Sultan Albuqami. All rights reserved."
+    footer_text_ar: str = "© 2024-2026 م. سلطان البقمي. جميع الحقوق محفوظة."
 
     # Confidentiality notice
     confidentiality_notice: str = (
