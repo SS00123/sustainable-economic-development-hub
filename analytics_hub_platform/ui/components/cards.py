@@ -121,7 +121,7 @@ def render_kpi_card(
     </div>
     """
 
-    st.components.v1.html(card_html, height=height)
+    st.components.v1.html(card_html, height=height)  # type: ignore[attr-defined]
 
 
 def render_status_pill(status: str, label: str | None = None, size: str = "medium") -> None:

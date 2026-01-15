@@ -240,11 +240,17 @@ class FilterParams(BaseModel):
     """
 
     tenant_id: str
-    year: int | None = Field(None, ge=2000, le=2100)
-    quarter: int | None = Field(None, ge=1, le=4)
+    year: int | None = Field(default=None, ge=2000, le=2100)
+    quarter: int | None = Field(default=None, ge=1, le=4)
     region: str | None = None
     years: list[int] | None = None  # For multi-year queries
     regions: list[str] | None = None  # For multi-region queries
+
+    # Additional filter params
+    start_date: datetime | None = None
+    end_date: datetime | None = None
+    limit: int | None = Field(default=None, ge=1, le=100000)
+    offset: int | None = Field(default=None, ge=0)
 
     @field_validator("quarter")
     @classmethod

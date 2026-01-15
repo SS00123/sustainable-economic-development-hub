@@ -45,12 +45,15 @@ def render_upload_section() -> None:
                 from analytics_hub_platform.infrastructure.data_ingestion import export_template_excel
 
                 template_bytes = export_template_excel()
-                st.download_button(
-                    label="💾 Save Template",
-                    data=template_bytes,
-                    file_name="data_upload_template.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                )
+                if template_bytes is not None:
+                    st.download_button(
+                        label="💾 Save Template",
+                        data=template_bytes,
+                        file_name="data_upload_template.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    )
+                else:
+                    st.error("Template generation returned empty result")
             except Exception as e:
                 st.error(f"Failed to generate template: {e}")
 

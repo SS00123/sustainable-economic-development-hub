@@ -8,8 +8,24 @@ Generates professional PDF reports with KPI summaries and charts.
 
 from datetime import datetime
 from io import BytesIO
+from typing import TYPE_CHECKING, Any
 
 import pandas as pd
+
+# Type stubs for optional reportlab imports
+if TYPE_CHECKING:
+    from reportlab.lib import colors as colors_module
+    from reportlab.lib.enums import TA_CENTER as TA_CENTER_TYPE
+    from reportlab.lib.pagesizes import A4 as A4_TYPE
+    from reportlab.lib.styles import ParagraphStyle as ParagraphStyleType
+    from reportlab.lib.units import cm as cm_type, inch as inch_type
+    from reportlab.platypus import (
+        Paragraph as ParagraphType,
+        SimpleDocTemplate as SimpleDocTemplateType,
+        Spacer as SpacerType,
+        Table as TableType,
+        TableStyle as TableStyleType,
+    )
 
 try:
     from reportlab.lib import colors
@@ -28,6 +44,19 @@ try:
     REPORTLAB_AVAILABLE = True
 except ImportError:
     REPORTLAB_AVAILABLE = False
+    # Fallback stubs for type checking
+    colors: Any = None  # type: ignore[misc]
+    TA_CENTER: Any = None  # type: ignore[misc]
+    A4: Any = None  # type: ignore[misc]
+    ParagraphStyle: Any = None  # type: ignore[misc]
+    getSampleStyleSheet: Any = None  # type: ignore[misc]
+    cm: Any = None  # type: ignore[misc]
+    inch: Any = None  # type: ignore[misc]
+    Paragraph: Any = None  # type: ignore[misc]
+    SimpleDocTemplate: Any = None  # type: ignore[misc]
+    Spacer: Any = None  # type: ignore[misc]
+    Table: Any = None  # type: ignore[misc]
+    TableStyle: Any = None  # type: ignore[misc]
 
 from analytics_hub_platform.config.branding import BRANDING
 from analytics_hub_platform.ui.theme import get_theme

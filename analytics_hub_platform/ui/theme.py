@@ -55,6 +55,21 @@ class Colors:
     red: str = "#EF4444"            # Error/Off track
     red_bg: str = "rgba(239, 68, 68, 0.15)"
 
+    # === Status Color Aliases (for compatibility) ===
+    status_green: str = "#10B981"
+    status_green_bg: str = "rgba(16, 185, 129, 0.15)"
+    status_amber: str = "#F59E0B"
+    status_amber_bg: str = "rgba(245, 158, 11, 0.15)"
+    status_red: str = "#EF4444"
+    status_red_bg: str = "rgba(239, 68, 68, 0.15)"
+    success: str = "#10B981"
+    warning: str = "#F59E0B"
+    error: str = "#EF4444"
+
+    # === Surface Colors ===
+    surface: str = "#1E293B"
+    surface_alt: str = "#1E2340"
+
     # === Domain/Pillar Colors ===
     domain_economic: str = "#3B82F6"       # Blue
     domain_labor: str = "#8B5CF6"          # Violet
@@ -145,6 +160,12 @@ class Typography:
     size_small: str = "11px"     # Small text
     size_tiny: str = "10px"      # Tiny labels
 
+    # === Size Aliases (for compatibility) ===
+    size_lg: str = "18px"
+    size_base: str = "14px"
+    size_sm: str = "12px"
+    kpi_value_size: str = "32px"
+
     # === Font Weights ===
     weight_regular: int = 400
     weight_medium: int = 500
@@ -168,6 +189,7 @@ class Spacing:
     page_margin: str = "32px"
     section_gap: str = "32px"
     card_gap: str = "24px"
+    card_padding: str = "24px"
     row_gap: str = "20px"
     gutter: str = "16px"
 
@@ -200,6 +222,7 @@ class Shadows:
     card_hover: str = "0 8px 16px rgba(0, 0, 0, 0.15), 0 30px 60px rgba(0, 0, 0, 0.45)"
     card_sm: str = "0 2px 4px rgba(0, 0, 0, 0.1), 0 10px 20px rgba(0, 0, 0, 0.3)"
     card_subtle: str = "0 4px 12px rgba(0, 0, 0, 0.25)"
+    sm: str = "0 2px 4px rgba(0, 0, 0, 0.1), 0 10px 20px rgba(0, 0, 0, 0.3)"
 
     # === Glow Effects ===
     glow_purple: str = "0 0 40px rgba(168, 85, 247, 0.15)"
@@ -241,6 +264,12 @@ class Theme:
     radius: Radius = field(default_factory=Radius)
     shadows: Shadows = field(default_factory=Shadows)
     transitions: Transitions = field(default_factory=Transitions)
+
+    # Convenience alias for border_radius
+    @property
+    def border_radius(self) -> Radius:
+        """Alias for radius for compatibility."""
+        return self.radius
 
 
 @lru_cache(maxsize=1)

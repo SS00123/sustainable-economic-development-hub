@@ -617,14 +617,14 @@ def create_dashboard_router() -> APIRouter:
         if years:
             years_list = [int(y.strip()) for y in years.split(",")]
 
-        filters = FilterParams(tenant_id=tenant_id, region=region)
+        filters = FilterParams(tenant_id=tenant_id, region=region, year=None, quarter=None)
         timeseries = get_kpi_timeseries(df, kpi_id, filters, years_list)
 
         data = [
             TimeSeriesPointSchema(
                 period=point.period,
                 value=point.value,
-                status=point.status.value if hasattr(point.status, "value") else str(point.status),
+                status=point.status.value if point.status and hasattr(point.status, "value") else str(point.status or "unknown"),
             )
             for point in timeseries
         ]

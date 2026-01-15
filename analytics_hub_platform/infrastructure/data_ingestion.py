@@ -168,13 +168,20 @@ def parse_upload_file(
         Tuple of (DataFrame or None, error message)
     """
     try:
+        # Always convert to BytesIO for consistent handling
+        buffer: io.BytesIO
         if isinstance(file_content, bytes):
-            file_content = io.BytesIO(file_content)
+            buffer = io.BytesIO(file_content)
+        elif isinstance(file_content, io.BytesIO):
+            buffer = file_content
+        else:
+            # Fallback: wrap in BytesIO for safety
+            buffer = io.BytesIO(bytes(file_content))  # type: ignore[arg-type]
 
         if filename.lower().endswith((".xlsx", ".xls")):
-            df = pd.read_excel(file_content)
+            df = pd.read_excel(buffer)
         elif filename.lower().endswith(".csv"):
-            df = pd.read_csv(file_content)
+            df = pd.read_csv(buffer)
         else:
             return None, f"Unsupported file type: {filename}"
 

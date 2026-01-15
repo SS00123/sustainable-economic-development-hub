@@ -146,8 +146,8 @@ def check_indicator_coverage(df: pd.DataFrame, indicator_columns: list[str]) -> 
     return DQCheck(
         name="Indicator Coverage",
         category="completeness",
-        passed=avg_coverage >= 80,
-        score=round(avg_coverage, 2),
+        passed=bool(avg_coverage >= 80),
+        score=float(round(avg_coverage, 2)),
         message=f"{len(present_columns)}/{len(indicator_columns)} columns present, {avg_coverage:.1f}% average fill rate",
         details={"columns_present": present_columns, "coverage_by_column": non_null_coverage},
     )

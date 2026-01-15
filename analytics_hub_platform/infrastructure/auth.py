@@ -8,7 +8,7 @@ Provides JWT token creation, validation, and user authentication.
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from analytics_hub_platform.domain.models import User, UserRole
 from analytics_hub_platform.infrastructure.exceptions import (
@@ -21,13 +21,22 @@ from analytics_hub_platform.infrastructure.settings import get_settings
 logger = logging.getLogger(__name__)
 
 
+# Type stubs for optional jose imports
+if TYPE_CHECKING:
+    from jose import ExpiredSignatureError as ExpiredSigType, JWTError as JWTErrType  # type: ignore[import-not-found]
+    from jose import jwt as jwt_module  # type: ignore[import-not-found]
+
 # Try to import jose for JWT handling
 try:
-    from jose import ExpiredSignatureError, JWTError, jwt
+    from jose import ExpiredSignatureError, JWTError, jwt  # type: ignore[import-not-found]
 
     JWT_AVAILABLE = True
 except ImportError:
     JWT_AVAILABLE = False
+    # Provide type-compatible stubs
+    ExpiredSignatureError: Any = Exception  # type: ignore[misc]
+    JWTError: Any = Exception  # type: ignore[misc]
+    jwt: Any = None  # type: ignore[misc]
     logger.warning("python-jose not installed. JWT authentication will use fallback mode.")
 
 
@@ -188,6 +197,7 @@ class JWTHandler:
                 tenant_id=payload.get("tenant_id", self._settings.default_tenant_id),
                 email=payload.get("email", ""),
                 name=payload.get("name", "Unknown User"),
+                name_ar=payload.get("name_ar"),
                 role=role,
                 is_active=True,
             )
@@ -210,6 +220,7 @@ def get_mock_users() -> dict[str, User]:
             tenant_id=settings.default_tenant_id,
             email="minister@mep.gov.sa",
             name="His Excellency the Minister",
+            name_ar="معالي الوزير",
             role=UserRole.MINISTER,
             is_active=True,
         ),
@@ -218,6 +229,7 @@ def get_mock_users() -> dict[str, User]:
             tenant_id=settings.default_tenant_id,
             email="executive@mep.gov.sa",
             name="Deputy Minister",
+            name_ar="نائب الوزير",
             role=UserRole.EXECUTIVE,
             is_active=True,
         ),
@@ -226,6 +238,7 @@ def get_mock_users() -> dict[str, User]:
             tenant_id=settings.default_tenant_id,
             email="director@mep.gov.sa",
             name="Director of Analytics",
+            name_ar="مدير التحليلات",
             role=UserRole.DIRECTOR,
             is_active=True,
         ),
@@ -234,6 +247,7 @@ def get_mock_users() -> dict[str, User]:
             tenant_id=settings.default_tenant_id,
             email="analyst@mep.gov.sa",
             name="Senior Data Analyst",
+            name_ar="محلل بيانات أول",
             role=UserRole.ANALYST,
             is_active=True,
         ),
@@ -242,6 +256,7 @@ def get_mock_users() -> dict[str, User]:
             tenant_id=settings.default_tenant_id,
             email="admin@mep.gov.sa",
             name="System Administrator",
+            name_ar="مسؤول النظام",
             role=UserRole.ADMIN,
             is_active=True,
         ),
@@ -250,6 +265,7 @@ def get_mock_users() -> dict[str, User]:
             tenant_id=settings.default_tenant_id,
             email="demo@ministry.gov.sa",
             name="Demo User",
+            name_ar="مستخدم تجريبي",
             role=UserRole.ANALYST,
             is_active=True,
         ),

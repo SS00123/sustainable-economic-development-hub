@@ -14,30 +14,39 @@ import os
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+# Type stubs for optional imports
+if TYPE_CHECKING:
+    import anthropic as anthropic_module  # type: ignore[import-not-found]
+    import openai as openai_module  # type: ignore[import-not-found]
+    from anthropic import APIError as AnthropicAPIError  # type: ignore[import-not-found]
+    from openai import APIConnectionError as OpenAIConnError  # type: ignore[import-not-found]
 
 try:
-    import openai
-    from openai import APIConnectionError, APITimeoutError, OpenAIError, RateLimitError
+    import openai  # type: ignore[import-not-found]
+    from openai import APIConnectionError, APITimeoutError, OpenAIError, RateLimitError  # type: ignore[import-not-found]
 
     HAS_OPENAI = True
 except ImportError:
     HAS_OPENAI = False
-    OpenAIError = Exception  # type: ignore
-    APITimeoutError = Exception  # type: ignore
-    APIConnectionError = Exception  # type: ignore
-    RateLimitError = Exception  # type: ignore
+    openai: Any = None  # type: ignore[misc]
+    OpenAIError: Any = Exception  # type: ignore[misc]
+    APITimeoutError: Any = Exception  # type: ignore[misc]
+    APIConnectionError: Any = Exception  # type: ignore[misc]
+    RateLimitError: Any = Exception  # type: ignore[misc]
 
 try:
-    import anthropic
-    from anthropic import APIError
-    from anthropic import APITimeoutError as AnthropicTimeoutError
+    import anthropic  # type: ignore[import-not-found]
+    from anthropic import APIError  # type: ignore[import-not-found]
+    from anthropic import APITimeoutError as AnthropicTimeoutError  # type: ignore[import-not-found]
 
     HAS_ANTHROPIC = True
 except ImportError:
     HAS_ANTHROPIC = False
-    APIError = Exception  # type: ignore
-    AnthropicTimeoutError = Exception  # type: ignore
+    anthropic: Any = None  # type: ignore[misc]
+    APIError: Any = Exception  # type: ignore[misc]
+    AnthropicTimeoutError: Any = Exception  # type: ignore[misc]
 
 from analytics_hub_platform.infrastructure.caching import get_cache_manager
 from analytics_hub_platform.infrastructure.settings import get_settings
@@ -230,8 +239,10 @@ class OpenAIProvider(BaseLLMProvider):
         self.max_retries = max_retries
 
         if self.api_key and HAS_OPENAI:
+            # Handle SecretStr type from pydantic settings
+            key_str = str(self.api_key) if isinstance(self.api_key, str) else self.api_key.get_secret_value()  # type: ignore[union-attr]
             self.client = openai.OpenAI(
-                api_key=self.api_key, timeout=self.timeout, max_retries=self.max_retries
+                api_key=key_str, timeout=self.timeout, max_retries=self.max_retries
             )
         else:
             self.client = None
@@ -275,7 +286,7 @@ class OpenAIProvider(BaseLLMProvider):
             )
 
             content = response.choices[0].message.content
-            result = self._parse_response(content, "openai", self.model)
+            result = self._parse_response(content or "", "openai", self.model)
 
             # Cache successful response
             cache_manager.set(cache_key, result, ttl=3600)  # 1 hour

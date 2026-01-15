@@ -8,10 +8,14 @@ Generates professional PowerPoint presentations with KPI slides.
 
 from datetime import datetime
 from io import BytesIO
+from typing import TYPE_CHECKING, Any
 
 import pandas as pd
 
-from typing import Any
+# Type stubs for optional pptx imports
+if TYPE_CHECKING:
+    from pptx import Presentation as PresentationType
+    from pptx.dml.color import RGBColor as RGBColorType
 
 try:
     from pptx import Presentation
@@ -23,7 +27,13 @@ try:
     PPTX_AVAILABLE = True
 except ImportError:
     PPTX_AVAILABLE = False
-    RGBColor = Any  # type: ignore
+    # Fallback stubs for type checking
+    Presentation: Any = None  # type: ignore[misc]
+    RGBColor: Any = None  # type: ignore[misc]
+    MSO_SHAPE: Any = None  # type: ignore[misc]
+    PP_ALIGN: Any = None  # type: ignore[misc]
+    Inches: Any = None  # type: ignore[misc]
+    Pt: Any = None  # type: ignore[misc]
 
 from analytics_hub_platform.config.branding import BRANDING
 from analytics_hub_platform.ui.theme import get_theme
@@ -31,6 +41,8 @@ from analytics_hub_platform.ui.theme import get_theme
 
 def hex_to_rgb(hex_color: str) -> Any:
     """Convert hex color to RGBColor."""
+    if not PPTX_AVAILABLE or RGBColor is None:
+        return None
     hex_color = hex_color.lstrip("#")
     return RGBColor(
         int(hex_color[0:2], 16),
@@ -45,12 +57,14 @@ def hex_to_rgb(hex_color: str) -> Any:
 
 
 def _add_title_slide(
-    prs: "Presentation",
+    prs: Any,
     title: str,
     subtitle: str | None,
-    primary_color: "RGBColor",
+    primary_color: Any,
 ) -> None:
     """Add title slide to presentation."""
+    if not PPTX_AVAILABLE:
+        return
     white = RGBColor(255, 255, 255)
     slide_layout = prs.slide_layouts[6]
     slide = prs.slides.add_slide(slide_layout)
@@ -94,11 +108,13 @@ def _add_title_slide(
 
 
 def _add_executive_summary_slide(
-    prs: "Presentation",
+    prs: Any,
     summary_metrics: dict,
-    primary_color: "RGBColor",
+    primary_color: Any,
 ) -> None:
     """Add executive summary slide with KPI cards."""
+    if not PPTX_AVAILABLE:
+        return
     white = RGBColor(255, 255, 255)
     slide = prs.slides.add_slide(prs.slide_layouts[6])
 
@@ -123,9 +139,9 @@ def _add_executive_summary_slide(
 
 
 def _add_metric_cards(
-    slide,
+    slide: Any,
     summary_metrics: dict,
-    primary_color: "RGBColor",
+    primary_color: Any,
 ) -> None:
     """Add metric cards to a slide."""
     metrics_list = list(summary_metrics.items())[:8]  # Max 8 metrics
@@ -174,11 +190,13 @@ def _add_metric_cards(
 
 
 def _add_data_table_slide(
-    prs: "Presentation",
+    prs: Any,
     data: pd.DataFrame,
-    primary_color: "RGBColor",
+    primary_color: Any,
 ) -> None:
     """Add data table slide to presentation."""
+    if not PPTX_AVAILABLE:
+        return
     white = RGBColor(255, 255, 255)
     slide = prs.slides.add_slide(prs.slide_layouts[6])
 
@@ -233,10 +251,12 @@ def _add_data_table_slide(
 
 
 def _add_thank_you_slide(
-    prs: "Presentation",
-    primary_color: "RGBColor",
+    prs: Any,
+    primary_color: Any,
 ) -> None:
     """Add thank you/contact slide to presentation."""
+    if not PPTX_AVAILABLE:
+        return
     white = RGBColor(255, 255, 255)
     slide = prs.slides.add_slide(prs.slide_layouts[6])
 

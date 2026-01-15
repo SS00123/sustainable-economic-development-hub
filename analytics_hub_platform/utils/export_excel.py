@@ -8,8 +8,23 @@ Generates professional Excel workbooks with formatted data and charts.
 
 from datetime import datetime
 from io import BytesIO
+from typing import TYPE_CHECKING, Any
 
 import pandas as pd
+
+# Type stubs for optional openpyxl imports
+if TYPE_CHECKING:
+    from openpyxl import Workbook as WorkbookType
+    from openpyxl.chart import LineChart as LineChartType, Reference as ReferenceType
+    from openpyxl.styles import (
+        Alignment as AlignmentType,
+        Border as BorderType,
+        Font as FontType,
+        PatternFill as PatternFillType,
+        Side as SideType,
+    )
+    from openpyxl.utils import get_column_letter as get_column_letter_func
+    from openpyxl.utils.dataframe import dataframe_to_rows as dataframe_to_rows_func
 
 try:
     from openpyxl import Workbook
@@ -21,6 +36,17 @@ try:
     OPENPYXL_AVAILABLE = True
 except ImportError:
     OPENPYXL_AVAILABLE = False
+    # Provide type-compatible stubs for static analysis
+    Workbook: Any = None
+    LineChart: Any = None
+    Reference: Any = None
+    Font: Any = None
+    PatternFill: Any = None
+    Alignment: Any = None
+    Border: Any = None
+    Side: Any = None
+    get_column_letter: Any = None
+    dataframe_to_rows: Any = None
 
 from analytics_hub_platform.config.branding import BRANDING
 from analytics_hub_platform.ui.theme import get_theme
@@ -190,8 +216,9 @@ def generate_excel_workbook(
             ws_trend["B3"].font = header_font
 
             for idx, row in trend_data.iterrows():
-                ws_trend.cell(row=4 + idx, column=1, value=int(row["year"]))
-                ws_trend.cell(row=4 + idx, column=2, value=round(row["sustainability_index"], 2))
+                row_num = int(idx) if isinstance(idx, (int, float)) else 0
+                ws_trend.cell(row=4 + row_num, column=1, value=int(row["year"]))
+                ws_trend.cell(row=4 + row_num, column=2, value=round(row["sustainability_index"], 2))
 
             # Add line chart
             if len(trend_data) >= 2:
